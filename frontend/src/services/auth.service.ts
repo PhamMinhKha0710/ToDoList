@@ -1,5 +1,5 @@
 import axiosInstance from '@/lib/axios'
-import type { RegisterInput } from '@/schemas/auth.schema'
+import type { RegisterInput, LoginInput } from '@/schemas/auth.schema'
 import type { ApiResponse } from '@/types/api'
 import type { User } from '@/stores/auth.store'
 
@@ -12,6 +12,11 @@ export const authService = {
       password: data.password,
     }
     const response = await axiosInstance.post('/auth/register', payload)
+    return response.data
+  },
+
+  login: async (data: LoginInput): Promise<ApiResponse<{ accessToken: string; user: User }>> => {
+    const response = await axiosInstance.post('/auth/login', data)
     return response.data
   },
 }
