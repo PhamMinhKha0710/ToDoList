@@ -1,6 +1,6 @@
 import axios from 'axios'
 
-const BASE_URL = import.meta.env.VITE_API_URL ?? '/api/v1'
+const BASE_URL = import.meta.env.VITE_API_URL ?? '/api'
 
 const axiosInstance = axios.create({
   baseURL: BASE_URL,
@@ -9,19 +9,15 @@ const axiosInstance = axios.create({
 })
 
 // ─── Request interceptor: gắn Access Token ────────────────────────────────────
-axiosInstance.interceptors.request.use((config) => {
-  // accessToken được lưu trong Zustand (in-memory), lấy trực tiếp
-  const raw = localStorage.getItem('auth-store')
-  if (raw) {
-    try {
-      const { state } = JSON.parse(raw)
-      if (state?.accessToken) {
-        config.headers['Authorization'] = `Bearer ${state.accessToken}`
-      }
-    } catch {
-      /* ignore */
-    }
+axiosInstance.interceptors.request.use(async (config) => {
+  // Lấy accesstoken trực tiếp từ Zustand store
+  const { useAuthStore } = await import('@/stores/auth.store')
+  const accessToken = useAuthStore.getState().accessToken
+  
+  if (accessToken) {
+    config.headers['Authorization'] = `Bearer ${accessToken}`
   }
+  
   return config
 })
 
