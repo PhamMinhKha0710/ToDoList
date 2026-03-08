@@ -25,6 +25,15 @@ const userSchema = new Schema(
     avatarUrl: {
       type: String,
     },
+    // Dùng cho tính năng forgot/reset password
+    otpCode: {
+      type: String,
+      default: null,
+    },
+    otpExpires: {
+      type: Date,
+      default: null,
+    },
   },
   { timestamps: true }
 );
