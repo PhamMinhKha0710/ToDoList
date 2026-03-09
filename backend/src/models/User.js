@@ -1,4 +1,4 @@
-const { Schema, model } = require('mongoose');
+const { Schema, model } = require("mongoose");
 
 const userSchema = new Schema(
   {
@@ -6,7 +6,7 @@ const userSchema = new Schema(
       type: String,
       required: true,
       unique: true,
-      lowercase: true,
+      // lowercase: true,
       trim: true,
     },
     passwordHash: {
@@ -15,8 +15,8 @@ const userSchema = new Schema(
     },
     role: {
       type: String,
-      enum: ['user', 'admin'],
-      default: 'user',
+      enum: ["user", "admin"],
+      default: "user",
     },
     displayName: {
       type: String,
@@ -25,8 +25,17 @@ const userSchema = new Schema(
     avatarUrl: {
       type: String,
     },
+    // Dùng cho tính năng forgot/reset password
+    otpCode: {
+      type: String,
+      default: null,
+    },
+    otpExpires: {
+      type: Date,
+      default: null,
+    },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
-module.exports = model('User', userSchema);
+module.exports = model("User", userSchema);
