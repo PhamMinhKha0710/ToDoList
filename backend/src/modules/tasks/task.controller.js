@@ -5,6 +5,7 @@ const { toCreateTaskDTO } = require('./dtos/createTask.dto');
 const { toUpdateTaskDTO } = require('./dtos/updateTask.dto');
 const { toMoveTaskDTO } = require('./dtos/moveTask.dto');
 const { toTaskResponseDTO } = require('./dtos/taskResponse.dto');
+const { toAddTagsDTO } = require('./dtos/tag.dto');
 
 /**
  * POST /api/v1/tasks
@@ -62,6 +63,23 @@ const deleteTask = catchAsync(async (req, res) => {
   new ApiResponse(200, 'Xóa tác vụ thành công').send(res);
 });
 
+/**
+ * POST /api/v1/tasks/:taskId/tags
+ */
+const addTags = catchAsync(async (req, res) => {
+  const tagsData = toAddTagsDTO(req.body);
+  const task = await taskService.addTagsToTask(req.params.taskId, tagsData);
+  new ApiResponse(200, 'Thêm tag thành công', { task: toTaskResponseDTO(task) }).send(res);
+});
+
+/**
+ * DELETE /api/v1/tasks/:taskId/tags/:tagName
+ */
+const removeTag = catchAsync(async (req, res) => {
+  const task = await taskService.removeTagFromTask(req.params.taskId, req.params.tagName);
+  new ApiResponse(200, 'Xóa tag thành công', { task: toTaskResponseDTO(task) }).send(res);
+});
+
 module.exports = {
   createTask,
   getTasksByColumnId,
@@ -69,4 +87,6 @@ module.exports = {
   updateTask,
   moveTask,
   deleteTask,
+  addTags,
+  removeTag,
 };
