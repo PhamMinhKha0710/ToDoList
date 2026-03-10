@@ -37,6 +37,27 @@ const removeTaskFromColumnOrder = async (columnId, taskId) => {
   );
 };
 
+const addTagsToTask = async (taskId, tagsArray) => {
+  // Use $addToSet or multiple $push. We will use $push with $each to allow duplicate tag names with different colors,
+  // or $addToSet if we want strictly unique tags. Let's use $push with $each to simply append, 
+  // but a better approach is to pull existing tags with the same name first to avoid duplicates, 
+  // or handle uniqueness in logic. For simplicity, $push with $each as requested by typical 'add Tags' behavior.
+  return await Task.findByIdAndUpdate(
+    taskId,
+    { $push: { tags: { $each: tagsArray } } },
+    { new: true }
+  ).populate('assigneeId', 'displayName email avatar');
+};
+
+const removeTagFromTask = async (taskId, tagName) => {
+  // Removes all tags that match the given name
+  return await Task.findByIdAndUpdate(
+    taskId,
+    { $pull: { tags: { name: tagName } } },
+    { new: true }
+  ).populate('assigneeId', 'displayName email avatar');
+};
+
 module.exports = {
   createTask,
   getTasksByColumnId,
@@ -45,4 +66,6 @@ module.exports = {
   deleteTask,
   updateColumnTaskOrder,
   removeTaskFromColumnOrder,
+  addTagsToTask,
+  removeTagFromTask,
 };

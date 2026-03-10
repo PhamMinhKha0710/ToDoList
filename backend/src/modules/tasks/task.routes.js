@@ -24,4 +24,10 @@ router.route('/:taskId')
   .put(validate(taskValidator.updateTaskSchema), taskController.updateTask)
   .delete(taskController.deleteTask);
 
+router.route('/:taskId/tags')
+  .post(validate(taskValidator.addTagsSchema), taskController.addTags);
+
+router.route('/:taskId/tags/:tagName')
+  .delete(taskController.removeTag);
+
 module.exports = router;

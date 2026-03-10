@@ -85,6 +85,37 @@ const moveTask = async (moveData) => {
   ]);
 };
 
+const addTagsToTask = async (taskId, tagsArray) => {
+  const task = await taskRepository.getTaskById(taskId);
+  if (!task) {
+    throw new ApiError(404, 'Không tìm thấy task để thêm tag');
+  }
+
+  if (!tagsArray || tagsArray.length === 0) {
+    return task; // No tags to add, return current task
+  }
+
+  // Handle unique tag check via JS instead of raw mongo $addToSet for better colored duplicates resolution
+  // Assuming a tag name should be unique in the given task
+  const existingNames = task.tags.map(t => t.name.toLowerCase());
+  const newTagsToInsert = tagsArray.filter(t => !existingNames.includes(t.name.toLowerCase()));
+
+  if (newTagsToInsert.length === 0) {
+    return task; // All tags already exist, return as is
+  }
+
+  return await taskRepository.addTagsToTask(taskId, newTagsToInsert);
+};
+
+const removeTagFromTask = async (taskId, tagName) => {
+  const task = await taskRepository.getTaskById(taskId);
+  if (!task) {
+    throw new ApiError(404, 'Không tìm thấy task để xóa tag');
+  }
+
+  return await taskRepository.removeTagFromTask(taskId, tagName);
+};
+
 module.exports = {
   createTask,
   getTasksByColumnId,
@@ -92,4 +123,6 @@ module.exports = {
   updateTask,
   deleteTask,
   moveTask,
+  addTagsToTask,
+  removeTagFromTask,
 };

@@ -52,8 +52,13 @@ const moveTaskSchema = Joi.object({
   }),
 });
 
+const addTagsSchema = Joi.array().items(tagSchema).unique('name').optional().messages({
+  'array.unique': 'Tên tag không được trùng lặp trong danh sách thêm',
+});
+
 module.exports = {
   createTaskSchema,
   updateTaskSchema,
   moveTaskSchema,
+  addTagsSchema,
 };
