@@ -11,6 +11,14 @@ const createColumn = catchAsync(async (req, res) => {
 });
 
 /**
+ * GET /api/v1/columns/project/:projectId
+ */
+const getProjectColumns = catchAsync(async (req, res) => {
+  const columns = await columnService.getColumnsByProjectId(req.params.projectId);
+  new ApiResponse(200, 'Lấy danh sách cột thành công', { columns }).send(res);
+});
+
+/**
  * PUT /api/v1/columns/:columnId
  */
 const updateColumn = catchAsync(async (req, res) => {
@@ -28,6 +36,7 @@ const deleteColumn = catchAsync(async (req, res) => {
 
 module.exports = {
   createColumn,
+  getProjectColumns,
   updateColumn,
   deleteColumn,
 };

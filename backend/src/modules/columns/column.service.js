@@ -26,6 +26,30 @@ class ColumnService {
     return newColumn;
   }
 
+  async getColumnsByProjectId(projectId) {
+    const project = await Project.findById(projectId);
+    if (!project) {
+      throw new ApiError(404, 'Không tìm thấy dự án');
+    }
+
+    // Lấy các cột
+    const columns = await columnRepository.findByProjectId(projectId);
+    
+    // Sort columns by project's columnOrder
+    const columnOrderMap = new Map();
+    project.columnOrder.forEach((id, index) => {
+      columnOrderMap.set(id.toString(), index);
+    });
+
+    columns.sort((a, b) => {
+      const idxA = columnOrderMap.has(a._id.toString()) ? columnOrderMap.get(a._id.toString()) : 9999;
+      const idxB = columnOrderMap.has(b._id.toString()) ? columnOrderMap.get(b._id.toString()) : 9999;
+      return idxA - idxB;
+    });
+
+    return columns;
+  }
+
   async updateColumn(columnId, updateData) {
     const column = await columnRepository.findById(columnId);
     if (!column) {

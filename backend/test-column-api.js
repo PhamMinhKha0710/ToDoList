@@ -101,6 +101,10 @@ async function runTests() {
     // 6. Owner cập nhật Column
     console.log('4. Owner cập nhật Column...');
     res = await makeRequest('PUT', `/columns/${columnId}`, tokenOwner, { title: 'Đã cập nhật tên cột' });
+    if (res.status !== 200) {
+      console.log('   => Lỗi update column:', res.status, res.data);
+      return;
+    }
     console.log(`   📝 Cập nhật tên mới: ${res.data.data.column.title}`);
 
     // 7. Member thử xóa Column
@@ -121,6 +125,16 @@ async function runTests() {
     if (columnOrderAfter.includes(columnId)) {
       console.error('   => FAILED: columnId chưa bị xóa khỏi columnOrder');
     }
+
+    // 10. Tạo lại 2 column để test API lấy danh sách columns
+    console.log('8. Owner tạo 2 Column để test API GET columns...');
+    const resCol1 = await makeRequest('POST', '/columns', tokenOwner, { projectId, title: 'Cột 1' });
+    const resCol2 = await makeRequest('POST', '/columns', tokenOwner, { projectId, title: 'Cột 2' });
+    
+    // 11. Test Member fetch danh sách columns (Kỳ vọng: Lấy được 2 cột)
+    console.log('9. Member fetch danh sách columns...');
+    res = await makeRequest('GET', `/columns/project/${projectId}`, tokenMember);
+    console.log(`   📝 Member lấy column status: ${res.status}, số cột: ${res.data.data.columns.length}`);
 
     console.log('\n✅ TẤT CẢ CÁC BƯỚC TEST COLUMN HOÀN TẤT!');
   } catch (error) {

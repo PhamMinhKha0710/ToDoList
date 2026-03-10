@@ -8,7 +8,11 @@ class ColumnRepository {
   }
 
   async findById(columnId) {
-    return Column.findById(columnId);
+    return Column.findById(columnId); // Remove populate taskOrder until Task model is implemented
+  }
+
+  async findByProjectId(projectId) {
+    return Column.find({ projectId });
   }
 
   async updateById(columnId, updateData) {
