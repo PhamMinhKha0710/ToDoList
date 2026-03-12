@@ -1,13 +1,15 @@
 const projectService = require('./project.service');
 const catchAsync = require('../../utils/catchAsync');
 const ApiResponse = require('../../utils/ApiResponse');
+const ProjectResponseDTO = require('./dtos/projectResponse.dto');
 
 /**
  * POST /api/v1/projects
  */
 const createProject = catchAsync(async (req, res) => {
   const project = await projectService.createProject(req.user._id, req.body);
-  new ApiResponse(201, 'Tạo dự án thành công', { project }).send(res);
+  const projectDTO = ProjectResponseDTO.fromEntity(project);
+  new ApiResponse(201, 'Tạo dự án thành công', { project: projectDTO }).send(res);
 });
 
 /**
@@ -15,7 +17,8 @@ const createProject = catchAsync(async (req, res) => {
  */
 const getUserProjects = catchAsync(async (req, res) => {
   const projects = await projectService.getUserProjects(req.user._id);
-  new ApiResponse(200, 'Lấy danh sách dự án thành công', { projects }).send(res);
+  const projectsDTO = ProjectResponseDTO.fromEntities(projects);
+  new ApiResponse(200, 'Lấy danh sách dự án thành công', { projects: projectsDTO }).send(res);
 });
 
 /**
@@ -23,7 +26,8 @@ const getUserProjects = catchAsync(async (req, res) => {
  */
 const getProjectById = catchAsync(async (req, res) => {
   const project = await projectService.getProjectById(req.params.projectId);
-  new ApiResponse(200, 'Lấy thông tin dự án thành công', { project }).send(res);
+  const projectDTO = ProjectResponseDTO.fromEntity(project);
+  new ApiResponse(200, 'Lấy thông tin dự án thành công', { project: projectDTO }).send(res);
 });
 
 /**
@@ -31,7 +35,8 @@ const getProjectById = catchAsync(async (req, res) => {
  */
 const updateProject = catchAsync(async (req, res) => {
   const project = await projectService.updateProject(req.params.projectId, req.body);
-  new ApiResponse(200, 'Cập nhật dự án thành công', { project }).send(res);
+  const projectDTO = ProjectResponseDTO.fromEntity(project);
+  new ApiResponse(200, 'Cập nhật dự án thành công', { project: projectDTO }).send(res);
 });
 
 /**
@@ -47,7 +52,8 @@ const deleteProject = catchAsync(async (req, res) => {
  */
 const addMember = catchAsync(async (req, res) => {
   const project = await projectService.addMember(req.params.projectId, req.body.email);
-  new ApiResponse(200, 'Thêm thành viên thành công', { project }).send(res);
+  const projectDTO = ProjectResponseDTO.fromEntity(project);
+  new ApiResponse(200, 'Thêm thành viên thành công', { project: projectDTO }).send(res);
 });
 
 /**
@@ -55,7 +61,8 @@ const addMember = catchAsync(async (req, res) => {
  */
 const removeMember = catchAsync(async (req, res) => {
   const project = await projectService.removeMember(req.params.projectId, req.params.memberId);
-  new ApiResponse(200, 'Xóa thành viên thành công', { project }).send(res);
+  const projectDTO = ProjectResponseDTO.fromEntity(project);
+  new ApiResponse(200, 'Xóa thành viên thành công', { project: projectDTO }).send(res);
 });
 
 module.exports = {
