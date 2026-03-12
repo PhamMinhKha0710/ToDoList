@@ -3,7 +3,7 @@ const attachmentController = require('./attachment.controller');
 const attachmentValidator = require('./attachment.validator');
 const { validate } = require('../../middlewares/validate.middleware');
 const { authenticate } = require('../../middlewares/auth.middleware');
-const upload = require('../../config/multer');
+const upload = require('../../middlewares/upload.middleware');
 
 const router = express.Router();
 
