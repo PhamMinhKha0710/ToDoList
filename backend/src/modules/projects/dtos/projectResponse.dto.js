@@ -3,6 +3,8 @@ class ProjectResponseDTO {
     this._id = project._id;
     this.name = project.name;
     this.description = project.description;
+    this.imageUrl = project.imageUrl;
+    this.color = project.color;
     this.members = project.members ? project.members.map(member => ({
       userId: member.userId,
       role: member.role

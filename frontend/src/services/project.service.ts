@@ -11,9 +11,22 @@ export const projectService = {
   createProject: async (data: { 
     name: string; 
     description?: string; 
+    imageUrl?: string;
+    color?: string;
+    file?: File;
     members?: { userId: string; role: 'owner' | 'member' }[];
   }): Promise<ApiResponse<{ project: Project }>> => {
-    const response = await api.post('/projects', data);
+    const formData = new FormData();
+    formData.append('name', data.name);
+    if (data.description) formData.append('description', data.description);
+    if (data.color) formData.append('color', data.color);
+    if (data.imageUrl) formData.append('imageUrl', data.imageUrl);
+    if (data.file) formData.append('file', data.file);
+    if (data.members) formData.append('members', JSON.stringify(data.members));
+
+    const response = await api.post('/projects', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
     return response.data;
   },
 
@@ -22,8 +35,17 @@ export const projectService = {
     return response.data;
   },
 
-  updateProject: async (projectId: string, data: { name?: string; description?: string }): Promise<ApiResponse<{ project: Project }>> => {
-    const response = await api.put(`/projects/${projectId}`, data);
+  updateProject: async (projectId: string, data: { name?: string; description?: string; imageUrl?: string; color?: string; file?: File }): Promise<ApiResponse<{ project: Project }>> => {
+    const formData = new FormData();
+    if (data.name) formData.append('name', data.name);
+    if (data.description) formData.append('description', data.description);
+    if (data.color) formData.append('color', data.color);
+    if (data.imageUrl) formData.append('imageUrl', data.imageUrl);
+    if (data.file) formData.append('file', data.file);
+
+    const response = await api.put(`/projects/${projectId}`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
     return response.data;
   },
 

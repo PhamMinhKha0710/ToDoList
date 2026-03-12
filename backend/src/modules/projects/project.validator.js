@@ -12,11 +12,15 @@ const createProjectSchema = Joi.object({
       role: Joi.string().valid('owner', 'member').required(),
     })
   ).optional(),
+  imageUrl: Joi.string().trim().allow('').optional(),
+  color: Joi.string().trim().allow('').optional(),
 });
 
 const updateProjectSchema = Joi.object({
   name: Joi.string().trim().optional(),
   description: Joi.string().trim().allow('').optional(),
+  imageUrl: Joi.string().trim().allow('').optional(),
+  color: Joi.string().trim().allow('').optional(),
 });
 
 const addMemberSchema = Joi.object({

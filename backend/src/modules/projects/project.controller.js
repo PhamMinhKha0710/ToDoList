@@ -2,12 +2,18 @@ const projectService = require('./project.service');
 const catchAsync = require('../../utils/catchAsync');
 const ApiResponse = require('../../utils/ApiResponse');
 const ProjectResponseDTO = require('./dtos/projectResponse.dto');
+const uploadService = require('../../services/upload.service');
 
 /**
  * POST /api/v1/projects
  */
 const createProject = catchAsync(async (req, res) => {
-  const project = await projectService.createProject(req.user._id, req.body);
+  const projectData = { ...req.body };
+  if (req.file) {
+    projectData.imageUrl = uploadService.handleUpload(req.file);
+  }
+
+  const project = await projectService.createProject(req.user._id, projectData);
   const projectDTO = ProjectResponseDTO.fromEntity(project);
   new ApiResponse(201, 'Tạo dự án thành công', { project: projectDTO }).send(res);
 });
@@ -34,7 +40,12 @@ const getProjectById = catchAsync(async (req, res) => {
  * PUT /api/v1/projects/:projectId
  */
 const updateProject = catchAsync(async (req, res) => {
-  const project = await projectService.updateProject(req.params.projectId, req.body);
+  const projectData = { ...req.body };
+  if (req.file) {
+    projectData.imageUrl = uploadService.handleUpload(req.file);
+  }
+
+  const project = await projectService.updateProject(req.params.projectId, projectData);
   const projectDTO = ProjectResponseDTO.fromEntity(project);
   new ApiResponse(200, 'Cập nhật dự án thành công', { project: projectDTO }).send(res);
 });

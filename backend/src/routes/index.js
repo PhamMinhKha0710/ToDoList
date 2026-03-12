@@ -11,6 +11,7 @@ const attachmentRoutes = require('../modules/attachments/attachment.routes');
 // const notificationRoutes = require('../modules/notifications/notification.routes');
 // const personalTaskRoutes = require('../modules/personal-tasks/personalTask.routes');
 // const adminRoutes = require('../modules/admin/admin.routes');
+const uploadRoutes = require('../modules/upload/upload.routes');
 
 const router = Router();
 
@@ -24,5 +25,7 @@ router.use('/attachments', attachmentRoutes);
 // router.use('/notifications', notificationRoutes);
 // router.use('/personal-tasks', personalTaskRoutes);
 // router.use('/admin', adminRoutes);
+
+router.use('/upload', uploadRoutes);
 
 module.exports = router;

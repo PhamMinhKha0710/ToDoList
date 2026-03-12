@@ -19,6 +19,8 @@ import { UserSearchSelect } from './UserSearchSelect';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { X, Loader2 } from 'lucide-react';
 
+const PRESET_COLORS = ['#3b82f6', '#10b981', '#ef4444', '#f59e0b', '#8b5cf6', '#ec4899', '#6b7280'];
+
 interface CreateProjectModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -33,6 +35,9 @@ export const CreateProjectModal = ({ open, onOpenChange }: CreateProjectModalPro
   const queryClient = useQueryClient();
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
+  const [imageUrl, setImageUrl] = useState('');
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [color, setColor] = useState(PRESET_COLORS[0]);
   const [selectedMembers, setSelectedMembers] = useState<SelectedMember[]>([]);
 
   const createMutation = useMutation({
@@ -51,6 +56,9 @@ export const CreateProjectModal = ({ open, onOpenChange }: CreateProjectModalPro
   const resetForm = () => {
     setName('');
     setDescription('');
+    setImageUrl('');
+    setSelectedFile(null);
+    setColor(PRESET_COLORS[0]);
     setSelectedMembers([]);
   };
 
@@ -63,7 +71,7 @@ export const CreateProjectModal = ({ open, onOpenChange }: CreateProjectModalPro
     setSelectedMembers((prev) => prev.filter((m) => m.user._id !== userId));
   };
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!name.trim()) {
       toast.error('Vui lòng nhập tên dự án');
@@ -73,6 +81,9 @@ export const CreateProjectModal = ({ open, onOpenChange }: CreateProjectModalPro
     const payload = {
       name,
       description,
+      imageUrl: selectedFile ? undefined : imageUrl,
+      file: selectedFile || undefined,
+      color,
       members: selectedMembers.map(m => ({
         userId: m.user._id,
         role: m.role
@@ -115,6 +126,79 @@ export const CreateProjectModal = ({ open, onOpenChange }: CreateProjectModalPro
                 rows={3}
                 className="resize-none"
               />
+            </div>
+
+            <div className="grid grid-cols-2 gap-6">
+              <div className="space-y-3">
+                <Label className="text-sm font-semibold">Màu sắc chủ đạo</Label>
+                <div className="flex flex-wrap gap-2">
+                  {PRESET_COLORS.map((c: string) => (
+                    <button
+                      key={c}
+                      type="button"
+                      className={`w-8 h-8 rounded-full border-2 transition-all ${color === c ? 'border-primary scale-110' : 'border-transparent hover:scale-105 shadow-sm'}`}
+                      style={{ backgroundColor: c }}
+                      onClick={() => setColor(c)}
+                    />
+                  ))}
+                  <div className="relative w-8 h-8 rounded-full overflow-hidden border border-border shadow-sm flex items-center justify-center bg-muted/50 hover:bg-muted cursor-pointer transition-colors" title="Màu tùy chỉnh">
+                    <Input 
+                      type="color" 
+                      value={color}
+                      onChange={(e) => setColor(e.target.value)}
+                      className="absolute inset-[-10px] w-12 h-12 cursor-pointer opacity-0"
+                    />
+                    <div className="w-4 h-4 rounded-full" style={{ backgroundColor: color }} />
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                <Label className="text-sm font-semibold">Ảnh đại diện nội bộ</Label>
+                <div className="flex items-center gap-3">
+                  {selectedFile || imageUrl ? (
+                    <div 
+                      className="h-10 w-10 shrink-0 rounded-lg bg-cover bg-center border relative group cursor-pointer"
+                      style={{ backgroundImage: `url(${selectedFile ? URL.createObjectURL(selectedFile) : imageUrl})` }}
+                      onClick={() => document.getElementById('project-avatar-upload')?.click()}
+                    >
+                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center">
+                        <span className="text-white text-[10px] font-medium">Đổi</span>
+                      </div>
+                    </div>
+                  ) : (
+                    <div 
+                      className="h-10 w-10 shrink-0 rounded-lg flex items-center justify-center text-white font-bold cursor-pointer hover:opacity-90 transition-opacity"
+                      style={{ backgroundColor: color }}
+                      onClick={() => document.getElementById('project-avatar-upload')?.click()}
+                    >
+                      {name ? name.substring(0, 2).toUpperCase() : 'P'}
+                    </div>
+                  )}
+                  <div className="flex-1">
+                    <Input 
+                      id="project-avatar-upload"
+                      type="file" 
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) => {
+                        if (e.target.files && e.target.files[0]) {
+                          setSelectedFile(e.target.files[0]);
+                        }
+                      }}
+                    />
+                    <Button 
+                      type="button" 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={() => document.getElementById('project-avatar-upload')?.click()}
+                      className="w-full text-xs"
+                    >
+                      Tải ảnh lên...
+                    </Button>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
 
