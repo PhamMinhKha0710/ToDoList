@@ -4,10 +4,19 @@ const ApiError = require('../../utils/ApiError');
 
 class ProjectService {
   async createProject(userId, projectData) {
+    const members = projectData.members || [];
     // Thêm người tạo vào list members với role 'owner'
+    // Lưu ý: Đảm bảo không bị trùng ID nếu frontend có lỡ gửi lên (hiếm)
+    const existingOwnerIndex = members.findIndex(m => m.userId.toString() === userId.toString());
+    if (existingOwnerIndex === -1) {
+      members.push({ userId, role: 'owner' });
+    } else {
+      members[existingOwnerIndex].role = 'owner';
+    }
+
     const newProjectData = {
       ...projectData,
-      members: [{ userId, role: 'owner' }],
+      members,
     };
     return projectRepository.create(newProjectData);
   }

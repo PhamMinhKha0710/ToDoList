@@ -8,7 +8,11 @@ export const projectService = {
     return response.data;
   },
 
-  createProject: async (data: { name: string; description?: string }): Promise<ApiResponse<{ project: Project }>> => {
+  createProject: async (data: { 
+    name: string; 
+    description?: string; 
+    members?: { userId: string; role: 'owner' | 'member' }[];
+  }): Promise<ApiResponse<{ project: Project }>> => {
     const response = await api.post('/projects', data);
     return response.data;
   },

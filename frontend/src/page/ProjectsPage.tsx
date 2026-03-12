@@ -3,10 +3,12 @@ import { useQuery } from '@tanstack/react-query';
 import { Plus, LayoutGrid, List as ListIcon, Loader2 } from 'lucide-react';
 import { projectService } from '@/services/project.service';
 import { ProjectItem } from '@/components/project/ProjectItem';
+import { CreateProjectModal } from '@/components/project/CreateProjectModal';
 import { Button } from '@/components/ui/button';
 
 const ProjectsPage = () => {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
   const { data: response, isLoading, error } = useQuery({
     queryKey: ['projects'],
@@ -44,7 +46,7 @@ const ProjectsPage = () => {
               List
             </Button>
           </div>
-          <Button className="shadow-sm">
+          <Button className="shadow-sm" onClick={() => setIsCreateModalOpen(true)}>
             <Plus className="mr-2 h-4 w-4" />
             Create Project
           </Button>
@@ -71,7 +73,7 @@ const ProjectsPage = () => {
               <h3 className="text-lg font-semibold">No projects found</h3>
               <p className="text-muted-foreground mt-1">Get started by creating your first project.</p>
             </div>
-            <Button className="mt-4">
+            <Button className="mt-4" onClick={() => setIsCreateModalOpen(true)}>
               <Plus className="mr-2 h-4 w-4" />
               Create Project
             </Button>
@@ -95,6 +97,11 @@ const ProjectsPage = () => {
           </div>
         )}
       </div>
+
+      <CreateProjectModal 
+        open={isCreateModalOpen} 
+        onOpenChange={setIsCreateModalOpen} 
+      />
     </div>
   );
 };
