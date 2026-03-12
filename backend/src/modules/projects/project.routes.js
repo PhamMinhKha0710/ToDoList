@@ -29,6 +29,7 @@ router
 
 router
   .route('/:projectId/members/:memberId')
+  .put(isProjectOwner, projectController.updateMemberRole)
   .delete(isProjectOwner, projectController.removeMember);
 
 module.exports = router;

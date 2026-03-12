@@ -6,6 +6,12 @@ const createProjectSchema = Joi.object({
     'any.required': 'Tên dự án là bắt buộc',
   }),
   description: Joi.string().trim().allow('').optional(),
+  members: Joi.array().items(
+    Joi.object({
+      userId: Joi.string().required(),
+      role: Joi.string().valid('owner', 'member').required(),
+    })
+  ).optional(),
 });
 
 const updateProjectSchema = Joi.object({

@@ -87,6 +87,28 @@ class ProjectService {
 
     return projectRepository.removeMember(projectId, userIdToRemove);
   }
+
+  async updateMemberRole(projectId, userIdToUpdate, newRole) {
+    const project = await this.getProjectById(projectId);
+
+    const memberToUpdate = project.members.find(
+      (m) => m.userId._id.toString() === userIdToUpdate
+    );
+
+    if (!memberToUpdate) {
+      throw new ApiError(404, 'Thành viên không tồn tại trong dự án');
+    }
+
+    // Nếu hạ quyền từ owner xuống member, phải đảm bảo còn ít nhất 1 owner khác
+    if (memberToUpdate.role === 'owner' && newRole === 'member') {
+      const ownerCount = project.members.filter((m) => m.role === 'owner').length;
+      if (ownerCount <= 1) {
+        throw new ApiError(400, 'Dự án phải có ít nhất 1 Owner. Không thể hạ quyền Owner duy nhất.');
+      }
+    }
+
+    return projectRepository.updateMemberRole(projectId, userIdToUpdate, newRole);
+  }
 }
 
 module.exports = new ProjectService();

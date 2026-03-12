@@ -65,6 +65,20 @@ const removeMember = catchAsync(async (req, res) => {
   new ApiResponse(200, 'Xóa thành viên thành công', { project: projectDTO }).send(res);
 });
 
+/**
+ * PUT /api/v1/projects/:projectId/members/:memberId
+ */
+const updateMemberRole = catchAsync(async (req, res) => {
+  const { role } = req.body;
+  if (!role || !['owner', 'member'].includes(role)) {
+    return new ApiResponse(400, 'Role không hợp lệ. Phải là owner hoặc member').send(res);
+  }
+  
+  const project = await projectService.updateMemberRole(req.params.projectId, req.params.memberId, role);
+  const projectDTO = ProjectResponseDTO.fromEntity(project);
+  new ApiResponse(200, 'Cập nhật phân quyền thành công', { project: projectDTO }).send(res);
+});
+
 module.exports = {
   createProject,
   getUserProjects,
@@ -73,4 +87,5 @@ module.exports = {
   deleteProject,
   addMember,
   removeMember,
+  updateMemberRole,
 };

@@ -41,6 +41,14 @@ class ProjectRepository {
       { new: true }
     ).populate('members.userId', 'email displayName avatarUrl role');
   }
+
+  async updateMemberRole(projectId, userId, role) {
+    return Project.findOneAndUpdate(
+      { _id: projectId, 'members.userId': userId },
+      { $set: { 'members.$.role': role } },
+      { new: true }
+    ).populate('members.userId', 'email displayName avatarUrl role');
+  }
 }
 
 module.exports = new ProjectRepository();
