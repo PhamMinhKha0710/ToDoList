@@ -10,6 +10,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { useKanbanStore } from '@/stores/kanban.store';
 import { EditColumnModal } from './EditColumnModal';
+import { DeleteColumnConfirmModal } from './DeleteColumnConfirmModal';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { columnService } from '@/services/column.service';
 import { toast } from 'sonner';
@@ -20,6 +21,7 @@ interface ColumnHeaderProps {
 
 export const ColumnHeader = ({ column }: ColumnHeaderProps) => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const { tasks, deleteColumn: deleteColumnFromStore } = useKanbanStore();
   const queryClient = useQueryClient();
   const taskCount = tasks[column._id]?.length || 0;
@@ -30,16 +32,15 @@ export const ColumnHeader = ({ column }: ColumnHeaderProps) => {
       toast.success('Đã xóa cột thành công!');
       deleteColumnFromStore(column._id);
       queryClient.invalidateQueries({ queryKey: ['columns'] });
+      setIsDeleteModalOpen(false);
     },
     onError: (error: any) => {
       toast.error(error.response?.data?.message || 'Có lỗi xảy ra khi xóa cột');
     }
   });
 
-  const handleDelete = () => {
-    if (window.confirm('Bạn có chắc chắn muốn xóa cột này? Tất cả task bên trong cũng sẽ bị mất.')) {
-      deleteMutation.mutate();
-    }
+  const handleDeleteConfirm = () => {
+    deleteMutation.mutate();
   };
 
   return (
@@ -71,7 +72,7 @@ export const ColumnHeader = ({ column }: ColumnHeaderProps) => {
             </DropdownMenuItem>
             <DropdownMenuItem 
               className="cursor-pointer text-destructive focus:text-destructive"
-              onClick={handleDelete}
+              onClick={() => setIsDeleteModalOpen(true)}
               disabled={deleteMutation.isPending}
             >
               <Trash className="h-4 w-4 mr-2" />
@@ -85,6 +86,14 @@ export const ColumnHeader = ({ column }: ColumnHeaderProps) => {
         column={column}
         open={isEditModalOpen}
         onOpenChange={setIsEditModalOpen}
+      />
+
+      <DeleteColumnConfirmModal 
+        columnTitle={column.title}
+        open={isDeleteModalOpen}
+        onOpenChange={setIsDeleteModalOpen}
+        onConfirm={handleDeleteConfirm}
+        isPending={deleteMutation.isPending}
       />
     </>
   );
