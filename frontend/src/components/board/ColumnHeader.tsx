@@ -7,25 +7,32 @@ import {
   DropdownMenuTrigger 
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
+import { useKanbanStore } from '@/stores/kanban.store';
 
 interface ColumnHeaderProps {
   column: Column;
 }
 
 export const ColumnHeader = ({ column }: ColumnHeaderProps) => {
+  const { tasks } = useKanbanStore();
+  const taskCount = tasks[column._id]?.length || 0;
+
   return (
-    <div className="flex items-center justify-between font-semibold px-1 group">
+    <div 
+      className="flex items-center justify-between font-semibold px-4 py-3 group"
+      style={{ backgroundColor: column.color || '#3b82f6' }}
+    >
       <div className="flex items-center gap-2">
-        {column.color && (
-          <div className="w-3 h-3 rounded-full shadow-sm" style={{ backgroundColor: column.color }} />
-        )}
-        <span className="text-sm font-bold text-foreground/90">{column.title}</span>
+        <span className="text-base font-bold text-white tracking-wide">{column.title}</span>
+        <div className="bg-white/30 text-white text-xs font-medium px-2 py-0.5 rounded-full min-w-[20px] text-center">
+          {taskCount}
+        </div>
       </div>
       
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="icon" className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity">
-            <MoreHorizontal className="h-4 w-4 text-muted-foreground" />
+          <Button variant="ghost" size="icon" className="h-8 w-8 text-white/80 hover:bg-white/20 hover:text-white transition-colors">
+            <MoreHorizontal className="h-5 w-5" />
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-[160px]">

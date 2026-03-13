@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import type { ReactNode } from "react";
 
 interface BoardContainerProps {
   children: ReactNode;
@@ -6,7 +6,7 @@ interface BoardContainerProps {
 
 export const BoardContainer = ({ children }: BoardContainerProps) => {
   return (
-    <div className="h-full w-full flex overflow-x-auto p-4 gap-6 items-start">
+    <div className="h-full w-full flex overflow-x-auto p-6 gap-6 items-start bg-secondary/10">
       {children}
     </div>
   );

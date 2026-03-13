@@ -8,10 +8,15 @@ import type { ApiResponse } from "@/types/api";
 
 export const columnService = {
   getProjectColumns: async (projectId: string): Promise<Column[]> => {
-    const response = await axiosInstance.get<ApiResponse<Column[]>>(
-      `/columns/project/${projectId}`,
-    );
-    return response.data.columns;
+    const response = await axiosInstance.get<
+      ApiResponse<{ columns: Column[] }>
+    >(`/columns/project/${projectId}`);
+
+    console.log("response: ", response);
+    console.log("response.data: ", response.data);
+    console.log("response.data.data: ", response.data.data);
+
+    return response.data.data.columns;
   },
 
   createColumn: async (data: CreateColumnPayload): Promise<Column> => {

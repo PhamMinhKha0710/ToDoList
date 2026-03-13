@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { columnService } from "@/services/column.service";
 import { Loader2 } from "lucide-react";
@@ -7,6 +7,7 @@ import { BoardContainer } from "./BoardContainer";
 import { AddColumnButton } from "./AddColumnButton";
 import { ColumnHeader } from "./ColumnHeader";
 import { ColumnList } from "./ColumnList";
+import { useKanbanStore } from "@/stores/kanban.store";
 
 interface KanbanBoardProps {
   projectId: string;
@@ -14,14 +15,20 @@ interface KanbanBoardProps {
 
 export const KanbanBoard = ({ projectId }: KanbanBoardProps) => {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const { columns: storeColumns, setColumns } = useKanbanStore();
 
-  const { data: columns, isLoading } = useQuery({
+  const { data: queryColumns, isLoading } = useQuery({
     queryKey: ["columns", projectId],
     queryFn: () => columnService.getProjectColumns(projectId),
     enabled: !!projectId,
   });
 
-  console.log("columns: ", columns);
+  // Đồng bộ data từ query vao store
+  useEffect(() => {
+    if (queryColumns) {
+      setColumns(queryColumns);
+    }
+  }, [queryColumns, setColumns]);
 
   if (isLoading) {
     return (
@@ -34,13 +41,15 @@ export const KanbanBoard = ({ projectId }: KanbanBoardProps) => {
   return (
     <BoardContainer>
       {/* Các cột hiện tại */}
-      {columns?.map((column) => (
+      {storeColumns.map((column) => (
         <div
           key={column._id}
-          className="w-[300px] shrink-0 bg-secondary/50 rounded-xl p-3 flex flex-col gap-3"
+          className="w-[300px] shrink-0 bg-background/50 rounded-xl flex flex-col overflow-hidden shadow-sm"
         >
           <ColumnHeader column={column} />
-          <ColumnList columnId={column._id} />
+          <div className="p-3 pt-0 flex flex-col gap-3 flex-1 h-full">
+            <ColumnList columnId={column._id} />
+          </div>
         </div>
       ))}
 
