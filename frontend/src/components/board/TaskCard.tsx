@@ -87,12 +87,17 @@ export const TaskCard = ({ task, onClick }: TaskCardProps) => {
           
           <div className="flex items-center gap-3">
             {/* Due Date */}
-            {task.dueDate && (
-               <div className="flex items-center gap-1.5 text-[11px] font-semibold text-red-500/90 bg-red-50 px-1.5 py-0.5 rounded-md">
-                 <Clock className="w-3.5 h-3.5" />
-                 {new Date(task.dueDate).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit' })}
-               </div>
-            )}
+            {task.dueDate && (() => {
+               const isOverdue = new Date(task.dueDate!).getTime() < new Date().setHours(0, 0, 0, 0);
+               return (
+                 <div className={`flex items-center gap-1.5 text-[11px] font-semibold px-1.5 py-0.5 rounded-md transition-colors ${
+                   isOverdue ? 'text-red-500 bg-red-50' : 'text-emerald-600 bg-emerald-50'
+                 }`}>
+                   <Clock className="w-3.5 h-3.5" />
+                   {new Date(task.dueDate).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit' })}
+                 </div>
+               );
+            })()}
             
             {/* Attachments / Comments (Hidden if 0) */}
             <div className="flex items-center gap-2.5 text-slate-400">

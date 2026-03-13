@@ -1,23 +1,10 @@
 import { create } from 'zustand';
-import type { Column } from '@/types/column';
-import type { Task } from '@/types/task';
 
-// Interface cho State của Store
-interface KanbanState {
-  columns: Column[];
-  tasks: Record<string, Task[]>; // Key là columnId, Value là mảng các task của column đó
-  
-  // Actions
-  setColumns: (columns: Column[]) => void;
-  addColumn: (column: Column) => void;
-  updateColumn: (columnId: string, data: Partial<Column>) => void;
-  deleteColumn: (columnId: string) => void;
-  
-  setTasks: (columnId: string, tasks: Task[]) => void;
-  addTask: (columnId: string, task: Task) => void;
-}
+import type { Kanban } from '@/types/kanban';
 
-export const useKanbanStore = create<KanbanState>()((set) => ({
+
+
+export const useKanbanStore = create<Kanban>()((set) => ({
   columns: [],
   tasks: {},
 

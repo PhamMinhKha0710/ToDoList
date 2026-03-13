@@ -1,9 +1,11 @@
 import axiosInstance from "@/lib/axios";
 import type {
   Column,
+} from "@/types/column";
+import type {
   CreateColumnPayload,
   UpdateColumnPayload,
-} from "@/types/column";
+} from "@/schemas/column.schema";
 import type { ApiResponse } from "@/types/api";
 
 export const columnService = {
@@ -11,10 +13,6 @@ export const columnService = {
     const response = await axiosInstance.get<
       ApiResponse<{ columns: Column[] }>
     >(`/columns/project/${projectId}`);
-
-    console.log("response: ", response);
-    console.log("response.data: ", response.data);
-    console.log("response.data.data: ", response.data.data);
 
     return response.data.data.columns;
   },

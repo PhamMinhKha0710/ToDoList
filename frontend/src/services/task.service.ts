@@ -1,5 +1,6 @@
 import axiosInstance from '@/lib/axios';
-import type { Task, CreateTaskPayload, UpdateTaskPayload } from '@/types/task';
+import type { Task } from '@/types/task';
+import type { CreateTaskPayload, UpdateTaskPayload } from '@/schemas/task.schema';
 import type { ApiResponse } from '@/types/api';
 
 export const taskService = {
