@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { projectService } from '@/services/project.service';
 import { ProjectHeader } from '@/components/project-detail/ProjectHeader';
 import { Loader2 } from 'lucide-react';
+import { KanbanBoard } from '@/components/board/KanbanBoard';
 
 const ProjectDetailPage = () => {
   const { id } = useParams<{ id: string }>();
@@ -38,11 +39,9 @@ const ProjectDetailPage = () => {
         <ProjectHeader project={project} />
       </div>
       
-      {/* Kanban Board Area (Coming soon) */}
-      <div className="flex-1 p-6 pt-2 bg-accent-foreground/5 min-h-0 overflow-auto">
-        <div className="h-full w-full border-2 border-dashed border-border rounded-lg flex items-center justify-center bg-background/50">
-          <p className="text-muted-foreground">Kanban Board Coming soon...</p>
-        </div>
+      {/* Kanban Board Area */}
+      <div className="flex-1 overflow-hidden">
+        <KanbanBoard projectId={project._id} />
       </div>
     </div>
   );
