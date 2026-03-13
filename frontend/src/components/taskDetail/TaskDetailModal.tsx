@@ -1,8 +1,13 @@
+import { useState, useEffect } from "react";
 import type { Task } from "@/types/task";
+import type { UpdateTaskPayload } from "@/schemas/task.schema";
+import { taskService } from "@/services/task.service";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { 
   Dialog, 
   DialogContent, 
   DialogTitle,
+  DialogClose
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Edit2, Trash2, Paperclip, CheckCircle2, Clock, Flag, User, Palette, Tag, UploadCloud, MessageSquare, X, Plus } from 'lucide-react';
@@ -29,62 +34,124 @@ const statusLabels: Record<string, string> = {
 };
 
 export const TaskDetailModal = ({ task, open, onOpenChange }: TaskDetailModalProps) => {
+  const queryClient = useQueryClient();
+  const [editedTask, setEditedTask] = useState<Partial<Task>>({});
+  const [isEditing, setIsEditing] = useState(false);
   const hasImages = false; 
+
+  // Initialize edited defaults from props
+  useEffect(() => {
+    if (task && open) {
+      setEditedTask({
+        title: task.title,
+        description: task.description || "",
+        status: task.status,
+        priority: task.priority,
+        color: task.color,
+        dueDate: task.dueDate,
+      });
+      setIsEditing(false); // Reset edit state when opening a new task
+    }
+  }, [task, open]);
+
+  const updateTaskMutation = useMutation({
+    mutationFn: (payload: UpdateTaskPayload) => taskService.updateTask(task._id, payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["tasks"] });
+    },
+  });
+
+  const handleSave = (field: keyof UpdateTaskPayload, value: any) => {
+    setEditedTask((prev) => ({ ...prev, [field]: value }));
+    updateTaskMutation.mutate({ [field]: value });
+  };
+
+  const currentStatus = editedTask.status || task.status;
+  const currentPriority = editedTask.priority || task.priority;
+  const currentColor = editedTask.color || task.color;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-[900px] h-[88vh] p-0 overflow-hidden flex flex-col bg-white rounded-3xl shadow-[0_20px_60px_-15px_rgba(0,0,0,0.15)] outline-none border-0">
+      <DialogContent className=" [&>button]:hidden max-w-[900px] h-[88vh] p-0 overflow-hidden flex flex-col bg-white rounded-3xl shadow-[0_20px_60px_-15px_rgba(0,0,0,0.15)] outline-none border-0 [&>button]:hidden">
         
         {/* Header Section */}
         <div className="flex items-start justify-between px-8 py-6 bg-slate-50/50 border-b border-slate-100 shrink-0">
-          <div className="flex items-start gap-5">
+          <div className="flex items-start gap-5 w-full">
             {/* Status Icon Indicator */}
-            <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 shadow-sm border ${
-              task.status === 'done' ? 'bg-green-50 text-green-600 border-green-100' : 
-              task.status === 'in_progress' ? 'bg-blue-50 text-blue-600 border-blue-100' : 
+            <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 shadow-sm border transition-colors ${
+              currentStatus === 'done' ? 'bg-green-50 text-green-600 border-green-100' : 
+              currentStatus === 'in_progress' ? 'bg-blue-50 text-blue-600 border-blue-100' : 
               'bg-white text-slate-400 border-slate-200'
             }`}>
               <CheckCircle2 className="w-6 h-6 stroke-[2.5]" />
             </div>
             
-            <div className="flex flex-col gap-2.5">
-              <DialogTitle className="text-2xl font-black text-slate-800 tracking-tight leading-none mt-0.5">
-                {task.title}
-              </DialogTitle>
+            <div className="flex flex-col gap-2.5 flex-1 min-w-0 pr-4">
+              {isEditing ? (
+                <input 
+                  type="text"
+                  value={editedTask.title || ""}
+                  onChange={(e) => setEditedTask({ ...editedTask, title: e.target.value })}
+                  onBlur={(e) => {
+                    if (e.target.value.trim() !== task.title && e.target.value.trim() !== "") {
+                      handleSave('title', e.target.value.trim());
+                    } else {
+                      setEditedTask({ ...editedTask, title: task.title });
+                    }
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') e.currentTarget.blur();
+                  }}
+                  className="text-2xl font-black text-slate-800 tracking-tight leading-none bg-white border border-slate-300 focus:border-indigo-400 px-3 py-1.5 focus:ring-4 focus:ring-indigo-50 w-full outline-none rounded-lg transition-all -ml-3"
+                />
+              ) : (
+                <DialogTitle className="text-2xl font-black text-slate-800 tracking-tight leading-none mt-0.5">
+                  {editedTask.title || task.title}
+                </DialogTitle>
+              )}
               
-              <div className="flex items-center gap-2">
-                 <div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border ${
-                    task.status === 'done' ? 'bg-green-50 text-green-700 border-green-200/50' : 
-                    task.status === 'in_progress' ? 'bg-blue-50 text-blue-700 border-blue-200/50' : 
+              <div className="flex items-center gap-2 mt-1">
+                 <div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border transition-colors ${
+                    currentStatus === 'done' ? 'bg-green-50 text-green-700 border-green-200/50' : 
+                    currentStatus === 'in_progress' ? 'bg-blue-50 text-blue-700 border-blue-200/50' : 
                     'bg-slate-50 text-slate-600 border-slate-200'
                  }`}>
                     <CheckCircle2 className="w-3.5 h-3.5" />
-                    {statusLabels[task.status] || 'Không xác định'}
+                    {statusLabels[currentStatus] || 'Không xác định'}
                  </div>
-                 <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-50 text-slate-600 border border-slate-200 text-xs font-bold">
-                    <Flag className={`w-3.5 h-3.5 fill-current ${
-                      task.priority === 'urgent' ? 'text-red-500' :
-                      task.priority === 'high' ? 'text-orange-500' :
-                      task.priority === 'normal' ? 'text-blue-500' : 'text-slate-400'
+                 <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-50 text-slate-600 border border-slate-200 text-xs font-bold transition-colors">
+                    <Flag className={`w-3.5 h-3.5 fill-current transition-colors ${
+                      currentPriority === 'urgent' ? 'text-red-500' :
+                      currentPriority === 'high' ? 'text-orange-500' :
+                      currentPriority === 'normal' ? 'text-blue-500' : 'text-slate-400'
                     }`} />
-                    {priorityLabels[task.priority] || 'Thường'}
+                    {priorityLabels[currentPriority] || 'Thường'}
                  </div>
               </div>
             </div>
           </div>
           
-          <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" className="h-10 px-4 font-bold text-slate-600 border-slate-200 hover:bg-slate-100 hover:text-slate-900 rounded-xl transition-colors shadow-sm">
-              <Edit2 className="w-4 h-4 mr-2" />
-              Sửa
+          <div className="flex items-center gap-2 shrink-0">
+            <Button 
+              variant={isEditing ? "default" : "outline"}
+              size="sm" 
+              onClick={() => setIsEditing(!isEditing)}
+              className={`h-10 px-4 font-bold rounded-xl transition-all shadow-sm ${
+                isEditing ? "bg-indigo-600 hover:bg-indigo-700 text-white" : "text-slate-600 border-slate-200 hover:bg-slate-100 hover:text-slate-900"
+              }`}
+            >
+              {isEditing ? <CheckCircle2 className="w-4 h-4 mr-2" /> : <Edit2 className="w-4 h-4 mr-2" />}
+              {isEditing ? "Hoàn tất" : "Sửa"}
             </Button>
             <Button variant="outline" size="sm" className="h-10 px-4 font-bold text-red-600 border-red-100 bg-red-50 hover:bg-red-100 hover:text-red-700 rounded-xl transition-colors shadow-sm">
               <Trash2 className="w-4 h-4 mr-2" />
               Xóa
             </Button>
-            <Button variant="ghost" size="icon" onClick={() => onOpenChange(false)} className="h-10 w-10 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-xl ml-1 transition-colors">
-               <X className="w-5 h-5" />
-            </Button>
+            <DialogClose asChild>
+              <Button variant="ghost" size="icon" className="h-10 w-10 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-xl ml-1 transition-colors">
+                 <X className="w-5 h-5" />
+              </Button>
+            </DialogClose>
           </div>
         </div>
 
@@ -99,13 +166,27 @@ export const TaskDetailModal = ({ task, open, onOpenChange }: TaskDetailModalPro
               <h3 className="text-sm font-extrabold uppercase tracking-widest text-slate-400 flex items-center gap-2">
                 Mô tả
               </h3>
-              {task.description ? (
-                <div className="text-[15px] text-slate-700 leading-relaxed">
-                  {task.description}
-                </div>
+              {isEditing ? (
+                <textarea 
+                  value={editedTask.description || ""}
+                  onChange={(e) => setEditedTask({ ...editedTask, description: e.target.value })}
+                  onBlur={(e) => {
+                    if (e.target.value !== (task.description || "")) {
+                        handleSave('description', e.target.value);
+                    }
+                  }}
+                  className="w-full text-[15px] text-slate-700 leading-relaxed bg-white border border-slate-300 focus:border-indigo-400 focus:ring-4 focus:ring-indigo-50 rounded-xl p-4 transition-all min-h-[120px] resize-none outline-none placeholder:italic placeholder:text-slate-400"
+                  placeholder="Thêm mô tả chi tiết cho công việc này..."
+                />
               ) : (
-                <div className="text-[15px] text-slate-400 italic bg-slate-50/50 p-4 rounded-xl border border-dashed border-slate-200">
-                  Chưa có mô tả chi tiết cho công việc này.
+                <div className="text-[15px] text-slate-700 leading-relaxed whitespace-pre-wrap">
+                  {editedTask.description ? (
+                    editedTask.description
+                  ) : (
+                    <span className="text-slate-400 italic bg-slate-50/50 p-4 rounded-xl border border-dashed border-slate-200 block">
+                      Chưa có mô tả chi tiết cho công việc này.
+                    </span>
+                  )}
                 </div>
               )}
             </div>
@@ -170,40 +251,88 @@ export const TaskDetailModal = ({ task, open, onOpenChange }: TaskDetailModalPro
             {/* Status */}
             <div className="space-y-2.5">
               <h4 className="text-[11px] font-extrabold uppercase tracking-widest text-slate-400 flex items-center gap-1.5"><CheckCircle2 className="w-3.5 h-3.5" /> Trạng thái</h4>
-              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-white border border-slate-200 text-sm font-bold shadow-sm w-full">
-                 <div className={`w-2 h-2 rounded-full ${
-                    task.status === 'done' ? 'bg-green-500' : 
-                    task.status === 'in_progress' ? 'bg-blue-500' : 'bg-slate-300'
-                 }`} />
-                 {statusLabels[task.status] || 'Chưa rõ'}
-              </div>
+              {isEditing ? (
+                <select 
+                  value={currentStatus || ''}
+                  onChange={(e) => handleSave('status', e.target.value)}
+                  className="w-full appearance-none outline-none flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-white border border-slate-300 text-sm font-bold shadow-sm hover:border-indigo-400 focus:border-indigo-400 focus:ring-4 focus:ring-indigo-50 transition-colors cursor-pointer"
+                >
+                    <option value="todo">Cần làm</option>
+                    <option value="in_progress">Đang làm</option>
+                    <option value="done">Hoàn thành</option>
+                </select>
+              ) : (
+                <div className="inline-flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-white border border-slate-200 text-sm font-bold shadow-sm w-full">
+                   <div className={`w-2 h-2 rounded-full ${
+                      currentStatus === 'done' ? 'bg-green-500' : 
+                      currentStatus === 'in_progress' ? 'bg-blue-500' : 'bg-slate-300'
+                   }`} />
+                   {statusLabels[currentStatus] || 'Chưa rõ'}
+                </div>
+              )}
             </div>
 
             {/* Priority */}
             <div className="space-y-2.5">
               <h4 className="text-[11px] font-extrabold uppercase tracking-widest text-slate-400 flex items-center gap-1.5"><Flag className="w-3.5 h-3.5" /> Độ ưu tiên</h4>
-              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-white border border-slate-200 text-sm font-bold shadow-sm w-full">
-                 <Flag className={`w-4 h-4 fill-current ${
-                    task.priority === 'urgent' ? 'text-red-500' :
-                    task.priority === 'high' ? 'text-orange-500' :
-                    task.priority === 'normal' ? 'text-blue-500' : 'text-slate-400'
-                 }`} />
-                 {priorityLabels[task.priority] || 'Thường'}
-              </div>
+              {isEditing ? (
+                <select 
+                  value={currentPriority || ''}
+                  onChange={(e) => handleSave('priority', e.target.value)}
+                  className="w-full appearance-none outline-none flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-white border border-slate-300 text-sm font-bold shadow-sm hover:border-indigo-400 focus:border-indigo-400 focus:ring-4 focus:ring-indigo-50 transition-colors cursor-pointer"
+                >
+                    <option value="urgent">Khẩn cấp</option>
+                    <option value="high">Cao</option>
+                    <option value="normal">Thường</option>
+                    <option value="low">Thấp</option>
+                </select>
+              ) : (
+                <div className="inline-flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-white border border-slate-200 text-sm font-bold shadow-sm w-full">
+                   <Flag className={`w-4 h-4 fill-current ${
+                      currentPriority === 'urgent' ? 'text-red-500' :
+                      currentPriority === 'high' ? 'text-orange-500' :
+                      currentPriority === 'normal' ? 'text-blue-500' : 'text-slate-400'
+                   }`} />
+                   {priorityLabels[currentPriority] || 'Thường'}
+                </div>
+              )}
             </div>
 
             {/* Due Date */}
             <div className="space-y-2.5">
               <h4 className="text-[11px] font-extrabold uppercase tracking-widest text-slate-400 flex items-center gap-1.5"><Clock className="w-3.5 h-3.5" /> Hạn chót</h4>
-              <div className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white border border-slate-200 shadow-sm w-full">
-                {task.dueDate ? (
-                  <span className="text-[14px] font-bold text-slate-700">
-                    {new Date(task.dueDate).toLocaleDateString('vi-VN', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
-                  </span>
-                ) : (
-                  <span className="text-[14px] font-medium text-slate-400 italic">Không có hạn chót</span>
-                )}
-              </div>
+              {isEditing ? (
+                <div className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white border border-slate-300 focus-within:border-indigo-400 focus-within:ring-4 focus-within:ring-indigo-50 shadow-sm w-full relative transition-all">
+                  <input 
+                    type="date"
+                    value={editedTask.dueDate ? new Date(editedTask.dueDate).toISOString().split('T')[0] : ''}
+                    onChange={(e) => {
+                      const newDate = e.target.value ? new Date(e.target.value).toISOString() : null;
+                      handleSave('dueDate', newDate);
+                    }}
+                    className="w-full text-[14px] font-bold text-slate-700 bg-transparent border-none p-0 focus:ring-0 focus:outline-none cursor-pointer"
+                  />
+                  {editedTask.dueDate && (
+                    <button 
+                      onClick={() => handleSave('dueDate', null)}
+                      className="absolute right-3 text-slate-400 hover:text-red-500 transition-colors bg-white flex items-center justify-center"
+                      title="Xóa ngày"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  )}
+                </div>
+              ) : (
+                <div className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-white border border-slate-200 shadow-sm w-full">
+                  {editedTask.dueDate ? (
+                    <span className="text-[14px] font-bold text-slate-700">
+                      {new Date(editedTask.dueDate).toLocaleDateString('vi-VN', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
+                    </span>
+                  ) : (
+                    <span className="text-[14px] font-medium text-slate-400 italic">Không có hạn chót</span>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* Assignee */}
@@ -222,24 +351,33 @@ export const TaskDetailModal = ({ task, open, onOpenChange }: TaskDetailModalPro
               <h4 className="text-[11px] font-extrabold uppercase tracking-widest text-slate-400 flex items-center gap-1.5"><Palette className="w-3.5 h-3.5" /> Màu thẻ nhận diện</h4>
               
               <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
-                <div className="flex flex-wrap gap-2.5 mb-5">
-                  {PRESET_COLORS.map((c, i) => (
-                     <div 
-                     key={`${c}-${i}`}
-                     className={`w-8 h-8 rounded-xl cursor-pointer transition-all duration-200 hover:scale-110 hover:shadow-md ${task.color === c ? 'ring-2 ring-indigo-500 ring-offset-2 scale-110 shadow-sm' : 'border border-black/10'}`}
-                     style={{ backgroundColor: c }}
-                     title={c}
-                   />
-                  ))}
-                  <div className="w-8 h-8 rounded-xl border-2 border-dashed border-slate-300 flex items-center justify-center cursor-pointer hover:bg-slate-100 hover:border-slate-400 transition-all text-slate-400 hover:text-slate-600">
-                     <Plus className="w-4 h-4" />
+                {isEditing && (
+                  <div className="flex flex-wrap gap-2.5 mb-5">
+                    {PRESET_COLORS.map((c, i) => (
+                      <div 
+                        key={`${c}-${i}`}
+                        onClick={() => handleSave('color', c)}
+                        className={`w-8 h-8 rounded-xl cursor-pointer transition-all duration-200 hover:scale-110 hover:shadow-md ${currentColor === c ? 'ring-2 ring-indigo-500 ring-offset-2 scale-110 shadow-sm' : 'border border-black/10'}`}
+                        style={{ backgroundColor: c }}
+                        title={c}
+                      />
+                    ))}
+                    <div className="relative w-8 h-8 rounded-xl border-2 border-dashed border-slate-300 flex items-center justify-center cursor-pointer hover:bg-slate-100 hover:border-slate-400 transition-all text-slate-400 hover:text-slate-600 outline-none" title="Màu tự chọn">
+                      <input 
+                        type="color" 
+                        value={currentColor || '#ec4899'}
+                        onChange={(e) => handleSave('color', e.target.value)}
+                        className="absolute inset-[-5px] w-12 h-12 cursor-pointer opacity-0 z-10"
+                      />
+                      <Plus className="w-4 h-4" />
+                    </div>
                   </div>
-                </div>
-                <div className="flex items-center gap-3 pt-3 border-t border-slate-100">
-                  <span className="text-[13px] font-bold text-slate-500">Mã màu:</span>
+                )}
+                <div className={`flex items-center gap-3 ${isEditing ? 'pt-3 border-t border-slate-100' : ''}`}>
+                  {isEditing && <span className="text-[13px] font-bold text-slate-500">Mã màu:</span>}
                   <div className="flex items-center gap-2 px-2 py-1 bg-slate-50 rounded-lg border border-slate-100">
-                    <div className="w-4 h-4 rounded-md shadow-sm border border-black/10" style={{ backgroundColor: task.color || '#ec4899' }} />
-                    <span className="text-xs font-mono font-semibold text-slate-600 uppercase">{task.color || '#ec4899'}</span>
+                    <div className="w-4 h-4 rounded-md shadow-sm border border-black/10" style={{ backgroundColor: currentColor || '#ec4899' }} />
+                    <span className="text-xs font-mono font-semibold text-slate-600 uppercase">{currentColor || '#ec4899'}</span>
                   </div>
                 </div>
               </div>
@@ -252,14 +390,18 @@ export const TaskDetailModal = ({ task, open, onOpenChange }: TaskDetailModalPro
                  {task.tags?.map(tag => (
                    <div key={tag.name} className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white border border-slate-200 shadow-sm text-slate-700 text-[13px] font-bold">
                      {tag.name}
-                     <button className="text-slate-400 hover:text-red-500 transition-colors ml-1">
-                       <X className="w-3.5 h-3.5" />
-                     </button>
+                     {isEditing && (
+                       <button className="text-slate-400 hover:text-red-500 transition-colors ml-1">
+                         <X className="w-3.5 h-3.5" />
+                       </button>
+                     )}
                    </div>
                  ))}
-                 <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-dashed border-slate-300 bg-transparent text-slate-500 text-[13px] font-bold hover:bg-slate-100 hover:text-slate-800 transition-colors">
-                   <Plus className="w-4 h-4" /> Thêm Tag
-                 </button>
+                 {isEditing && (
+                   <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-dashed border-slate-300 bg-transparent text-slate-500 text-[13px] font-bold hover:bg-slate-100 hover:text-slate-800 transition-colors">
+                     <Plus className="w-4 h-4" /> Thêm Tag
+                   </button>
+                 )}
               </div>
             </div>
             
