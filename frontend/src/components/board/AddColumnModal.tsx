@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { columnService } from '@/services/column.service';
-import { createColumnSchema, type CreateColumnPayload } from '@/types/column';
+import { createColumnSchema, type CreateColumnPayload } from '@/schemas/column.schema';
 import { 
   Dialog, 
   DialogContent, 

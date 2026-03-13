@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { taskService } from '@/services/task.service';
-import { createTaskSchema, type CreateTaskPayload, TaskPriority } from '@/types/task';
+import { createTaskSchema, type CreateTaskPayload, TaskPriority } from '@/schemas/task.schema';
 import { 
   Dialog, 
   DialogContent, 
@@ -69,7 +69,21 @@ export const AddTaskModal = ({ columnId, open, onOpenChange }: AddTaskModalProps
   });
 
   const onSubmit = (data: CreateTaskPayload) => {
-    createMutation.mutate(data);
+    const payload = { ...data };
+    
+    // Convert empty string to null/undefined or proper ISO string for the backend
+    if (!payload.dueDate) {
+      delete payload.dueDate; // or payload.dueDate = null; depending on API requirements
+    } else {
+      // Ensure it's a valid ISO string before sending
+      try {
+        payload.dueDate = new Date(payload.dueDate).toISOString();
+      } catch (e) {
+        console.error("Invalid date format", e);
+      }
+    }
+
+    createMutation.mutate(payload);
   };
 
   return (

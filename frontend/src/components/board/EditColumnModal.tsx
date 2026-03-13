@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { columnService } from '@/services/column.service';
-import { updateColumnSchema, type UpdateColumnPayload, type Column } from '@/types/column';
+import { updateColumnSchema, type UpdateColumnPayload } from '@/schemas/column.schema';
+import { type Column } from '@/types/column';
 import { 
   Dialog, 
   DialogContent, 
