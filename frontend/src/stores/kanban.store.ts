@@ -1,12 +1,11 @@
 import { create } from 'zustand';
 import type { Column } from '@/types/column';
-// import type { Task } from '@/types/task'; // DTO Task sẽ được định nghĩa sau
+import type { Task } from '@/types/task';
 
 // Interface cho State của Store
 interface KanbanState {
   columns: Column[];
-  // tasks: Record<string, Task[]>; // Key là columnId, Value là mảng các task của column đó
-  tasks: Record<string, any[]>; // Tạm thời dùng any[] cho task cho đến khi có type Task
+  tasks: Record<string, Task[]>; // Key là columnId, Value là mảng các task của column đó
   
   // Actions
   setColumns: (columns: Column[]) => void;
@@ -14,8 +13,8 @@ interface KanbanState {
   updateColumn: (columnId: string, data: Partial<Column>) => void;
   deleteColumn: (columnId: string) => void;
   
-  setTasks: (columnId: string, tasks: any[]) => void;
-  // TODO: Thêm các action cho drag & drop sau
+  setTasks: (columnId: string, tasks: Task[]) => void;
+  addTask: (columnId: string, task: Task) => void;
 }
 
 export const useKanbanStore = create<KanbanState>()((set) => ({
@@ -35,13 +34,9 @@ export const useKanbanStore = create<KanbanState>()((set) => ({
   })),
 
   deleteColumn: (columnId) => set((state) => {
-    // Xóa column khỏi danh sách cột
     const newColumns = state.columns.filter((col) => col._id !== columnId);
-    
-    // Đồng thời xóa các task thuộc về column đó (tiết kiệm bộ nhớ)
     const newTasks = { ...state.tasks };
     delete newTasks[columnId];
-    
     return { columns: newColumns, tasks: newTasks };
   }),
 
@@ -49,6 +44,13 @@ export const useKanbanStore = create<KanbanState>()((set) => ({
     tasks: {
       ...state.tasks,
       [columnId]: tasks
+    }
+  })),
+
+  addTask: (columnId, task) => set((state) => ({
+    tasks: {
+      ...state.tasks,
+      [columnId]: [...(state.tasks[columnId] || []), task]
     }
   })),
 }));
