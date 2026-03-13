@@ -14,4 +14,5 @@ export interface Kanban {
   
   setTasks: (columnId: string, tasks: Task[]) => void;
   addTask: (columnId: string, task: Task) => void;
+  deleteTask: (columnId: string, taskId: string) => void;
 }

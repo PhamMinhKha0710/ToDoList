@@ -40,4 +40,11 @@ export const useKanbanStore = create<Kanban>()((set) => ({
       [columnId]: [...(state.tasks[columnId] || []), task]
     }
   })),
+
+  deleteTask: (columnId, taskId) => set((state) => ({
+    tasks: {
+      ...state.tasks,
+      [columnId]: (state.tasks[columnId] || []).filter(t => t._id !== taskId)
+    }
+  })),
 }));

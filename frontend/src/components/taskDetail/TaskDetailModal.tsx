@@ -11,6 +11,8 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Edit2, Trash2, Paperclip, CheckCircle2, Clock, Flag, User, Palette, Tag, UploadCloud, MessageSquare, X, Plus } from 'lucide-react';
+import { useKanbanStore } from "@/stores/kanban.store";
+import { DeleteTaskConfirmModal } from './DeleteTaskConfirmModal';
 
 interface TaskDetailModalProps {
   task: Task;
@@ -37,6 +39,7 @@ export const TaskDetailModal = ({ task, open, onOpenChange }: TaskDetailModalPro
   const queryClient = useQueryClient();
   const [editedTask, setEditedTask] = useState<Partial<Task>>({});
   const [isEditing, setIsEditing] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const hasImages = false; 
 
   // Initialize edited defaults from props
@@ -60,6 +63,21 @@ export const TaskDetailModal = ({ task, open, onOpenChange }: TaskDetailModalPro
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
     },
   });
+
+  const { deleteTask: storeDeleteTask } = useKanbanStore();
+
+  const deleteTaskMutation = useMutation({
+    mutationFn: () => taskService.deleteTask(task._id),
+    onSuccess: () => {
+      storeDeleteTask(task.columnId, task._id);
+      queryClient.invalidateQueries({ queryKey: ["tasks"] });
+      onOpenChange(false);
+    },
+  });
+
+  const handleDelete = () => {
+    setIsDeleteModalOpen(true);
+  };
 
   const handleSave = (field: keyof UpdateTaskPayload, value: any) => {
     setEditedTask((prev) => ({ ...prev, [field]: value }));
@@ -143,9 +161,15 @@ export const TaskDetailModal = ({ task, open, onOpenChange }: TaskDetailModalPro
               {isEditing ? <CheckCircle2 className="w-4 h-4 mr-2" /> : <Edit2 className="w-4 h-4 mr-2" />}
               {isEditing ? "Hoàn tất" : "Sửa"}
             </Button>
-            <Button variant="outline" size="sm" className="h-10 px-4 font-bold text-red-600 border-red-100 bg-red-50 hover:bg-red-100 hover:text-red-700 rounded-xl transition-colors shadow-sm">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={handleDelete}
+              disabled={deleteTaskMutation.isPending}
+              className="h-10 px-4 font-bold text-red-600 border-red-100 bg-red-50 hover:bg-red-100 hover:text-red-700 rounded-xl transition-colors shadow-sm disabled:opacity-50"
+            >
               <Trash2 className="w-4 h-4 mr-2" />
-              Xóa
+              {deleteTaskMutation.isPending ? "Đang xóa..." : "Xóa"}
             </Button>
             <DialogClose asChild>
               <Button variant="ghost" size="icon" className="h-10 w-10 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-xl ml-1 transition-colors">
@@ -408,6 +432,14 @@ export const TaskDetailModal = ({ task, open, onOpenChange }: TaskDetailModalPro
           </div>
         </div>
       </DialogContent>
+
+      <DeleteTaskConfirmModal
+        taskTitle={task.title}
+        open={isDeleteModalOpen}
+        onOpenChange={setIsDeleteModalOpen}
+        onConfirm={() => deleteTaskMutation.mutate()}
+        isPending={deleteTaskMutation.isPending}
+      />
     </Dialog>
   );
 };
