@@ -10,14 +10,15 @@ const requireColumnOwner = catchAsync(async (req, res, next) => {
     throw new ApiError(404, 'Không tìm thấy cột');
   }
 
-  // Check project ownership
+  // Owner hoặc Admin mới được phép sửa/xoá cột
   const project = await projectService.getProjectById(column.projectId);
-  const isOwner = project.members.some(
-    (m) => m.userId._id.toString() === req.user._id.toString() && m.role === 'owner'
+  const member = project.members.find(
+    (m) => m.userId._id.toString() === req.user._id.toString()
   );
+  const role = member ? member.role : null;
 
-  if (!isOwner) {
-    throw new ApiError(403, 'Chỉ Project Owner mới có quyền thay đổi cột');
+  if (role !== 'owner' && role !== 'admin') {
+    throw new ApiError(403, 'Chỉ Owner hoặc Admin mới có quyền thay đổi cột');
   }
 
   req.column = column;
@@ -30,13 +31,15 @@ const requireProjectOwnerFromBody = catchAsync(async (req, res, next) => {
     throw new ApiError(400, 'Thiếu projectId');
   }
   
+  // Owner hoặc Admin mới được phép tạo cột
   const project = await projectService.getProjectById(projectId);
-  const isOwner = project.members.some(
-    (m) => m.userId._id.toString() === req.user._id.toString() && m.role === 'owner'
+  const member = project.members.find(
+    (m) => m.userId._id.toString() === req.user._id.toString()
   );
+  const role = member ? member.role : null;
 
-  if (!isOwner) {
-    throw new ApiError(403, 'Chỉ Project Owner mới có quyền tạo cột');
+  if (role !== 'owner' && role !== 'admin') {
+    throw new ApiError(403, 'Chỉ Owner hoặc Admin mới có quyền tạo cột');
   }
   
   next();

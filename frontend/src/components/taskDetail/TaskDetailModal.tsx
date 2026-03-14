@@ -40,7 +40,10 @@ const statusLabels: Record<string, string> = {
   done: 'Hoàn thành',
 };
 
-export const TaskDetailModal = ({ task, open, onOpenChange }: Omit<TaskDetailModalProps, 'projectId'>) => {
+import { useAuthStore } from "@/stores/auth.store";
+import type { User } from "@/types/user";
+
+export const TaskDetailModal = ({ task, projectId, open, onOpenChange }: TaskDetailModalProps) => {
   const queryClient = useQueryClient();
   const [editedTask, setEditedTask] = useState<Partial<Task>>({});
   const [isEditing, setIsEditing] = useState(false);
@@ -64,6 +67,25 @@ export const TaskDetailModal = ({ task, open, onOpenChange }: Omit<TaskDetailMod
   }, []);
 
   const { members: projectMembers } = useKanbanStore();
+  const { user: currentUser } = useAuthStore();
+
+  const currentMember = projectMembers.find(
+    (m) => (m.userId as User)._id === currentUser?._id
+  );
+  
+  const isProjectManager = currentMember?.role === "owner" || currentMember?.role === "admin";
+  const isViewer = currentMember?.role === "viewer";
+  const isTaskCreator = task.creatorId === currentUser?._id;
+  const isAssignee = task.assigneeIds?.includes(currentUser?._id || "");
+
+  // Quyền chỉnh sửa cấu trúc (Title, Desc, Meta): Manager HOẶC Người tạo ra task HOẶC Người được gán
+  const canEditMeta = isProjectManager || isTaskCreator || isAssignee;
+  // Quyền xóa: Manager HOẶC Người tạo ra task (Assignee thường không được xóa)
+  const canDelete = isProjectManager || isTaskCreator;
+  // Quyền vào chế độ Sửa (để upload file, đổi meta nếu có quyền): Mọi thành viên trừ Viewer
+  const canEnterEditMode = !isViewer;
+  // Quyền tương tác (Comment): Mọi thành viên trừ Viewer
+  const canInteract = !isViewer;
 
   // Initialize edited defaults from props
   useEffect(() => {
@@ -253,6 +275,7 @@ export const TaskDetailModal = ({ task, open, onOpenChange }: Omit<TaskDetailMod
                   type="text"
                   value={editedTask.title || ""}
                   onChange={(e) => setEditedTask({ ...editedTask, title: e.target.value })}
+                  disabled={!canEditMeta}
                   onBlur={(e) => {
                     if (e.target.value.trim() !== task.title && e.target.value.trim() !== "") {
                       handleSave('title', e.target.value.trim());
@@ -304,25 +327,29 @@ export const TaskDetailModal = ({ task, open, onOpenChange }: Omit<TaskDetailMod
                 Hủy
               </Button>
             )}
-            <Button 
-              variant={isEditing ? "default" : "outline"}
-              size="sm" 
-              onClick={() => isEditing ? handleFinishEditing() : setIsEditing(true)}
-              disabled={isUploadingFiles}
-              className={`h-10 px-4 font-bold rounded-xl transition-all shadow-sm ${
-                isEditing ? "bg-indigo-600 hover:bg-indigo-700 text-white disabled:opacity-50" : "text-slate-600 border-slate-200 hover:bg-slate-100 hover:text-slate-900"
-              }`}
-            >
-              {isUploadingFiles ? (
-                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-              ) : isEditing ? (
-                 <CheckCircle2 className="w-4 h-4 mr-2" /> 
-              ) : (
-                 <Edit2 className="w-4 h-4 mr-2" />
-              )}
-              {isUploadingFiles ? "Đang xử lý..." : isEditing ? "Hoàn tất" : "Sửa"}
-            </Button>
-            {!isEditing && (
+            
+            {canEnterEditMode && (
+              <Button 
+                variant={isEditing ? "default" : "outline"}
+                size="sm" 
+                onClick={() => isEditing ? handleFinishEditing() : setIsEditing(true)}
+                disabled={isUploadingFiles}
+                className={`h-10 px-4 font-bold rounded-xl transition-all shadow-sm ${
+                  isEditing ? "bg-indigo-600 hover:bg-indigo-700 text-white disabled:opacity-50" : "text-slate-600 border-slate-200 hover:bg-slate-100 hover:text-slate-900"
+                }`}
+              >
+                {isUploadingFiles ? (
+                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                ) : isEditing ? (
+                   <CheckCircle2 className="w-4 h-4 mr-2" /> 
+                ) : (
+                   <Edit2 className="w-4 h-4 mr-2" />
+                )}
+                {isUploadingFiles ? "Đang xử lý..." : isEditing ? "Hoàn tất" : "Sửa"}
+              </Button>
+            )}
+
+            {!isEditing && canDelete && (
               <Button 
                 variant="outline" 
                 size="sm" 
@@ -365,13 +392,14 @@ export const TaskDetailModal = ({ task, open, onOpenChange }: Omit<TaskDetailMod
                 <textarea 
                   value={editedTask.description || ""}
                   onChange={(e) => setEditedTask({ ...editedTask, description: e.target.value })}
+                  disabled={!canEditMeta}
                   onBlur={(e) => {
                     if (e.target.value !== (task.description || "")) {
                         handleSave('description', e.target.value);
                     }
                   }}
-                  className="w-full text-[15px] text-slate-700 leading-relaxed bg-white border border-slate-300 focus:border-indigo-400 focus:ring-4 focus:ring-indigo-50 rounded-xl p-4 transition-all min-h-[120px] resize-none outline-none placeholder:italic placeholder:text-slate-400"
-                  placeholder="Thêm mô tả chi tiết cho công việc này..."
+                  className={`w-full text-[15px] text-slate-700 leading-relaxed bg-white border border-slate-300 focus:border-indigo-400 focus:ring-4 focus:ring-indigo-50 rounded-xl p-4 transition-all min-h-[120px] resize-none outline-none placeholder:italic placeholder:text-slate-400 ${!canEditMeta ? 'opacity-70 cursor-not-allowed' : ''}`}
+                  placeholder={canEditMeta ? "Thêm mô tả chi tiết cho công việc này..." : "Bạn không có quyền sửa mô tả."}
                 />
               ) : (
                 <div className="text-[15px] text-slate-700 leading-relaxed whitespace-pre-wrap">
@@ -404,20 +432,26 @@ export const TaskDetailModal = ({ task, open, onOpenChange }: Omit<TaskDetailMod
                 <span className="text-xs text-slate-400 mt-1">Hãy là người đầu tiên trao đổi về công việc này</span>
               </div>
 
-              <div className="flex gap-4 items-start pt-2">
-                 <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-indigo-500 to-purple-500 text-white font-bold flex items-center justify-center text-sm shrink-0 shadow-sm border-2 border-white">
-                    U
-                 </div>
-                 <div className="flex-1 relative group">
-                   <textarea 
-                     className="w-full min-h-[100px] rounded-2xl border border-slate-200 bg-white p-4 pr-14 text-[15px] text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-4 focus:ring-indigo-50 focus:border-indigo-300 transition-all resize-none shadow-sm"
-                     placeholder="Viết bình luận hoặc cập nhật tiến độ... (Ctrl+Enter để gửi)"
-                   />
-                   <button className="absolute bottom-3 right-3 w-9 h-9 rounded-xl bg-slate-100 text-slate-400 flex items-center justify-center hover:bg-indigo-50 hover:text-indigo-600 transition-colors group-focus-within:bg-indigo-50 group-focus-within:text-indigo-600">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>
-                   </button>
-                 </div>
-              </div>
+              {canInteract ? (
+                <div className="flex gap-4 items-start pt-2">
+                   <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-indigo-500 to-purple-500 text-white font-bold flex items-center justify-center text-sm shrink-0 shadow-sm border-2 border-white">
+                      {currentUser?.displayName?.[0] || currentUser?.email?.[0] || "U"}
+                   </div>
+                   <div className="flex-1 relative group">
+                     <textarea 
+                       className="w-full min-h-[100px] rounded-2xl border border-slate-200 bg-white p-4 pr-14 text-[15px] text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-4 focus:ring-indigo-50 focus:border-indigo-300 transition-all resize-none shadow-sm"
+                       placeholder="Viết bình luận hoặc cập nhật tiến độ... (Ctrl+Enter để gửi)"
+                     />
+                     <button className="absolute bottom-3 right-3 w-9 h-9 rounded-xl bg-slate-100 text-slate-400 flex items-center justify-center hover:bg-indigo-50 hover:text-indigo-600 transition-colors group-focus-within:bg-indigo-50 group-focus-within:text-indigo-600">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>
+                     </button>
+                   </div>
+                </div>
+              ) : (
+                <div className="bg-slate-50 p-4 rounded-xl text-center border border-dashed border-slate-200">
+                  <span className="text-sm text-slate-400 italic">Tính năng bình luận chỉ dành cho thành viên của dự án.</span>
+                </div>
+              )}
             </div>
 
           </div>
@@ -431,8 +465,9 @@ export const TaskDetailModal = ({ task, open, onOpenChange }: Omit<TaskDetailMod
               {isEditing ? (
                 <select 
                   value={currentStatus || ''}
+                  disabled={!canEditMeta}
                   onChange={(e) => handleSave('status', e.target.value)}
-                  className="w-full appearance-none outline-none flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-white border border-slate-300 text-sm font-bold shadow-sm hover:border-indigo-400 focus:border-indigo-400 focus:ring-4 focus:ring-indigo-50 transition-colors cursor-pointer"
+                  className={`w-full appearance-none outline-none flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-white border border-slate-300 text-sm font-bold shadow-sm hover:border-indigo-400 focus:border-indigo-400 focus:ring-4 focus:ring-indigo-50 transition-colors cursor-pointer ${!canEditMeta ? 'opacity-70 cursor-not-allowed' : ''}`}
                 >
                     <option value="todo">Cần làm</option>
                     <option value="in_progress">Đang làm</option>
@@ -455,8 +490,9 @@ export const TaskDetailModal = ({ task, open, onOpenChange }: Omit<TaskDetailMod
               {isEditing ? (
                 <select 
                   value={currentPriority || ''}
+                  disabled={!canEditMeta}
                   onChange={(e) => handleSave('priority', e.target.value)}
-                  className="w-full appearance-none outline-none flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-white border border-slate-300 text-sm font-bold shadow-sm hover:border-indigo-400 focus:border-indigo-400 focus:ring-4 focus:ring-indigo-50 transition-colors cursor-pointer"
+                  className={`w-full appearance-none outline-none flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-white border border-slate-300 text-sm font-bold shadow-sm hover:border-indigo-400 focus:border-indigo-400 focus:ring-4 focus:ring-indigo-50 transition-colors cursor-pointer ${!canEditMeta ? 'opacity-70 cursor-not-allowed' : ''}`}
                 >
                     <option value="urgent">Khẩn cấp</option>
                     <option value="high">Cao</option>
@@ -482,14 +518,15 @@ export const TaskDetailModal = ({ task, open, onOpenChange }: Omit<TaskDetailMod
                 <div className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white border border-slate-300 focus-within:border-indigo-400 focus-within:ring-4 focus-within:ring-indigo-50 shadow-sm w-full relative transition-all">
                   <input 
                     type="date"
+                    disabled={!canEditMeta}
                     value={editedTask.dueDate ? new Date(editedTask.dueDate).toISOString().split('T')[0] : ''}
                     onChange={(e) => {
                       const newDate = e.target.value ? new Date(e.target.value).toISOString() : null;
                       handleSave('dueDate', newDate);
                     }}
-                    className="w-full text-[14px] font-bold text-slate-700 bg-transparent border-none p-0 focus:ring-0 focus:outline-none cursor-pointer"
+                    className={`w-full text-[14px] font-bold text-slate-700 bg-transparent border-none p-0 focus:ring-0 focus:outline-none cursor-pointer ${!canEditMeta ? 'cursor-not-allowed' : ''}`}
                   />
-                  {editedTask.dueDate && (
+                  {editedTask.dueDate && canEditMeta && (
                     <button 
                       onClick={() => handleSave('dueDate', null)}
                       className="absolute right-3 text-slate-400 hover:text-red-500 transition-colors bg-white flex items-center justify-center"
@@ -537,7 +574,7 @@ export const TaskDetailModal = ({ task, open, onOpenChange }: Omit<TaskDetailMod
                   <span className="text-sm font-medium text-slate-400 italic">Chưa giao việc</span>
                 )}
                 
-                {isEditing && (
+                {isEditing && canEditMeta && (
                   <div className="relative ml-auto" ref={assigneeRef}>
                     <Button
                       type="button"
@@ -607,7 +644,7 @@ export const TaskDetailModal = ({ task, open, onOpenChange }: Omit<TaskDetailMod
               <h4 className="text-[11px] font-extrabold uppercase tracking-widest text-slate-400 flex items-center gap-1.5"><Palette className="w-3.5 h-3.5" /> Màu thẻ nhận diện</h4>
               
               <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
-                {isEditing && (
+                {isEditing && canEditMeta && (
                   <div className="flex flex-wrap gap-2.5 mb-5">
                     {PRESET_COLORS.map((c, i) => (
                       <div 
@@ -642,7 +679,7 @@ export const TaskDetailModal = ({ task, open, onOpenChange }: Omit<TaskDetailMod
             {/* Tags List */}
             <TaskTags 
               tags={currentTags as any}
-              isEditing={isEditing}
+              isEditing={isEditing && canEditMeta}
               onTagsChange={(newTags) => handleSave('tags', newTags)}
             />
             

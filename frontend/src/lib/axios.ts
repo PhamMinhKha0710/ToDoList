@@ -165,6 +165,13 @@ api.interceptors.response.use(
       }
     }
 
+    // Hiển thị thông báo lỗi từ backend nếu có (trừ lỗi 401 do đã có logic refresh token xử lý riêng)
+    if (error.response?.status !== 401) {
+      const { toast } = await import('sonner');
+      const errorMessage = error.response?.data?.message || 'Đã có lỗi xảy ra. Vui lòng thử lại sau.';
+      toast.error(errorMessage);
+    }
+
     return Promise.reject(error);
   },
 );

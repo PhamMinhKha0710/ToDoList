@@ -47,8 +47,8 @@ export const AddColumnModal = ({ projectId, open, onOpenChange }: AddColumnModal
       reset();
       onOpenChange(false);
     },
-    onError: (error: any) => {
-      toast.error(error.response?.data?.message || 'Có lỗi xảy ra khi tạo cột');
+    onError: () => {
+      // Logic xử lý lỗi khác nếu cần (global axios đã hiển thị toast)
     }
   });
 

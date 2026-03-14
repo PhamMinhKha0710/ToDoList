@@ -7,18 +7,27 @@ import { taskService } from "@/services/task.service";
 import { AddTaskModal } from "./AddTaskModal";
 import { TaskCard } from "./TaskCard";
 import { TaskDetailModal } from "../taskDetail/TaskDetailModal";
+import { useAuthStore } from "@/stores/auth.store";
+import type { User } from "@/types/user";
 import type { Task } from "@/types/task";
 
 interface ColumnListProps {
   columnId: string;
+  projectId: string;
 }
 
-export const ColumnList = ({ columnId }: ColumnListProps) => {
+export const ColumnList = ({ columnId, projectId }: ColumnListProps) => {
   const [isAddTaskModalOpen, setIsAddTaskModalOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   
-  const { tasks: storeTasks, setTasks } = useKanbanStore();
+  const { tasks: storeTasks, setTasks, members: projectMembers } = useKanbanStore();
+  const { user: currentUser } = useAuthStore();
   const columnTasks = storeTasks[columnId] || [];
+
+  const currentMember = projectMembers.find(
+    (m) => (m.userId as User)._id === currentUser?._id
+  );
+  const isViewer = currentMember?.role === "viewer";
 
   const { data: queryTasks, isLoading } = useQuery({
     queryKey: ["tasks", columnId],
@@ -49,8 +58,8 @@ export const ColumnList = ({ columnId }: ColumnListProps) => {
           </div>
         ) : columnTasks.length === 0 ? (
           <div 
-            onClick={() => setIsAddTaskModalOpen(true)}
-            className="flex-1 min-h-[120px] rounded-lg p-4 flex flex-col items-center justify-center text-sm text-muted-foreground border-2 border-dashed border-muted-foreground/20 bg-background/50 hover:bg-background/80 transition-colors cursor-pointer group"
+            onClick={() => !isViewer && setIsAddTaskModalOpen(true)}
+            className={`flex-1 min-h-[120px] rounded-lg p-4 flex flex-col items-center justify-center text-sm text-muted-foreground border-2 border-dashed border-muted-foreground/20 bg-background/50 hover:bg-background/80 transition-colors cursor-pointer group ${isViewer ? 'cursor-default pointer-events-none' : ''}`}
           >
             <div className="w-8 h-8 rounded-full bg-green-100/50 flex items-center justify-center mb-2 group-hover:scale-110 transition-transform">
               <Plus className="h-4 w-4 text-green-500" />
@@ -70,14 +79,16 @@ export const ColumnList = ({ columnId }: ColumnListProps) => {
         )}
       </div>
 
-      <Button 
-        variant="outline" 
-        className="w-full bg-background border-dashed text-muted-foreground hover:text-foreground justify-start px-4 h-10 shrink-0"
-        onClick={() => setIsAddTaskModalOpen(true)}
-      >
-        <Plus className="h-4 w-4 mr-2" />
-        <span className="font-semibold">Thêm task</span>
-      </Button>
+      {!isViewer && (
+        <Button 
+          variant="outline" 
+          className="w-full bg-background border-dashed text-muted-foreground hover:text-foreground justify-start px-4 h-10 shrink-0"
+          onClick={() => setIsAddTaskModalOpen(true)}
+        >
+          <Plus className="h-4 w-4 mr-2" />
+          <span className="font-semibold">Thêm task</span>
+        </Button>
+      )}
 
       <AddTaskModal 
         columnId={columnId}
@@ -88,6 +99,7 @@ export const ColumnList = ({ columnId }: ColumnListProps) => {
       {selectedTask && (
         <TaskDetailModal 
           task={selectedTask}
+          projectId={projectId}
           open={!!selectedTask}
           onOpenChange={(isOpen: boolean) => {
              if (!isOpen) setSelectedTask(null);

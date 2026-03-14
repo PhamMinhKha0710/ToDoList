@@ -8,6 +8,8 @@ import { AddColumnButton } from "./AddColumnButton";
 import { ColumnHeader } from "./ColumnHeader";
 import { ColumnList } from "./ColumnList";
 import { useKanbanStore } from "@/stores/kanban.store";
+import { useAuthStore } from "@/stores/auth.store";
+import type { User } from "@/types/user";
 
 interface KanbanBoardProps {
   projectId: string;
@@ -15,7 +17,13 @@ interface KanbanBoardProps {
 
 export const KanbanBoard = ({ projectId }: KanbanBoardProps) => {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const { columns: storeColumns, setColumns } = useKanbanStore();
+  const { columns: storeColumns, setColumns, members: projectMembers } = useKanbanStore();
+  const { user: currentUser } = useAuthStore();
+
+  const currentMember = projectMembers.find(
+    (m) => (m.userId as User)._id === currentUser?._id
+  );
+  const isManager = currentMember?.role === "owner" || currentMember?.role === "admin";
 
   const { data: queryColumns, isLoading } = useQuery({
     queryKey: ["columns", projectId],
@@ -48,20 +56,22 @@ export const KanbanBoard = ({ projectId }: KanbanBoardProps) => {
         >
           <ColumnHeader column={column} />
           <div className="p-3 pt-0 flex flex-col gap-3 flex-1 h-full">
-            <ColumnList columnId={column._id}  />
+            <ColumnList columnId={column._id} projectId={projectId} />
           </div>
         </div>
       ))}
 
-      {/* Nút thêm cột */}
-      <AddColumnButton onClick={() => setIsAddModalOpen(true)} />
+      {/* Nút thêm cột - Chỉ hiện cho Owner/Admin */}
+      {isManager && <AddColumnButton onClick={() => setIsAddModalOpen(true)} />}
 
       {/* Modal thêm cột */}
-      <AddColumnModal
-        projectId={projectId}
-        open={isAddModalOpen}
-        onOpenChange={setIsAddModalOpen}
-      />
+      {isManager && (
+        <AddColumnModal
+          projectId={projectId}
+          open={isAddModalOpen}
+          onOpenChange={setIsAddModalOpen}
+        />
+      )}
     </BoardContainer>
   );
 };

@@ -49,11 +49,12 @@ export const ProjectHeader = ({ project }: ProjectHeaderProps) => {
   const [isMembersDialogOpen, setIsMembersDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
-  // Determine if current user is owner
+  // Determine current user's role
   const currentMember = project.members.find(
     (m) => (m.userId as User)._id === currentUser?._id,
   );
   const isOwner = currentMember?.role === "owner";
+  const isManager = currentMember?.role === "owner" || currentMember?.role === "admin";
 
   const deleteMutation = useMutation({
     mutationFn: () => projectService.deleteProject(project._id),
@@ -152,8 +153,8 @@ export const ProjectHeader = ({ project }: ProjectHeaderProps) => {
             </span>
           </Button>
 
-          {/* Owner Actions Dropdown */}
-          {isOwner && (
+          {/* Owner & Admin Actions Dropdown */}
+          {isManager && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" size="icon" className="h-10 w-10">
@@ -161,16 +162,20 @@ export const ProjectHeader = ({ project }: ProjectHeaderProps) => {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => setIsEditDialogOpen(true)}>
-                  <Edit className="h-4 w-4 mr-2" /> Sửa thông tin
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  onClick={() => setIsDeleteDialogOpen(true)}
-                  className="text-destructive focus:text-destructive focus:bg-destructive/10"
-                >
-                  <Trash2 className="h-4 w-4 mr-2" /> Xóa dự án
-                </DropdownMenuItem>
+                {isOwner && (
+                  <DropdownMenuItem onClick={() => setIsEditDialogOpen(true)}>
+                    <Edit className="h-4 w-4 mr-2" /> Sửa thông tin
+                  </DropdownMenuItem>
+                )}
+                {isOwner && <DropdownMenuSeparator />}
+                {isOwner && (
+                  <DropdownMenuItem
+                    onClick={() => setIsDeleteDialogOpen(true)}
+                    className="text-destructive focus:text-destructive focus:bg-destructive/10"
+                  >
+                    <Trash2 className="h-4 w-4 mr-2" /> Xóa dự án
+                  </DropdownMenuItem>
+                )}
               </DropdownMenuContent>
             </DropdownMenu>
           )}
@@ -191,6 +196,7 @@ export const ProjectHeader = ({ project }: ProjectHeaderProps) => {
           open={isMembersDialogOpen}
           onOpenChange={setIsMembersDialogOpen}
           isOwner={isOwner}
+          isManager={isManager}
           currentUserId={currentUser?._id || ""}
         />
       )}

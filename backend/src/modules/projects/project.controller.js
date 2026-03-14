@@ -58,11 +58,25 @@ const deleteProject = catchAsync(async (req, res) => {
   new ApiResponse(200, 'Xóa dự án thành công').send(res);
 });
 
+const mailService = require('../../services/mail.service');
+const { CLIENT_URL } = require('../../config/env');
+
 /**
  * POST /api/v1/projects/:projectId/members
  */
 const addMember = catchAsync(async (req, res) => {
-  const project = await projectService.addMember(req.params.projectId, req.body.email);
+  const role = req.body.role || 'member'; // 'member' là default nếu không truyền
+  const project = await projectService.addMember(req.params.projectId, req.body.email, role);
+  
+  // Gửi email thông báo bất đồng bộ (không await để block response)
+  const projectUrl = `${CLIENT_URL}/projects/${project._id}`;
+  mailService.sendProjectInvitationEmail(
+    req.body.email, 
+    project.name, 
+    req.user.displayName || req.user.email, // Lấy tên người mời
+    projectUrl
+  ).catch(err => console.error('Error sending invitation email:', err));
+
   const projectDTO = ProjectResponseDTO.fromEntity(project);
   new ApiResponse(200, 'Thêm thành viên thành công', { project: projectDTO }).send(res);
 });
@@ -81,10 +95,6 @@ const removeMember = catchAsync(async (req, res) => {
  */
 const updateMemberRole = catchAsync(async (req, res) => {
   const { role } = req.body;
-  if (!role || !['owner', 'member'].includes(role)) {
-    return new ApiResponse(400, 'Role không hợp lệ. Phải là owner hoặc member').send(res);
-  }
-  
   const project = await projectService.updateMemberRole(req.params.projectId, req.params.memberId, role);
   const projectDTO = ProjectResponseDTO.fromEntity(project);
   new ApiResponse(200, 'Cập nhật phân quyền thành công', { project: projectDTO }).send(res);

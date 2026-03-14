@@ -62,8 +62,8 @@ export const EditColumnModal = ({ column, open, onOpenChange }: EditColumnModalP
       queryClient.invalidateQueries({ queryKey: ['columns'] });
       onOpenChange(false);
     },
-    onError: (error: any) => {
-      toast.error(error.response?.data?.message || 'Có lỗi xảy ra khi cập nhật cột');
+    onError: () => {
+      // Global toast handled in axios.ts
     }
   });
 

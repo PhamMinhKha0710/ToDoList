@@ -2,7 +2,7 @@ import type { User } from './user';
 
 export interface ProjectMember {
   userId: string | User;
-  role: 'owner' | 'member';
+  role: 'owner' | 'admin' | 'member' | 'viewer';
 }
 
 export interface Project {

@@ -9,7 +9,7 @@ const memberSchema = new Schema(
     },
     role: {
       type: String,
-      enum: ['owner', 'member'],
+      enum: ['owner', 'admin', 'member', 'viewer'],
       default: 'member',
     },
   },

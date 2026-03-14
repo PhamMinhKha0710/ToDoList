@@ -11,7 +11,7 @@ export const projectService = {
 
   createProject: async (data: CreateProjectPayload & { 
     file?: File;
-    members?: { userId: string; role: 'owner' | 'member' }[];
+    members?: { userId: string; role: 'owner' | 'admin' | 'member' | 'viewer' }[];
   }): Promise<ApiResponse<{ project: Project }>> => {
     const formData = new FormData();
     formData.append('name', data.name);
@@ -51,8 +51,8 @@ export const projectService = {
     return response.data;
   },
 
-  addMember: async (projectId: string, email: string): Promise<ApiResponse<{ project: Project }>> => {
-    const response = await api.post(`/projects/${projectId}/members`, { email });
+  addMember: async (projectId: string, email: string, role?: string): Promise<ApiResponse<{ project: Project }>> => {
+    const response = await api.post(`/projects/${projectId}/members`, { email, role });
     return response.data;
   },
 
@@ -61,7 +61,7 @@ export const projectService = {
     return response.data;
   },
 
-  updateMemberRole: async (projectId: string, memberId: string, role: 'owner' | 'member'): Promise<ApiResponse<{ project: Project }>> => {
+  updateMemberRole: async (projectId: string, memberId: string, role: string): Promise<ApiResponse<{ project: Project }>> => {
     const response = await api.put(`/projects/${projectId}/members/${memberId}`, { role });
     return response.data;
   },

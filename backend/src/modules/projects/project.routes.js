@@ -3,7 +3,11 @@ const projectController = require('./project.controller');
 const projectValidator = require('./project.validator');
 const { validate } = require('../../middlewares/validate.middleware');
 const { authenticate } = require('../../middlewares/auth.middleware');
-const { isProjectMember, isProjectOwner } = require('../../middlewares/project.middleware');
+const { 
+  isProjectMember, 
+  isProjectOwner,
+  isProjectManagerOrAbove
+} = require('../../middlewares/project.middleware');
 const upload = require('../../middlewares/upload.middleware');
 
 const router = express.Router();
@@ -40,19 +44,24 @@ router
     upload.single('file'),
     parseMembers,
     validate(projectValidator.updateProjectSchema), 
-    isProjectOwner, 
+    isProjectOwner,  // Chỉ owner mới được sửa thông tin board
     projectController.updateProject
   )
-  .delete(isProjectOwner, projectController.deleteProject);
+  .delete(isProjectOwner, projectController.deleteProject); // Chỉ owner xóa board
 
-// Thêm, xóa thành viên trong dự án
+// Thêm thành viên: Owner hoặc Admin
 router
   .route('/:projectId/members')
-  .post(validate(projectValidator.addMemberSchema), isProjectOwner, projectController.addMember);
+  .post(validate(projectValidator.addMemberSchema), isProjectManagerOrAbove, projectController.addMember);
 
+// Xóa, đổi role thành viên
 router
   .route('/:projectId/members/:memberId')
-  .put(isProjectOwner, projectController.updateMemberRole)
-  .delete(isProjectOwner, projectController.removeMember);
+  .put(
+    validate(projectValidator.updateMemberRoleSchema),
+    isProjectOwner,  // Chỉ owner đổi role
+    projectController.updateMemberRole
+  )
+  .delete(isProjectManagerOrAbove, projectController.removeMember); // Owner hoặc Admin xóa member
 
 module.exports = router;

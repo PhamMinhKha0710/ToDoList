@@ -44,7 +44,7 @@ class ProjectService {
     return null; // Return nothing on delete
   }
 
-  async addMember(projectId, email) {
+  async addMember(projectId, email, role = 'member') {
     const project = await this.getProjectById(projectId);
 
     // Tìm user theo email
@@ -64,7 +64,7 @@ class ProjectService {
 
     const memberData = {
       userId: userToAdd._id,
-      role: 'member',
+      role,
     };
 
     return projectRepository.addMember(projectId, memberData);
@@ -99,8 +99,8 @@ class ProjectService {
       throw new ApiError(404, 'Thành viên không tồn tại trong dự án');
     }
 
-    // Nếu hạ quyền từ owner xuống member, phải đảm bảo còn ít nhất 1 owner khác
-    if (memberToUpdate.role === 'owner' && newRole === 'member') {
+    // Nếu hạ quyền owner xuống bất kỳ role nào khác, phải đảm bảo còn ít nhất 1 owner
+    if (memberToUpdate.role === 'owner' && newRole !== 'owner') {
       const ownerCount = project.members.filter((m) => m.role === 'owner').length;
       if (ownerCount <= 1) {
         throw new ApiError(400, 'Dự án phải có ít nhất 1 Owner. Không thể hạ quyền Owner duy nhất.');

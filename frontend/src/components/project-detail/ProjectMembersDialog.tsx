@@ -18,16 +18,34 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import { Trash2, ShieldAlert } from 'lucide-react';
 import { UserSearchSelect } from '../project/UserSearchSelect';
 import type { User } from '@/types/user';
+
+type AssignableRole = 'admin' | 'member' | 'viewer';
+
+const ROLE_LABELS: Record<string, string> = {
+  owner: 'Owner',
+  admin: 'Admin',
+  member: 'Member',
+  viewer: 'Viewer',
+};
+
+const ROLE_BADGE_VARIANT: Record<string, 'default' | 'secondary' | 'outline' | 'destructive'> = {
+  owner: 'default',
+  admin: 'secondary',
+  member: 'outline',
+  viewer: 'outline',
+};
 
 interface ProjectMembersDialogProps {
   project: Project;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   isOwner: boolean;
+  isManager: boolean; // owner hoặc admin
   currentUserId: string;
 }
 
@@ -36,6 +54,7 @@ export const ProjectMembersDialog = ({
   open, 
   onOpenChange, 
   isOwner,
+  isManager,
   currentUserId
 }: ProjectMembersDialogProps) => {
   const queryClient = useQueryClient();
@@ -43,59 +62,50 @@ export const ProjectMembersDialog = ({
 
   // Mutations
   const addMemberMutation = useMutation({
-    mutationFn: (data: { userId: string, role: 'owner' | 'member', user: User }) => 
-      // Dùng user.email tạm để gửi qua backend do addMember API backend lấy email
-      projectService.addMember(project._id, data.user.email),
-    onSuccess: (_, variables) => {
-      // Sau khi thêm member bằng API (backend default role=member), 
-      // ta tự cập nhật role nếu chọn role là owner qua updateMemberRole.
-      // Dù API gốc của createMember backend chỉ xài email và set default 'member' được
-      if (variables.role === 'owner') {
-        const addedUserId = variables.user._id;
-        updateRoleMutation.mutate({ memberId: addedUserId, role: 'owner' });
-      } else {
-        toast.success('Đã thêm thành viên thành công.');
-        queryClient.invalidateQueries({ queryKey: ['project', project._id] });
-      }
+    mutationFn: (data: { user: User; role: AssignableRole }) => 
+      projectService.addMember(project._id, data.user.email, data.role),
+    onSuccess: () => {
+      toast.success('Đã thêm thành viên thành công.');
+      queryClient.invalidateQueries({ queryKey: ['project', project._id] });
     },
-    onError: (error: any) => {
-      toast.error(error.response?.data?.message || 'Có lỗi xảy ra khi thêm thành viên');
+    onError: () => {
+      // Global toast handled
     }
   });
 
   const updateRoleMutation = useMutation({
-    mutationFn: (data: { memberId: string, role: 'owner' | 'member' }) => 
+    mutationFn: (data: { memberId: string, role: AssignableRole }) =>
       projectService.updateMemberRole(project._id, data.memberId, data.role),
     onSuccess: () => {
       toast.success('Cập nhật quyền thành công.');
       queryClient.invalidateQueries({ queryKey: ['project', project._id] });
     },
-    onError: (error: any) => {
-      toast.error(error.response?.data?.message || 'Không thể cập nhật quyền');
+    onError: () => {
+      // Global toast handled in axios.ts
     }
   });
 
   const removeMemberMutation = useMutation({
-    mutationFn: (memberId: string) => 
+    mutationFn: (memberId: string) =>
       projectService.removeMember(project._id, memberId),
     onSuccess: () => {
       toast.success('Đã xóa thành viên khỏi dự án.');
       setMemberToRemove(null);
       queryClient.invalidateQueries({ queryKey: ['project', project._id] });
     },
-    onError: (error: any) => {
-      toast.error(error.response?.data?.message || 'Không thể xóa thành viên');
+    onError: () => {
+      // Global toast handled
       setMemberToRemove(null);
     }
   });
 
-  const handleAddMember = (user: User, role: 'owner' | 'member') => {
-    addMemberMutation.mutate({ userId: user._id, role, user });
+  const handleAddMember = (user: User, role: AssignableRole) => {
+    addMemberMutation.mutate({ user, role });
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[550px] max-h-[85vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-[560px] max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Thành viên dự án</DialogTitle>
           <DialogDescription>
@@ -103,7 +113,8 @@ export const ProjectMembersDialog = ({
           </DialogDescription>
         </DialogHeader>
 
-        {isOwner && (
+        {/* Phần mời thành viên: chỉ hiện với Owner hoặc Admin */}
+        {isManager && (
           <div className="py-4 border-b">
             <h4 className="text-sm font-semibold mb-3">Mời người mới</h4>
             <UserSearchSelect 
@@ -117,12 +128,13 @@ export const ProjectMembersDialog = ({
           <h4 className="text-sm font-semibold mb-3">
             Thành viên hiện tại ({project.members.length})
           </h4>
-          <div className="space-y-3">
+          <div className="space-y-2">
             {project.members.map((member) => {
               const user = member.userId as User;
               const name = user.displayName || user.email.split('@')[0];
               const initials = name.substring(0, 2).toUpperCase();
               const isMe = user._id === currentUserId;
+              const isMemberOwner = member.role === 'owner';
 
               return (
                 <div key={user._id} className="flex items-center justify-between p-2 rounded-md hover:bg-muted/50">
@@ -140,25 +152,33 @@ export const ProjectMembersDialog = ({
                   </div>
 
                   <div className="flex items-center gap-2">
-                    {/* Select Role */}
-                    <Select 
-                      value={member.role} 
-                      disabled={!isOwner || updateRoleMutation.isPending}
-                      onValueChange={(val: 'owner' | 'member') => {
-                        updateRoleMutation.mutate({ memberId: user._id, role: val });
-                      }}
-                    >
-                      <SelectTrigger className="w-[100px] h-8 text-xs border-transparent bg-transparent hover:bg-muted font-medium">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="member">Member</SelectItem>
-                        <SelectItem value="owner">Owner</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    {/* Chỉ Owner mới được đổi role (và không đổi owner khác) */}
+                    {isOwner && !isMemberOwner ? (
+                      <Select 
+                        value={member.role as AssignableRole} 
+                        disabled={updateRoleMutation.isPending}
+                        onValueChange={(val: AssignableRole) => {
+                          updateRoleMutation.mutate({ memberId: user._id, role: val });
+                        }}
+                      >
+                        <SelectTrigger className="w-[110px] h-8 text-xs border-transparent bg-transparent hover:bg-muted font-medium">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="admin">Admin</SelectItem>
+                          <SelectItem value="member">Member</SelectItem>
+                          <SelectItem value="viewer">Viewer</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    ) : (
+                      // Hiển thị badge role cho Owner và người không có quyền đổi
+                      <Badge variant={ROLE_BADGE_VARIANT[member.role]} className="text-xs">
+                        {ROLE_LABELS[member.role]}
+                      </Badge>
+                    )}
 
-                    {/* Delete button (only owners can delete, but cannot delete themselves here easily without warning) */}
-                    {isOwner && (
+                    {/* Nút xóa: Owner hoặc Admin mới được xóa (không xóa được owner) */}
+                    {isManager && !isMemberOwner && !isMe && (
                       <Button
                         variant="ghost"
                         size="icon"
@@ -209,3 +229,5 @@ export const ProjectMembersDialog = ({
     </Dialog>
   );
 };
+
+
