@@ -26,6 +26,12 @@ export const createTaskSchema = z.object({
   dueDate: z.string().nullable().optional(),
   color: z.string().optional(),
   status: z.nativeEnum(TaskStatus).optional(),
+  tags: z.array(
+    z.object({
+      name: z.string().min(1, 'Tên thẻ không được để trống'),
+      color: z.string().optional()
+    })
+  ).optional(),
 });
 
 export type CreateTaskPayload = z.infer<typeof createTaskSchema>;

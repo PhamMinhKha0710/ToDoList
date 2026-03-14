@@ -72,11 +72,17 @@ export const TaskCard = ({ task, onClick }: TaskCardProps) => {
         {/* Tags */}
         {hasTags && (
           <div className="flex flex-wrap gap-1.5 mt-0.5">
-            {task.tags!.map(tag => (
-              <div key={tag.name} className="px-2 py-0.5 rounded-md bg-black/5 text-[11px] font-semibold text-slate-700 border border-black/5">
+            {task.tags!.slice(0, task.tags!.length > 4 ? 3 : task.tags!.length).map(tag => (
+              <div key={tag.name} className="flex items-center gap-1.5 px-2 py-0.5 rounded-md border border-slate-200 shadow-sm text-[11px] font-bold text-slate-600 bg-white">
+                <div className="w-2 h-2 rounded-full" style={{ backgroundColor: tag.color || '#ec4899' }} />
                 {tag.name}
               </div>
             ))}
+            {task.tags!.length > 4 && (
+              <div className="flex items-center px-2 py-0.5 rounded-md border border-slate-200 shadow-sm text-[11px] font-bold text-slate-500 bg-slate-50">
+                +{task.tags!.length - 3}
+              </div>
+            )}
           </div>
         )}
       </div>

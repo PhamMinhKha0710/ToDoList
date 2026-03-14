@@ -40,7 +40,10 @@ export const TaskDetailModal = ({ task, open, onOpenChange }: TaskDetailModalPro
   const [editedTask, setEditedTask] = useState<Partial<Task>>({});
   const [isEditing, setIsEditing] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const hasImages = false; 
+  const [isAddingTag, setIsAddingTag] = useState(false);
+  const [newTagName, setNewTagName] = useState('');
+  const [newTagColor, setNewTagColor] = useState(PRESET_COLORS[0]);
+  const hasImages = false;  
 
   // Initialize edited defaults from props
   useEffect(() => {
@@ -52,8 +55,11 @@ export const TaskDetailModal = ({ task, open, onOpenChange }: TaskDetailModalPro
         priority: task.priority,
         color: task.color,
         dueDate: task.dueDate,
+        tags: task.tags || [],
       });
       setIsEditing(false); // Reset edit state when opening a new task
+      setIsAddingTag(false);
+      setNewTagName('');
     }
   }, [task, open]);
 
@@ -87,6 +93,28 @@ export const TaskDetailModal = ({ task, open, onOpenChange }: TaskDetailModalPro
   const currentStatus = editedTask.status || task.status;
   const currentPriority = editedTask.priority || task.priority;
   const currentColor = editedTask.color || task.color;
+  const currentTags = editedTask.tags || task.tags || [];
+
+  const handleAddTag = () => {
+    if (!newTagName.trim()) {
+      setIsAddingTag(false);
+      return;
+    }
+    if (currentTags.some((t: any) => t.name.toLowerCase() === newTagName.trim().toLowerCase())) {
+      setIsAddingTag(false);
+      setNewTagName('');
+      return;
+    }
+    const newTags = [...currentTags, { name: newTagName.trim(), color: newTagColor }];
+    handleSave('tags', newTags);
+    setNewTagName('');
+    setIsAddingTag(false);
+  };
+
+  const handleRemoveTag = (tagName: string) => {
+    const newTags = currentTags.filter((t: any) => t.name !== tagName);
+    handleSave('tags', newTags);
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -411,20 +439,51 @@ export const TaskDetailModal = ({ task, open, onOpenChange }: TaskDetailModalPro
             <div className="space-y-3.5 pt-2">
               <h4 className="text-[11px] font-extrabold uppercase tracking-widest text-slate-400 flex items-center gap-1.5"><Tag className="w-3.5 h-3.5" /> Phân loại (Tags)</h4>
               <div className="flex flex-wrap gap-2">
-                 {task.tags?.map(tag => (
+                 {currentTags.map((tag: any) => (
                    <div key={tag.name} className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white border border-slate-200 shadow-sm text-slate-700 text-[13px] font-bold">
+                     <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: tag.color || '#ec4899' }} />
                      {tag.name}
                      {isEditing && (
-                       <button className="text-slate-400 hover:text-red-500 transition-colors ml-1">
+                       <button onClick={() => handleRemoveTag(tag.name)} className="text-slate-400 hover:text-red-500 transition-colors ml-1">
                          <X className="w-3.5 h-3.5" />
                        </button>
                      )}
                    </div>
                  ))}
-                 {isEditing && (
-                   <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-dashed border-slate-300 bg-transparent text-slate-500 text-[13px] font-bold hover:bg-slate-100 hover:text-slate-800 transition-colors">
+                 
+                 {isEditing && !isAddingTag && (
+                   <button onClick={() => setIsAddingTag(true)} className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-dashed border-slate-300 bg-transparent text-slate-500 text-[13px] font-bold hover:bg-slate-100 hover:text-slate-800 transition-colors">
                      <Plus className="w-4 h-4" /> Thêm Tag
                    </button>
+                 )}
+
+                 {isEditing && isAddingTag && (
+                   <div className="flex items-center gap-1.5 p-1 rounded-xl border border-slate-300 bg-white shadow-sm w-full max-w-[200px]">
+                     <input 
+                       type="text" 
+                       value={newTagName}
+                       onChange={(e) => setNewTagName(e.target.value)}
+                       onKeyDown={(e) => {
+                         if (e.key === 'Enter') handleAddTag();
+                         if (e.key === 'Escape') setIsAddingTag(false);
+                       }}
+                       placeholder="Nhập tên tag..."
+                       className="flex-1 bg-transparent text-[13px] font-bold text-slate-700 outline-none px-2 w-full min-w-0"
+                       autoFocus
+                     />
+                     <div className="relative w-6 h-6 shrink-0 border border-slate-200 rounded-lg overflow-hidden cursor-pointer" title="Chọn màu cho tag">
+                       <input 
+                         type="color" 
+                         value={newTagColor}
+                         onChange={(e) => setNewTagColor(e.target.value)}
+                         className="absolute inset-[-10px] w-20 h-20 cursor-pointer opacity-0 z-10"
+                       />
+                       <div className="w-full h-full" style={{ backgroundColor: newTagColor }} />
+                     </div>
+                     <button onClick={handleAddTag} className="w-6 h-6 shrink-0 flex items-center justify-center bg-indigo-50 text-indigo-600 rounded-lg hover:bg-indigo-100 transition-colors">
+                       <Plus className="w-3.5 h-3.5" />
+                     </button>
+                   </div>
                  )}
               </div>
             </div>

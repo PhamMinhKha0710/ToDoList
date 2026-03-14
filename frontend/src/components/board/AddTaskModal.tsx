@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { taskService } from '@/services/task.service';
 import { createTaskSchema, type CreateTaskPayload, TaskPriority } from '@/schemas/task.schema';
@@ -21,7 +22,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from 'sonner';
-import { Loader2, Flag } from 'lucide-react';
+import { Loader2, Flag, Plus, X } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useKanbanStore } from '@/stores/kanban.store';
@@ -46,11 +47,30 @@ export const AddTaskModal = ({ columnId, open, onOpenChange }: AddTaskModalProps
       description: '',
       priority: TaskPriority.NORMAL,
       color: PRESET_COLORS[0],
+      tags: [],
     }
   });
 
+  const [newTagName, setNewTagName] = useState('');
+  const [newTagColor, setNewTagColor] = useState(PRESET_COLORS[0]);
+
   const selectedColor = watch('color');
   const selectedPriority = watch('priority');
+  const tags = watch('tags') || [];
+
+  const handleAddTag = () => {
+    if (!newTagName.trim()) return;
+    if (tags.some(t => t.name.toLowerCase() === newTagName.trim().toLowerCase())) {
+      toast.error('Tag này đã tồn tại');
+      return;
+    }
+    setValue('tags', [...tags, { name: newTagName.trim(), color: newTagColor }]);
+    setNewTagName('');
+  };
+
+  const handleRemoveTag = (tagName: string) => {
+    setValue('tags', tags.filter(t => t.name !== tagName));
+  };
 
   const createMutation = useMutation({
     mutationFn: taskService.createTask,
@@ -90,7 +110,11 @@ export const AddTaskModal = ({ columnId, open, onOpenChange }: AddTaskModalProps
     <Dialog 
       open={open} 
       onOpenChange={(isOpen) => {
-        if (!isOpen) reset();
+        if (!isOpen) {
+          reset();
+          setNewTagName('');
+          setNewTagColor(PRESET_COLORS[0]);
+        }
         onOpenChange(isOpen);
       }}
     >
@@ -172,6 +196,67 @@ export const AddTaskModal = ({ columnId, open, onOpenChange }: AddTaskModalProps
                 type="date"
                 {...register('dueDate')}
               />
+            </div>
+          </div>
+
+          {/* Tags Section */}
+          <div className="space-y-3">
+            <Label className="text-sm font-semibold">Phân loại (Tags)</Label>
+            
+            {/* Tag List */}
+            {tags.length > 0 && (
+              <div className="flex flex-wrap gap-2 mb-2">
+                {tags.map(tag => (
+                  <div key={tag.name} className="flex items-center gap-1.5 px-2.5 py-1 rounded-md border border-slate-200 shadow-sm text-xs font-bold text-slate-700 bg-white">
+                    <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: tag.color || '#ec4899' }} />
+                    {tag.name}
+                    <button 
+                      type="button" 
+                      onClick={() => handleRemoveTag(tag.name)}
+                      className="text-slate-400 hover:text-red-500 transition-colors ml-0.5"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+            
+            {/* Add Tag Input */}
+            <div className="flex items-center gap-2">
+              <Input 
+                placeholder="Nhập tên tag mới..." 
+                value={newTagName}
+                onChange={(e) => setNewTagName(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    handleAddTag();
+                  }
+                }}
+                className="flex-1"
+              />
+              <div className="relative w-10 h-10 shrink-0 border rounded-md overflow-hidden cursor-pointer" title="Chọn màu cho tag">
+                <input 
+                  type="color" 
+                  value={newTagColor}
+                  onChange={(e) => setNewTagColor(e.target.value)}
+                  className="absolute inset-[-10px] w-20 h-20 cursor-pointer opacity-0 z-10"
+                />
+                <div className="w-full h-full flex items-center justify-center bg-slate-50">
+                  <div className="w-4 h-4 rounded-full border border-black/10 shadow-sm" style={{ backgroundColor: newTagColor }} />
+                </div>
+              </div>
+              <Button 
+                type="button" 
+                variant="outline" 
+                size="icon"
+                onClick={handleAddTag}
+                disabled={!newTagName.trim()}
+                className="shrink-0"
+              >
+                <Plus className="w-4 h-4" />
+              </Button>
             </div>
           </div>
 
