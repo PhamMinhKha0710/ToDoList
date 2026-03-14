@@ -10,9 +10,11 @@ import {
   DialogClose
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Edit2, Trash2, Paperclip, CheckCircle2, Clock, Flag, User, Palette, Tag, UploadCloud, MessageSquare, X, Plus } from 'lucide-react';
+import { Edit2, Trash2, CheckCircle2, Clock, Flag, User, Palette, Tag, MessageSquare, X, Plus, Loader2 } from 'lucide-react';
 import { useKanbanStore } from "@/stores/kanban.store";
+import { toast } from "sonner";
 import { DeleteTaskConfirmModal } from './DeleteTaskConfirmModal';
+import { TaskAttachments } from "./TaskAttachments";
 
 interface TaskDetailModalProps {
   task: Task;
@@ -43,7 +45,9 @@ export const TaskDetailModal = ({ task, open, onOpenChange }: TaskDetailModalPro
   const [isAddingTag, setIsAddingTag] = useState(false);
   const [newTagName, setNewTagName] = useState('');
   const [newTagColor, setNewTagColor] = useState(PRESET_COLORS[0]);
-  const hasImages = false;  
+
+  const [isUploadingFiles, setIsUploadingFiles] = useState(false);
+  const [deletedAttachmentIds, setDeletedAttachmentIds] = useState<string[]>([]);
 
   // Initialize edited defaults from props
   useEffect(() => {
@@ -57,9 +61,28 @@ export const TaskDetailModal = ({ task, open, onOpenChange }: TaskDetailModalPro
         dueDate: task.dueDate,
         tags: task.tags || [],
       });
-      setIsEditing(false); // Reset edit state when opening a new task
+      setIsEditing(false);
       setIsAddingTag(false);
       setNewTagName('');
+      setDeletedAttachmentIds([]);
+      
+      // Load true attachments from backend
+      import('@/services/attachment.service').then(({ attachmentService }) => {
+        attachmentService.getTaskAttachments(task._id).then(atts => {
+          // Map backend format to UI format
+          const mappedAtts = atts.map(a => ({
+            ...a,
+            name: a.fileName,
+            url: a.fileUrl
+          }));
+          // Also store it inside editedTask.attachments so UI references can read it
+          // (though technically separate, UI still expects it there)
+          setEditedTask(prev => ({ ...prev, attachments: mappedAtts as any }));
+        }).catch(err => {
+          console.error("Lỗi khi fetch attachments:", err);
+          toast.error("Không thể tải danh sách file đính kèm.");
+        });
+      });
     }
   }, [task, open]);
 
@@ -86,14 +109,107 @@ export const TaskDetailModal = ({ task, open, onOpenChange }: TaskDetailModalPro
   };
 
   const handleSave = (field: keyof UpdateTaskPayload, value: any) => {
+    if (field === 'attachments') {
+      // Find what was deleted
+      const oldList = editedTask.attachments || [];
+      const newList = value;
+      // If a file was removed from the list and it has an _id (meaning it's on server), track its ID to delete later
+      const removedFiles = oldList.filter((oldNode: any) => oldNode._id && !newList.some((newNode: any) => newNode._id === oldNode._id));
+      if (removedFiles.length > 0) {
+        setDeletedAttachmentIds(prev => [...prev, ...removedFiles.map((f: any) => f._id)]);
+      }
+      setEditedTask((prev) => ({ ...prev, attachments: value }));
+      return;
+    }
+
     setEditedTask((prev) => ({ ...prev, [field]: value }));
     updateTaskMutation.mutate({ [field]: value });
+  };
+
+  const handleFinishEditing = async () => {
+    const currentAttachments = editedTask.attachments || [];
+    const hasNewFiles = currentAttachments.some((a: any) => a.file);
+    const hasDeletedFiles = deletedAttachmentIds.length > 0;
+
+    // If no attachments to process, just toggle off
+    if (!hasNewFiles && !hasDeletedFiles) {
+      setIsEditing(false);
+      return;
+    }
+
+    try {
+      setIsUploadingFiles(true);
+      const { attachmentService } = await import('@/services/attachment.service');
+
+      // 1. Delete removed files
+      if (hasDeletedFiles) {
+        await Promise.all(
+          deletedAttachmentIds.map(id => attachmentService.deleteAttachment(id).catch(err => console.error("Del err", err)))
+        );
+      }
+
+      // 2. Upload new files
+      if (hasNewFiles) {
+        await Promise.all(
+          currentAttachments.map(async (attachment: any) => {
+            if (attachment.file) {
+              try {
+                await attachmentService.uploadAttachment(task._id, attachment.file);
+              } catch (error) {
+                console.error("Failed to upload file", attachment.name, error);
+                throw new Error(`Lỗi khi tải lên file: ${attachment.name}`);
+              }
+            }
+          })
+        );
+      }
+
+      // 3. Refetch the updated attachments list
+      const freshAtts = await attachmentService.getTaskAttachments(task._id);
+      const mappedAtts = freshAtts.map(a => ({
+        ...a,
+        name: a.fileName,
+        url: a.fileUrl
+      }));
+      setEditedTask((prev) => ({ ...prev, attachments: mappedAtts as any }));
+      setDeletedAttachmentIds([]);
+
+      setIsEditing(false);
+    } catch (error: any) {
+      toast.error(error.message || "Lỗi khi xử lý file đính kèm");
+    } finally {
+      setIsUploadingFiles(false);
+    }
+  };
+
+  const handleDiscardEditing = () => {
+    // Revert everything
+    setEditedTask({
+      title: task.title,
+      description: task.description || "",
+      status: task.status,
+      priority: task.priority,
+      color: task.color,
+      dueDate: task.dueDate,
+      tags: task.tags || [],
+      attachments: task.attachments || [],
+    });
+    // Revoke any temporary blob URLs created
+    if (currentAttachments) {
+      currentAttachments.forEach((a: any) => {
+        if (a.file && a.url.startsWith('blob:')) {
+            URL.revokeObjectURL(a.url);
+        }
+      });
+    }
+    setIsEditing(false);
   };
 
   const currentStatus = editedTask.status || task.status;
   const currentPriority = editedTask.priority || task.priority;
   const currentColor = editedTask.color || task.color;
   const currentTags = editedTask.tags || task.tags || [];
+  const currentAttachments = editedTask.attachments || task.attachments || [];
 
   const handleAddTag = () => {
     if (!newTagName.trim()) {
@@ -117,7 +233,12 @@ export const TaskDetailModal = ({ task, open, onOpenChange }: TaskDetailModalPro
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={(isOpen) => {
+      if (!isOpen && isEditing) {
+        handleDiscardEditing();
+      }
+      onOpenChange(isOpen);
+    }}>
       <DialogContent className=" [&>button]:hidden max-w-[900px] h-[88vh] p-0 overflow-hidden flex flex-col bg-white rounded-3xl shadow-[0_20px_60px_-15px_rgba(0,0,0,0.15)] outline-none border-0 [&>button]:hidden">
         
         {/* Header Section */}
@@ -141,7 +262,7 @@ export const TaskDetailModal = ({ task, open, onOpenChange }: TaskDetailModalPro
                   onBlur={(e) => {
                     if (e.target.value.trim() !== task.title && e.target.value.trim() !== "") {
                       handleSave('title', e.target.value.trim());
-                    } else {
+                    } else if (e.target.value.trim() === "") {
                       setEditedTask({ ...editedTask, title: task.title });
                     }
                   }}
@@ -178,29 +299,57 @@ export const TaskDetailModal = ({ task, open, onOpenChange }: TaskDetailModalPro
           </div>
           
           <div className="flex items-center gap-2 shrink-0">
+            {isEditing && (
+              <Button 
+                variant="outline"
+                size="sm"
+                onClick={handleDiscardEditing}
+                disabled={isUploadingFiles}
+                className="h-10 px-4 font-bold border-slate-200 text-slate-600 hover:bg-slate-100 rounded-xl transition-all shadow-sm disabled:opacity-50"
+              >
+                Hủy
+              </Button>
+            )}
             <Button 
               variant={isEditing ? "default" : "outline"}
               size="sm" 
-              onClick={() => setIsEditing(!isEditing)}
+              onClick={() => isEditing ? handleFinishEditing() : setIsEditing(true)}
+              disabled={isUploadingFiles}
               className={`h-10 px-4 font-bold rounded-xl transition-all shadow-sm ${
-                isEditing ? "bg-indigo-600 hover:bg-indigo-700 text-white" : "text-slate-600 border-slate-200 hover:bg-slate-100 hover:text-slate-900"
+                isEditing ? "bg-indigo-600 hover:bg-indigo-700 text-white disabled:opacity-50" : "text-slate-600 border-slate-200 hover:bg-slate-100 hover:text-slate-900"
               }`}
             >
-              {isEditing ? <CheckCircle2 className="w-4 h-4 mr-2" /> : <Edit2 className="w-4 h-4 mr-2" />}
-              {isEditing ? "Hoàn tất" : "Sửa"}
+              {isUploadingFiles ? (
+                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              ) : isEditing ? (
+                 <CheckCircle2 className="w-4 h-4 mr-2" /> 
+              ) : (
+                 <Edit2 className="w-4 h-4 mr-2" />
+              )}
+              {isUploadingFiles ? "Đang xử lý..." : isEditing ? "Hoàn tất" : "Sửa"}
             </Button>
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={handleDelete}
-              disabled={deleteTaskMutation.isPending}
-              className="h-10 px-4 font-bold text-red-600 border-red-100 bg-red-50 hover:bg-red-100 hover:text-red-700 rounded-xl transition-colors shadow-sm disabled:opacity-50"
-            >
-              <Trash2 className="w-4 h-4 mr-2" />
-              {deleteTaskMutation.isPending ? "Đang xóa..." : "Xóa"}
-            </Button>
+            {!isEditing && (
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={handleDelete}
+                disabled={deleteTaskMutation.isPending}
+                className="h-10 px-4 font-bold text-red-600 border-red-100 bg-red-50 hover:bg-red-100 hover:text-red-700 rounded-xl transition-colors shadow-sm disabled:opacity-50"
+              >
+                <Trash2 className="w-4 h-4 mr-2" />
+                {deleteTaskMutation.isPending ? "Đang xóa..." : "Xóa"}
+              </Button>
+            )}
             <DialogClose asChild>
-              <Button variant="ghost" size="icon" className="h-10 w-10 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-xl ml-1 transition-colors">
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                disabled={isUploadingFiles}
+                onClick={() => {
+                  if (isEditing) handleDiscardEditing();
+                }}
+                className="h-10 w-10 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-xl ml-1 transition-colors disabled:opacity-50"
+              >
                  <X className="w-5 h-5" />
               </Button>
             </DialogClose>
@@ -243,30 +392,12 @@ export const TaskDetailModal = ({ task, open, onOpenChange }: TaskDetailModalPro
               )}
             </div>
 
-             {/* Attachments Upload Zone */}
-             <div className="space-y-4">
-              <h3 className="text-sm font-extrabold uppercase tracking-widest text-slate-400 flex items-center gap-2">
-                <Paperclip className="w-4 h-4" /> Tệp đính kèm
-              </h3>
-              <div className="border-2 border-dashed border-slate-200 bg-slate-50/50 hover:bg-indigo-50/50 hover:border-indigo-200 transition-all duration-300 rounded-2xl p-8 flex flex-col items-center justify-center cursor-pointer group">
-                <div className="w-12 h-12 bg-white rounded-full shadow-sm text-indigo-400 flex items-center justify-center mb-3 group-hover:scale-110 group-hover:text-indigo-500 group-hover:shadow-md transition-all duration-300">
-                  <UploadCloud className="w-6 h-6" />
-                </div>
-                <p className="text-[15px] text-slate-500 font-medium">Kéo thả file vào đây hoặc <span className="text-indigo-600 font-bold">duyệt qua máy tính</span></p>
-                <p className="text-xs text-slate-400 mt-1">Hỗ trợ PDF, PNG, JPG, DOCX (Tối đa 10MB)</p>
-              </div>
-            </div>
-
-            {hasImages && (
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-sm font-bold uppercase tracking-widest text-slate-400 flex items-center gap-2">
-                    Hình ảnh đính kèm
-                  </h3>
-                </div>
-              </div>
-            )}
-            
+            {/* Attachments Section */}
+            <TaskAttachments 
+              attachments={currentAttachments as any}
+              onChange={(newAttachments) => handleSave('attachments', newAttachments)}
+              isEditing={isEditing}
+            />
             {/* Comments */}
             <div className="space-y-6 pt-6 border-t border-slate-100 pb-10">
               <h3 className="text-sm font-extrabold uppercase tracking-widest text-slate-400 flex items-center gap-2">

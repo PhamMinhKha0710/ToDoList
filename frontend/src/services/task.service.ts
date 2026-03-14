@@ -1,21 +1,37 @@
-import axiosInstance from '@/lib/axios';
-import type { Task } from '@/types/task';
-import type { CreateTaskPayload, UpdateTaskPayload } from '@/schemas/task.schema';
-import type { ApiResponse } from '@/types/api';
+import axiosInstance from "@/lib/axios";
+import type { Task } from "@/types/task";
+import type {
+  CreateTaskPayload,
+  UpdateTaskPayload,
+} from "@/schemas/task.schema";
+import type { ApiResponse } from "@/types/api";
 
 export const taskService = {
   getTasksByColumnId: async (columnId: string): Promise<Task[]> => {
-    const response = await axiosInstance.get<ApiResponse<{ tasks: Task[] }>>(`/tasks/column/${columnId}`);
+    const response = await axiosInstance.get<ApiResponse<{ tasks: Task[] }>>(
+      `/tasks/column/${columnId}`,
+    );
     return response.data.data.tasks;
   },
 
-  createTask: async (data: CreateTaskPayload): Promise<Task> => {
-    const response = await axiosInstance.post<ApiResponse<{ task: Task }>>('/tasks', data);
+  createTask: async (data: CreateTaskPayload | FormData): Promise<Task> => {
+    console.log("data: ", data);
+
+    const response = await axiosInstance.post<ApiResponse<{ task: Task }>>(
+      "/tasks",
+      data,
+    );
     return response.data.data.task;
   },
 
-  updateTask: async (taskId: string, data: UpdateTaskPayload): Promise<Task> => {
-    const response = await axiosInstance.put<ApiResponse<{ task: Task }>>(`/tasks/${taskId}`, data);
+  updateTask: async (
+    taskId: string,
+    data: UpdateTaskPayload,
+  ): Promise<Task> => {
+    const response = await axiosInstance.put<ApiResponse<{ task: Task }>>(
+      `/tasks/${taskId}`,
+      data,
+    );
     return response.data.data.task;
   },
 
@@ -23,13 +39,13 @@ export const taskService = {
     await axiosInstance.delete(`/tasks/${taskId}`);
   },
 
-  moveTask: async (data: { 
-    taskId: string; 
-    sourceColumnId: string; 
-    destinationColumnId: string; 
-    sourceIndex: number; 
-    destinationIndex: number; 
+  moveTask: async (data: {
+    taskId: string;
+    sourceColumnId: string;
+    destinationColumnId: string;
+    sourceIndex: number;
+    destinationIndex: number;
   }): Promise<void> => {
-    await axiosInstance.post('/tasks/move', data);
-  }
+    await axiosInstance.post("/tasks/move", data);
+  },
 };

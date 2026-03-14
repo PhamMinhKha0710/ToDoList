@@ -16,6 +16,11 @@ const toTaskResponseDTO = (task) => {
     dueDate: task.dueDate,
     color: task.color,
     tags: task.tags,
+    attachments: (task.attachments || []).map(att => ({
+      ...att.toObject?.() || att,
+      name: att.fileName,
+      url: att.fileUrl
+    })),
     createdAt: task.createdAt,
     updatedAt: task.updatedAt,
   };

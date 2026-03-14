@@ -1,17 +1,16 @@
 const taskRepository = require('./task.repository');
 const Column = require('../../models/Column');
 const ApiError = require('../../utils/ApiError');
+const attachmentRepository = require('../attachments/attachment.repository');
 
-const createTask = async (taskData) => {
+const createTask = async (taskData, files) => {
   const column = await Column.findById(taskData.columnId);
   if (!column) {
     throw new ApiError(404, 'Không tìm thấy cột tương ứng');
   }
 
-  const task = await taskRepository.createTask(taskData);
-  await taskRepository.updateColumnTaskOrder(taskData.columnId, task._id);
-
-  return task;
+  // Repository handles task creation, column order update, and attachments
+  return await taskRepository.createTask(taskData, files);
 };
 
 const getTasksByColumnId = async (columnId) => {

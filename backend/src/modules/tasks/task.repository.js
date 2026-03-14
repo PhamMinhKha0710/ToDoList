@@ -1,8 +1,35 @@
 const Task = require('../../models/Task');
 const Column = require('../../models/Column');
+const Attachment = require('../../models/Attachment');
 
-const createTask = async (taskData) => {
-  return await Task.create(taskData);
+const createTask = async (taskData, files = []) => {
+  // 1. Create the task
+  const task = await Task.create(taskData);
+  
+  // 2. Add task to column order
+  await Column.findByIdAndUpdate(
+    taskData.columnId,
+    { $push: { taskOrder: task._id } },
+    { new: true }
+  );
+
+  // 3. Create attachments if files are provided
+  let attachments = [];
+  if (files && files.length > 0) {
+    const attachmentPromises = files.map(file => {
+      return Attachment.create({
+        taskId: task._id,
+        fileName: file.originalname,
+        fileUrl: `/uploads/${file.filename}`,
+      });
+    });
+    attachments = await Promise.all(attachmentPromises);
+  }
+
+  // Return task as plain object with attachments included
+  const taskObj = task.toObject();
+  taskObj.attachments = attachments;
+  return taskObj;
 };
 
 const getTasksByColumnId = async (columnId) => {

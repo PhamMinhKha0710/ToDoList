@@ -4,7 +4,16 @@ const taskValidator = require('./task.validator');
 const { validate } = require('../../middlewares/validate.middleware');
 const { authenticate } = require('../../middlewares/auth.middleware');
 // NOTE: Optional middlewares for checking column / task owner can be added here
-// const { requireColumnOwner, requireProjectOwnerFromBody } = require('../../middlewares/column.middleware');
+const upload = require('../../middlewares/upload.middleware');
+
+const parseFormData = (req, res, next) => {
+  if (req.body.tags && typeof req.body.tags === 'string') {
+    try {
+      req.body.tags = JSON.parse(req.body.tags);
+    } catch (e) {}
+  }
+  next();
+};
 
 const router = express.Router();
 
@@ -14,7 +23,7 @@ router.route('/column/:columnId')
   .get(taskController.getTasksByColumnId);
 
 router.route('/')
-  .post(validate(taskValidator.createTaskSchema), taskController.createTask);
+  .post(upload.array('files'), parseFormData, validate(taskValidator.createTaskSchema), taskController.createTask);
 
 router.route('/move')
   .post(validate(taskValidator.moveTaskSchema), taskController.moveTask);

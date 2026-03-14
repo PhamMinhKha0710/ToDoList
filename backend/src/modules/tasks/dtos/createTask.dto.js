@@ -13,7 +13,15 @@ const toCreateTaskDTO = (body) => {
   if (body.priority !== undefined) data.priority = body.priority;
   if (body.dueDate !== undefined) data.dueDate = body.dueDate;
   if (body.color !== undefined) data.color = body.color;
-  if (body.tags !== undefined) data.tags = body.tags;
+  
+  // Tags might be sent as a JSON string when using FormData
+  if (body.tags !== undefined) {
+    try {
+      data.tags = typeof body.tags === 'string' ? JSON.parse(body.tags) : body.tags;
+    } catch (e) {
+      data.tags = body.tags;
+    }
+  }
 
   return data;
 };

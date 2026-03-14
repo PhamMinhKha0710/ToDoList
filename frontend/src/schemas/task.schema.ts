@@ -32,6 +32,13 @@ export const createTaskSchema = z.object({
       color: z.string().optional()
     })
   ).optional(),
+  attachments: z.array(
+    z.object({
+      name: z.string(),
+      url: z.string(),
+      file: z.any().optional(),
+    })
+  ).optional(),
 });
 
 export type CreateTaskPayload = z.infer<typeof createTaskSchema>;

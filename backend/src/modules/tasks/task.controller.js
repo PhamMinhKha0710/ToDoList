@@ -11,8 +11,9 @@ const { toAddTagsDTO } = require('./dtos/tag.dto');
  * POST /api/v1/tasks
  */
 const createTask = catchAsync(async (req, res) => {
+
   const taskData = toCreateTaskDTO(req.body);
-  const task = await taskService.createTask(taskData);
+  const task = await taskService.createTask(taskData, req.files);
   new ApiResponse(201, 'Tạo tác vụ thành công', { task: toTaskResponseDTO(task) }).send(res);
 });
 
