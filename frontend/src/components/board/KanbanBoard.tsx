@@ -48,7 +48,7 @@ export const KanbanBoard = ({ projectId }: KanbanBoardProps) => {
         >
           <ColumnHeader column={column} />
           <div className="p-3 pt-0 flex flex-col gap-3 flex-1 h-full">
-            <ColumnList columnId={column._id} />
+            <ColumnList columnId={column._id}  />
           </div>
         </div>
       ))}

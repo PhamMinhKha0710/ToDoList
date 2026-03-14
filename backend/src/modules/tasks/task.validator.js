@@ -18,7 +18,7 @@ const createTaskSchema = Joi.object({
     'any.required': 'Tiêu đề task là bắt buộc',
   }),
   description: Joi.string().allow('').optional(),
-  assigneeId: Joi.string().allow(null).optional(),
+  assignees: Joi.array().items(Joi.string()).optional(),
   status: Joi.string().valid('todo', 'in_progress', 'done').optional(),
   priority: Joi.string().valid('urgent', 'high', 'normal', 'low').optional(),
   dueDate: Joi.date().iso().allow(null).optional(),
@@ -29,7 +29,7 @@ const createTaskSchema = Joi.object({
 const updateTaskSchema = Joi.object({
   title: Joi.string().trim().optional(),
   description: Joi.string().allow('').optional(),
-  assigneeId: Joi.string().allow(null).optional(),
+  assignees: Joi.array().items(Joi.string()).optional(),
   status: Joi.string().valid('todo', 'in_progress', 'done').optional(),
   priority: Joi.string().valid('urgent', 'high', 'normal', 'low').optional(),
   dueDate: Joi.date().iso().allow(null).optional(),

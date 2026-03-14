@@ -7,8 +7,10 @@ import type { Kanban } from '@/types/kanban';
 export const useKanbanStore = create<Kanban>()((set) => ({
   columns: [],
   tasks: {},
+  members: [],
 
   setColumns: (columns) => set({ columns }),
+  setMembers: (members) => set({ members }),
   
   addColumn: (column) => set((state) => ({ 
     columns: [...state.columns, column] 

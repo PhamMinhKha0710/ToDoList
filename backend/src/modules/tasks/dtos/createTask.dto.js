@@ -8,7 +8,14 @@ const toCreateTaskDTO = (body) => {
   };
 
   if (body.description !== undefined) data.description = body.description;
-  if (body.assigneeId !== undefined) data.assigneeId = body.assigneeId;
+  
+  if (body.assignees !== undefined) {
+    try {
+      data.assignees = typeof body.assignees === 'string' ? JSON.parse(body.assignees) : body.assignees;
+    } catch (e) {
+      data.assignees = body.assignees;
+    }
+  }
   if (body.status !== undefined) data.status = body.status;
   if (body.priority !== undefined) data.priority = body.priority;
   if (body.dueDate !== undefined) data.dueDate = body.dueDate;

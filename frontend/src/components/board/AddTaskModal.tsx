@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useState, useRef, useEffect } from "react";
+import { useMutation } from "@tanstack/react-query";
 import { taskService } from "@/services/task.service";
 import {
   createTaskSchema,
@@ -26,7 +26,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Loader2, Flag, Plus, X } from "lucide-react";
+import { Loader2, Flag, Plus, X, User as UserIcon } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useKanbanStore } from "@/stores/kanban.store";
@@ -44,6 +44,7 @@ const PRESET_COLORS = [
 
 interface AddTaskModalProps {
   columnId: string;
+  projectId: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
@@ -52,9 +53,8 @@ export const AddTaskModal = ({
   columnId,
   open,
   onOpenChange,
-}: AddTaskModalProps) => {
-  const queryClient = useQueryClient();
-  const { addTask } = useKanbanStore();
+}: Omit<AddTaskModalProps, 'projectId'>) => {
+  const { addTask, members: projectMembers } = useKanbanStore();
 
   const {
     register,
@@ -73,11 +73,26 @@ export const AddTaskModal = ({
       color: PRESET_COLORS[0],
       tags: [],
       attachments: [],
+      assignees: [], // Thêm default cho assignees
     },
   });
 
   const [newTagName, setNewTagName] = useState("");
   const [newTagColor, setNewTagColor] = useState(PRESET_COLORS[0]);
+
+  const [searchAssignee, setSearchAssignee] = useState("");
+  const [isAssigneeOpen, setIsAssigneeOpen] = useState(false);
+  const assigneeRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (assigneeRef.current && !assigneeRef.current.contains(event.target as Node)) {
+        setIsAssigneeOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   const selectedColor = watch("color");
   const selectedPriority = watch("priority");
@@ -124,8 +139,9 @@ export const AddTaskModal = ({
       const formData = new FormData();
       formData.append('columnId', data.columnId);
       formData.append('title', data.title);
-      if (data.description) formData.append('description', data.description);
-      if (data.assigneeId) formData.append('assigneeId', data.assigneeId);
+      if (data.assignees && data.assignees.length > 0) {
+        formData.append('assignees', JSON.stringify(data.assignees));
+      }
       if (data.status) formData.append('status', data.status);
       if (data.priority) formData.append('priority', data.priority);
       if (data.color) formData.append('color', data.color);
@@ -155,7 +171,6 @@ export const AddTaskModal = ({
 
       toast.success("Đã thêm công việc mới!");
       addTask(columnId, newTask);
-      queryClient.invalidateQueries({ queryKey: ["tasks", columnId] });
       reset();
       onOpenChange(false);
     } catch (error: any) {
@@ -228,6 +243,90 @@ export const AddTaskModal = ({
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
+                  {/* Multi-Select Assignees */}
+                  <div className="space-y-2 col-span-2">
+                    <Label className="text-sm font-semibold">Người thực hiện</Label>
+                    <div className="border border-slate-200 rounded-md p-2 flex flex-wrap gap-2 min-h-[42px]">
+                      {watch("assignees")?.map((assigneeId) => {
+                        const member = projectMembers.find((m: any) => (m.userId as any)._id === assigneeId)?.userId as any;
+                        if (!member) return null;
+                        return (
+                          <div key={assigneeId} className="flex items-center gap-1.5 bg-slate-100 px-2 py-1 rounded-full text-xs font-medium">
+                            <div className="w-5 h-5 rounded-full bg-slate-300 overflow-hidden flex items-center justify-center">
+                              {member.avatarUrl ? <img src={member.avatarUrl} alt="avatar" /> : <UserIcon className="w-3 h-3 text-slate-500"/>}
+                            </div>
+                            <span className="max-w-[100px] truncate">{member.displayName || member.email}</span>
+                            <button type="button" onClick={() => setValue("assignees", watch("assignees")?.filter((id) => id !== assigneeId))} className="text-slate-400 hover:text-red-500">
+                              <X className="w-3 h-3"/>
+                            </button>
+                          </div>
+                        );
+                      })}
+                      
+                      <div className="relative ml-auto" ref={assigneeRef}>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          className="h-7 px-2 text-slate-500 hover:bg-slate-50 text-xs gap-1 border border-dashed border-slate-300 flex items-center justify-center font-bold"
+                          onClick={() => setIsAssigneeOpen(!isAssigneeOpen)}
+                        >
+                          <Plus className="w-3.5 h-3.5" /> Thêm người
+                        </Button>
+
+                        {isAssigneeOpen && (
+                          <div className="absolute top-full mt-1.5 right-0 w-[240px] bg-white border border-slate-200 rounded-xl shadow-xl z-50 overflow-hidden flex flex-col animate-in fade-in-0 slide-in-from-top-2">
+                            <div className="p-2 border-b border-slate-100 bg-slate-50/50">
+                               <Input 
+                                 placeholder="Tìm kiếm thành viên..." 
+                                 value={searchAssignee}
+                                 onChange={(e) => setSearchAssignee(e.target.value)}
+                                 className="h-8 text-[13px] bg-white border-slate-200 focus-visible:ring-1 focus-visible:ring-offset-0 focus-visible:ring-indigo-400"
+                                 autoFocus
+                               />
+                            </div>
+                            <div className="max-h-60 overflow-y-auto p-1.5 custom-scrollbar">
+                              {(() => {
+                                const filtered = projectMembers.filter((m: any) => {
+                                  const member = m.userId;
+                                  const isSelected = watch("assignees")?.includes(member._id);
+                                  if (isSelected) return false;
+                                  const term = searchAssignee.toLowerCase();
+                                  return (member.displayName || "").toLowerCase().includes(term) || (member.email || "").toLowerCase().includes(term);
+                                });
+
+                                if (filtered.length === 0) {
+                                  return <div className="p-4 text-[13px] text-slate-500 text-center italic">Không tìm thấy thành viên</div>;
+                                }
+
+                                return filtered.map((memberWrap: any) => {
+                                  const member = memberWrap.userId;
+                                  return (
+                                    <div 
+                                      key={member._id}
+                                      className="flex items-center gap-2.5 px-2.5 py-1.5 hover:bg-slate-100 rounded-lg cursor-pointer transition-colors"
+                                      onClick={() => {
+                                        const currentAssignees = watch("assignees") || [];
+                                        setValue("assignees", [...currentAssignees, member._id]);
+                                        setSearchAssignee("");
+                                      }}
+                                    >
+                                      <div className="w-6 h-6 rounded-full bg-slate-200 overflow-hidden flex items-center justify-center shrink-0 border border-slate-300/50">
+                                        {member.avatarUrl ? <img src={member.avatarUrl} alt="avatar" className="w-full h-full object-cover" /> : <UserIcon className="w-3.5 h-3.5 text-slate-400"/>}
+                                      </div>
+                                      <div className="flex flex-col text-left overflow-hidden">
+                                        <span className="text-[13px] font-bold text-slate-700 truncate">{member.displayName || member.email.split('@')[0]}</span>
+                                      </div>
+                                    </div>
+                                  );
+                                });
+                              })()}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
                   <div className="space-y-2">
                     <Label className="text-sm font-semibold">Độ ưu tiên</Label>
                     <Select

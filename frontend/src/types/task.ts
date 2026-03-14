@@ -1,4 +1,5 @@
 import type { TaskPriorityType, TaskStatusType } from '@/schemas/task.schema';
+import type { User } from './user';
 
 export interface Attachment {
   _id: string;
@@ -12,9 +13,12 @@ export interface Task {
   _id: string;
   columnId: string;
   projectId: string;
+  creator?: User;
+  creatorId: string;
+  assignees?: User[];
+  assigneeIds: string[];
   title: string;
   description?: string;
-  assigneeId?: string;
   status: TaskStatusType;
   priority: TaskPriorityType;
   dueDate?: string;
@@ -26,4 +30,3 @@ export interface Task {
   createdAt: string;
   updatedAt: string;
 }
-

@@ -21,7 +21,7 @@ export const createTaskSchema = z.object({
   columnId: z.string().min(1, 'ID cột là bắt buộc'),
   title: z.string().min(1, 'Tiêu đề công việc không được để trống'),
   description: z.string().optional(),
-  assigneeId: z.string().nullable().optional(),
+  assignees: z.array(z.string()).optional(),
   priority: z.nativeEnum(TaskPriority).optional(),
   dueDate: z.string().nullable().optional(),
   color: z.string().optional(),

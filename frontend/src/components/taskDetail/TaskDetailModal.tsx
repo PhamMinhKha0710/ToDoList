@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import type { Task } from "@/types/task";
 import type { UpdateTaskPayload } from "@/schemas/task.schema";
 import { taskService } from "@/services/task.service";
@@ -9,15 +9,18 @@ import {
   DialogTitle,
   DialogClose
 } from '@/components/ui/dialog';
+
 import { Button } from '@/components/ui/button';
-import { Edit2, Trash2, CheckCircle2, Clock, Flag, User, Palette, Tag, MessageSquare, X, Plus, Loader2 } from 'lucide-react';
+import { Edit2, Trash2, CheckCircle2, Clock, Flag, User as UserIcon, Palette, MessageSquare, X, Plus, Loader2 } from 'lucide-react';
 import { useKanbanStore } from "@/stores/kanban.store";
 import { toast } from "sonner";
 import { DeleteTaskConfirmModal } from './DeleteTaskConfirmModal';
 import { TaskAttachments } from "./TaskAttachments";
+import { TaskTags } from "./TaskTags";
 
 interface TaskDetailModalProps {
   task: Task;
+  projectId: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
@@ -37,17 +40,30 @@ const statusLabels: Record<string, string> = {
   done: 'Hoàn thành',
 };
 
-export const TaskDetailModal = ({ task, open, onOpenChange }: TaskDetailModalProps) => {
+export const TaskDetailModal = ({ task, open, onOpenChange }: Omit<TaskDetailModalProps, 'projectId'>) => {
   const queryClient = useQueryClient();
   const [editedTask, setEditedTask] = useState<Partial<Task>>({});
   const [isEditing, setIsEditing] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [isAddingTag, setIsAddingTag] = useState(false);
-  const [newTagName, setNewTagName] = useState('');
-  const [newTagColor, setNewTagColor] = useState(PRESET_COLORS[0]);
 
   const [isUploadingFiles, setIsUploadingFiles] = useState(false);
   const [deletedAttachmentIds, setDeletedAttachmentIds] = useState<string[]>([]);
+
+  const [searchAssignee, setSearchAssignee] = useState("");
+  const [isAssigneeOpen, setIsAssigneeOpen] = useState(false);
+  const assigneeRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (assigneeRef.current && !assigneeRef.current.contains(event.target as Node)) {
+        setIsAssigneeOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const { members: projectMembers } = useKanbanStore();
 
   // Initialize edited defaults from props
   useEffect(() => {
@@ -60,10 +76,9 @@ export const TaskDetailModal = ({ task, open, onOpenChange }: TaskDetailModalPro
         color: task.color,
         dueDate: task.dueDate,
         tags: task.tags || [],
+        assignees: (task.assigneeIds || []) as any,
       });
       setIsEditing(false);
-      setIsAddingTag(false);
-      setNewTagName('');
       setDeletedAttachmentIds([]);
       
       // Load true attachments from backend
@@ -192,7 +207,7 @@ export const TaskDetailModal = ({ task, open, onOpenChange }: TaskDetailModalPro
       color: task.color,
       dueDate: task.dueDate,
       tags: task.tags || [],
-      attachments: task.attachments || [],
+      assignees: (task.assigneeIds || []) as any,
     });
     // Revoke any temporary blob URLs created
     if (currentAttachments) {
@@ -210,27 +225,6 @@ export const TaskDetailModal = ({ task, open, onOpenChange }: TaskDetailModalPro
   const currentColor = editedTask.color || task.color;
   const currentTags = editedTask.tags || task.tags || [];
   const currentAttachments = editedTask.attachments || task.attachments || [];
-
-  const handleAddTag = () => {
-    if (!newTagName.trim()) {
-      setIsAddingTag(false);
-      return;
-    }
-    if (currentTags.some((t: any) => t.name.toLowerCase() === newTagName.trim().toLowerCase())) {
-      setIsAddingTag(false);
-      setNewTagName('');
-      return;
-    }
-    const newTags = [...currentTags, { name: newTagName.trim(), color: newTagColor }];
-    handleSave('tags', newTags);
-    setNewTagName('');
-    setIsAddingTag(false);
-  };
-
-  const handleRemoveTag = (tagName: string) => {
-    const newTags = currentTags.filter((t: any) => t.name !== tagName);
-    handleSave('tags', newTags);
-  };
 
   return (
     <Dialog open={open} onOpenChange={(isOpen) => {
@@ -520,12 +514,91 @@ export const TaskDetailModal = ({ task, open, onOpenChange }: TaskDetailModalPro
 
             {/* Assignee */}
             <div className="space-y-2.5">
-              <h4 className="text-[11px] font-extrabold uppercase tracking-widest text-slate-400 flex items-center gap-1.5"><User className="w-3.5 h-3.5" /> Người phụ trách</h4>
-              <div className="flex items-center gap-3 px-3.5 py-2 rounded-xl bg-white border border-dashed border-slate-300 hover:border-slate-400 hover:bg-slate-50 transition-colors w-full cursor-pointer group">
-                <div className="w-8 h-8 rounded-full border border-slate-200 bg-slate-50 flex items-center justify-center text-slate-400 group-hover:bg-white group-hover:text-indigo-500 group-hover:border-indigo-200 transition-colors">
-                  <User className="w-4 h-4" />
-                </div>
-                <span className="text-[14px] font-semibold text-slate-500 group-hover:text-indigo-600 transition-colors">Chọn người phụ trách</span>
+              <h4 className="text-[11px] font-extrabold uppercase tracking-widest text-slate-400 flex items-center gap-1.5"><UserIcon className="w-3.5 h-3.5" /> Người thực hiện</h4>
+              <div className="flex flex-wrap gap-2">
+                {(editedTask.assignees as unknown as string[])?.map((assigneeId) => {
+                  const member = projectMembers.find((m: any) => (m.userId as any)._id === assigneeId)?.userId as any;
+                  if (!member) return null;
+                  return (
+                    <div key={assigneeId as string} className="flex items-center gap-1.5 bg-white border border-slate-200 shadow-sm px-2 py-1 rounded-full text-xs font-bold text-slate-700">
+                      <div className="w-5 h-5 rounded-full bg-slate-200 overflow-hidden flex items-center justify-center">
+                        {member.avatarUrl ? <img src={member.avatarUrl} alt="avatar" className="w-full h-full object-cover" /> : <UserIcon className="w-3 h-3 text-slate-500"/>}
+                      </div>
+                      <span className="truncate max-w-[100px]">{member.displayName || member.email}</span>
+                      {isEditing && (
+                        <button type="button" onClick={() => handleSave('assignees', (editedTask.assignees as unknown as string[])?.filter((id) => id !== assigneeId))} className="text-slate-400 hover:text-red-500 ml-0.5">
+                          <X className="w-3 h-3"/>
+                        </button>
+                      )}
+                    </div>
+                  );
+                })}
+                {(!editedTask.assignees || (editedTask.assignees as unknown as string[]).length === 0) && !isEditing && (
+                  <span className="text-sm font-medium text-slate-400 italic">Chưa giao việc</span>
+                )}
+                
+                {isEditing && (
+                  <div className="relative ml-auto" ref={assigneeRef}>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      className="h-7 px-2 text-slate-500 hover:bg-slate-50 text-xs gap-1 border border-dashed border-slate-300 flex items-center justify-center font-bold"
+                      onClick={() => setIsAssigneeOpen(!isAssigneeOpen)}
+                    >
+                      <Plus className="w-3.5 h-3.5" /> Thêm người
+                    </Button>
+
+                    {isAssigneeOpen && (
+                      <div className="absolute top-full mt-1.5 right-0 w-[240px] bg-white border border-slate-200 rounded-xl shadow-xl z-50 overflow-hidden flex flex-col animate-in fade-in-0 slide-in-from-top-2">
+                        <div className="p-2 border-b border-slate-100 bg-slate-50/50">
+                           <input 
+                             placeholder="Tìm kiếm thành viên..." 
+                             value={searchAssignee}
+                             onChange={(e) => setSearchAssignee(e.target.value)}
+                             className="flex h-8 w-full rounded-md border border-slate-200 bg-white px-3 py-1 text-[13px] shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-indigo-400 disabled:cursor-not-allowed disabled:opacity-50"
+                             autoFocus
+                           />
+                        </div>
+                        <div className="max-h-60 overflow-y-auto p-1.5 custom-scrollbar">
+                          {(() => {
+                            const currentAssignees = (editedTask.assignees as unknown as string[]) || [];
+                            const filtered = projectMembers.filter((m: any) => {
+                              const member = m.userId;
+                              if (currentAssignees.includes(member._id)) return false;
+                              const term = searchAssignee.toLowerCase();
+                              return (member.displayName || "").toLowerCase().includes(term) || (member.email || "").toLowerCase().includes(term);
+                            });
+
+                            if (filtered.length === 0) {
+                              return <div className="p-4 text-[13px] text-slate-500 text-center italic">Không tìm thấy thành viên</div>;
+                            }
+
+                            return filtered.map((memberWrap: any) => {
+                              const member = memberWrap.userId;
+                              return (
+                                <div 
+                                  key={member._id}
+                                  className="flex items-center gap-2.5 px-2.5 py-1.5 hover:bg-slate-100 rounded-lg cursor-pointer transition-colors"
+                                  onClick={() => {
+                                    handleSave('assignees', [...currentAssignees, member._id]);
+                                    setSearchAssignee("");
+                                  }}
+                                >
+                                  <div className="w-6 h-6 rounded-full bg-slate-200 overflow-hidden flex items-center justify-center shrink-0 border border-slate-300/50">
+                                    {member.avatarUrl ? <img src={member.avatarUrl} alt="avatar" className="w-full h-full object-cover" /> : <UserIcon className="w-3.5 h-3.5 text-slate-400"/>}
+                                  </div>
+                                  <div className="flex flex-col text-left overflow-hidden">
+                                    <span className="text-[13px] font-bold text-slate-700 truncate">{member.displayName || member.email.split('@')[0]}</span>
+                                  </div>
+                                </div>
+                              );
+                            });
+                          })()}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
 
@@ -567,57 +640,11 @@ export const TaskDetailModal = ({ task, open, onOpenChange }: TaskDetailModalPro
             </div>
 
             {/* Tags List */}
-            <div className="space-y-3.5 pt-2">
-              <h4 className="text-[11px] font-extrabold uppercase tracking-widest text-slate-400 flex items-center gap-1.5"><Tag className="w-3.5 h-3.5" /> Phân loại (Tags)</h4>
-              <div className="flex flex-wrap gap-2">
-                 {currentTags.map((tag: any) => (
-                   <div key={tag.name} className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white border border-slate-200 shadow-sm text-slate-700 text-[13px] font-bold">
-                     <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: tag.color || '#ec4899' }} />
-                     {tag.name}
-                     {isEditing && (
-                       <button onClick={() => handleRemoveTag(tag.name)} className="text-slate-400 hover:text-red-500 transition-colors ml-1">
-                         <X className="w-3.5 h-3.5" />
-                       </button>
-                     )}
-                   </div>
-                 ))}
-                 
-                 {isEditing && !isAddingTag && (
-                   <button onClick={() => setIsAddingTag(true)} className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-dashed border-slate-300 bg-transparent text-slate-500 text-[13px] font-bold hover:bg-slate-100 hover:text-slate-800 transition-colors">
-                     <Plus className="w-4 h-4" /> Thêm Tag
-                   </button>
-                 )}
-
-                 {isEditing && isAddingTag && (
-                   <div className="flex items-center gap-1.5 p-1 rounded-xl border border-slate-300 bg-white shadow-sm w-full max-w-[200px]">
-                     <input 
-                       type="text" 
-                       value={newTagName}
-                       onChange={(e) => setNewTagName(e.target.value)}
-                       onKeyDown={(e) => {
-                         if (e.key === 'Enter') handleAddTag();
-                         if (e.key === 'Escape') setIsAddingTag(false);
-                       }}
-                       placeholder="Nhập tên tag..."
-                       className="flex-1 bg-transparent text-[13px] font-bold text-slate-700 outline-none px-2 w-full min-w-0"
-                       autoFocus
-                     />
-                     <div className="relative w-6 h-6 shrink-0 border border-slate-200 rounded-lg overflow-hidden cursor-pointer" title="Chọn màu cho tag">
-                       <input 
-                         type="color" 
-                         value={newTagColor}
-                         onChange={(e) => setNewTagColor(e.target.value)}
-                         className="absolute inset-[-10px] w-20 h-20 cursor-pointer opacity-0 z-10"
-                       />
-                       <div className="w-full h-full" style={{ backgroundColor: newTagColor }} />
-                     </div>
-                     <button onClick={handleAddTag} className="w-6 h-6 shrink-0 flex items-center justify-center bg-indigo-50 text-indigo-600 rounded-lg hover:bg-indigo-100 transition-colors">
-                       <Plus className="w-3.5 h-3.5" />
-                     </button>
-                   </div>
-                 )}
-              </div>
-            </div>
+            <TaskTags 
+              tags={currentTags as any}
+              isEditing={isEditing}
+              onTagsChange={(newTags) => handleSave('tags', newTags)}
+            />
             
           </div>
         </div>

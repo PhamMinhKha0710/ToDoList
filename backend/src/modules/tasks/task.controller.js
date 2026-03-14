@@ -13,6 +13,7 @@ const { toAddTagsDTO } = require('./dtos/tag.dto');
 const createTask = catchAsync(async (req, res) => {
 
   const taskData = toCreateTaskDTO(req.body);
+  taskData.creatorId = req.user._id; // Inject creator from authenticated user
   const task = await taskService.createTask(taskData, req.files);
   new ApiResponse(201, 'Tạo tác vụ thành công', { task: toTaskResponseDTO(task) }).send(res);
 });

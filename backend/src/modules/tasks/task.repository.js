@@ -33,11 +33,11 @@ const createTask = async (taskData, files = []) => {
 };
 
 const getTasksByColumnId = async (columnId) => {
-  return await Task.find({ columnId }).populate('assigneeId', 'displayName email avatar');
+  return await Task.find({ columnId }).populate('creatorId assignees', 'displayName email avatar');
 };
 
 const getTaskById = async (taskId) => {
-  return await Task.findById(taskId).populate('assigneeId', 'displayName email avatar');
+  return await Task.findById(taskId).populate('creatorId assignees', 'displayName email avatar');
 };
 
 const updateTask = async (taskId, updateData) => {
@@ -73,7 +73,7 @@ const addTagsToTask = async (taskId, tagsArray) => {
     taskId,
     { $push: { tags: { $each: tagsArray } } },
     { new: true }
-  ).populate('assigneeId', 'displayName email avatar');
+  ).populate('creatorId assignees', 'displayName email avatar');
 };
 
 const removeTagFromTask = async (taskId, tagName) => {
@@ -82,7 +82,7 @@ const removeTagFromTask = async (taskId, tagName) => {
     taskId,
     { $pull: { tags: { name: tagName } } },
     { new: true }
-  ).populate('assigneeId', 'displayName email avatar');
+  ).populate('creatorId assignees', 'displayName email avatar');
 };
 
 module.exports = {

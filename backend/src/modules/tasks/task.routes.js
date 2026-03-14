@@ -7,11 +7,13 @@ const { authenticate } = require('../../middlewares/auth.middleware');
 const upload = require('../../middlewares/upload.middleware');
 
 const parseFormData = (req, res, next) => {
-  if (req.body.tags && typeof req.body.tags === 'string') {
-    try {
-      req.body.tags = JSON.parse(req.body.tags);
-    } catch (e) {}
-  }
+  ['tags', 'assignees'].forEach(field => {
+    if (req.body[field] && typeof req.body[field] === 'string') {
+      try {
+        req.body[field] = JSON.parse(req.body[field]);
+      } catch (e) {}
+    }
+  });
   next();
 };
 

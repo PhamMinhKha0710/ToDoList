@@ -30,8 +30,8 @@ export const TaskCard = ({ task, onClick }: TaskCardProps) => {
   const commentCount = 0; 
   const attachmentCount = 0;
   
-  // We only show footer if there is a due date, assignee, tags, or count > 0
-  const hasFooter = task.dueDate || task.assigneeId || commentCount > 0 || attachmentCount > 0;
+  // We only show footer if there is a due date, assignees, tags, or count > 0
+  const hasFooter = task.dueDate || (task.assignees && task.assignees.length > 0) || commentCount > 0 || attachmentCount > 0;
 
   return (
     <div 
@@ -122,15 +122,28 @@ export const TaskCard = ({ task, onClick }: TaskCardProps) => {
             </div>
           </div>
           
-          {/* Assignee */}
-          <div className="flex items-center justify-end">
-            {task.assigneeId ? (
-              <div className="w-6 h-6 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center shadow-sm border border-white">
-                <span className="text-[10px] font-extrabold">U</span>
+          {/* Assignees */}
+          <div className="flex items-center justify-end flex-wrap">
+            {task.assignees && task.assignees.length > 0 ? (
+              <div className="flex -space-x-2 overflow-hidden">
+                {task.assignees.slice(0, 3).map((assignee, index) => (
+                  <div key={assignee._id || index} className="w-6 h-6 rounded-full bg-slate-200 flex items-center justify-center shadow-sm border-2 border-white overflow-hidden ring-1 ring-black/5" title={assignee.displayName || assignee.email || 'User'}>
+                    {assignee.avatarUrl ? (
+                       <img src={assignee.avatarUrl} alt="avatar" className="w-full h-full object-cover" />
+                    ) : (
+                       <span className="text-[10px] font-extrabold text-slate-500 uppercase">{(assignee.displayName || assignee.email || 'U')[0]}</span>
+                    )}
+                  </div>
+                ))}
+                {task.assignees.length > 3 && (
+                  <div className="w-6 h-6 rounded-full bg-slate-100 flex items-center justify-center shadow-sm border-2 border-white ring-1 ring-black/5 z-0">
+                    <span className="text-[9px] font-bold text-slate-600">+{task.assignees.length - 3}</span>
+                  </div>
+                )}
               </div>
             ) : (
-              <div className="w-6 h-6 rounded-full bg-slate-100 border border-dashed border-slate-300 flex items-center justify-center" title="Chưa phân công">
-                 <User className="w-3.5 h-3.5 text-slate-400" />
+              <div className="w-6 h-6 rounded-full bg-slate-50 border border-dashed border-slate-300 flex items-center justify-center ring-1 ring-black/5" title="Chưa phân công">
+                 <User className="w-3 h-3 text-slate-400" />
               </div>
             )}
           </div>
