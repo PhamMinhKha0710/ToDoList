@@ -32,6 +32,7 @@ import {
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { projectService } from "@/services/project.service";
 import { toast } from "sonner";
+import { type AppAxiosError, getErrorMessage } from "@/types/error";
 
 interface ProjectHeaderProps {
   project: Project;
@@ -63,9 +64,9 @@ export const ProjectHeader = ({ project }: ProjectHeaderProps) => {
       queryClient.invalidateQueries({ queryKey: ["projects"] });
       navigate("/projects");
     },
-    onError: (error: any) => {
+    onError: (error: AppAxiosError) => {
       toast.error(
-        error.response?.data?.message || "Có lỗi xảy ra khi xóa dự án",
+        getErrorMessage(error) || "Có lỗi xảy ra khi xóa dự án",
       );
       setIsDeleteDialogOpen(false);
     },

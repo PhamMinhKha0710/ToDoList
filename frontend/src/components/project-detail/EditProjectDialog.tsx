@@ -15,6 +15,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
+import { type AppAxiosError, getErrorMessage } from "@/types/error";
 import { Loader2 } from "lucide-react";
 
 const PRESET_COLORS = [
@@ -67,9 +68,9 @@ export const EditProjectDialog = ({
       queryClient.invalidateQueries({ queryKey: ["projects"] });
       onOpenChange(false);
     },
-    onError: (error: any) => {
+    onError: (error: AppAxiosError) => {
       toast.error(
-        error.response?.data?.message || "Có lỗi xảy ra khi cập nhật dự án",
+        getErrorMessage(error) || "Có lỗi xảy ra khi cập nhật dự án",
       );
     },
   });

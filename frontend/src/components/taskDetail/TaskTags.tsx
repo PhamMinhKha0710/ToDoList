@@ -3,7 +3,7 @@ import { Plus, Tag, X } from "lucide-react";
 
 interface TaskTag {
   name: string;
-  color: string;
+  color?: string;
 }
 
 interface TaskTagsProps {

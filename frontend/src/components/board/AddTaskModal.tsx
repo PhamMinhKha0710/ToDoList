@@ -26,11 +26,15 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
+import { type AppAxiosError, getErrorMessage } from "@/types/error";
 import { Loader2, Flag, Plus, X, User as UserIcon } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useKanbanStore } from "@/stores/kanban.store";
-import { TaskAttachments } from "@/components/taskDetail/TaskAttachments";
+import { TaskAttachments, type Attachment } from "@/components/taskDetail/TaskAttachments";
+import type { ProjectMember } from "@/types/project";
+import type { TaskPriorityType } from "@/schemas/task.schema";
+import type { User } from "@/types/user";
 
 const PRESET_COLORS = [
   "#3b82f6",
@@ -123,9 +127,9 @@ export const AddTaskModal = ({
 
   const createMutation = useMutation({
     mutationFn: taskService.createTask,
-    onError: (error: any) => {
+    onError: (error: AppAxiosError) => {
       toast.error(
-        error.response?.data?.message || "Có lỗi xảy ra khi tạo công việc",
+        getErrorMessage(error) || "Có lỗi xảy ra khi tạo công việc",
       );
     },
   });
@@ -160,7 +164,7 @@ export const AddTaskModal = ({
 
       // Append files to 'files' key
       if (data.attachments && data.attachments.length > 0) {
-        data.attachments.forEach((att: any) => {
+        data.attachments.forEach((att: Attachment) => {
           if (att.file) {
             formData.append('files', att.file);
           }
@@ -173,8 +177,8 @@ export const AddTaskModal = ({
       addTask(columnId, newTask);
       reset();
       onOpenChange(false);
-    } catch (error: any) {
-      // toast error is handled by mutation onError
+    } catch (error: unknown) {
+      console.error("Submission failed:", error);
     } finally {
       setIsUploadingFiles(false);
     }
@@ -204,7 +208,7 @@ export const AddTaskModal = ({
           </DialogHeader>
 
           <form
-            onSubmit={handleSubmit(onSubmit as any)}
+            onSubmit={handleSubmit(onSubmit)}
             className="mt-6 flex flex-col gap-8"
           >
             <div className="grid grid-cols-1 md:grid-cols-5 gap-8">
@@ -248,7 +252,7 @@ export const AddTaskModal = ({
                     <Label className="text-sm font-semibold">Người thực hiện</Label>
                     <div className="border border-slate-200 rounded-md p-2 flex flex-wrap gap-2 min-h-[42px]">
                       {watch("assignees")?.map((assigneeId) => {
-                        const member = projectMembers.find((m: any) => (m.userId as any)._id === assigneeId)?.userId as any;
+                        const member = (projectMembers as ProjectMember[]).find((m) => ((m.userId as User)._id || m.userId) === assigneeId)?.userId as User;
                         if (!member) return null;
                         return (
                           <div key={assigneeId} className="flex items-center gap-1.5 bg-slate-100 px-2 py-1 rounded-full text-xs font-medium">
@@ -286,8 +290,8 @@ export const AddTaskModal = ({
                             </div>
                             <div className="max-h-60 overflow-y-auto p-1.5 custom-scrollbar">
                               {(() => {
-                                const filtered = projectMembers.filter((m: any) => {
-                                  const member = m.userId;
+                                const filtered = (projectMembers as ProjectMember[]).filter((m) => {
+                                  const member = m.userId as User;
                                   const isSelected = watch("assignees")?.includes(member._id);
                                   if (isSelected) return false;
                                   const term = searchAssignee.toLowerCase();
@@ -298,27 +302,27 @@ export const AddTaskModal = ({
                                   return <div className="p-4 text-[13px] text-slate-500 text-center italic">Không tìm thấy thành viên</div>;
                                 }
 
-                                return filtered.map((memberWrap: any) => {
-                                  const member = memberWrap.userId;
-                                  return (
-                                    <div 
-                                      key={member._id}
-                                      className="flex items-center gap-2.5 px-2.5 py-1.5 hover:bg-slate-100 rounded-lg cursor-pointer transition-colors"
-                                      onClick={() => {
-                                        const currentAssignees = watch("assignees") || [];
-                                        setValue("assignees", [...currentAssignees, member._id]);
-                                        setSearchAssignee("");
-                                      }}
-                                    >
-                                      <div className="w-6 h-6 rounded-full bg-slate-200 overflow-hidden flex items-center justify-center shrink-0 border border-slate-300/50">
-                                        {member.avatarUrl ? <img src={member.avatarUrl} alt="avatar" className="w-full h-full object-cover" /> : <UserIcon className="w-3.5 h-3.5 text-slate-400"/>}
+                                  return filtered.map((memberWrap: ProjectMember) => {
+                                    const member = memberWrap.userId as User;
+                                    return (
+                                      <div 
+                                        key={member._id}
+                                        className="flex items-center gap-2.5 px-2.5 py-1.5 hover:bg-slate-100 rounded-lg cursor-pointer transition-colors"
+                                        onClick={() => {
+                                          const currentAssignees = watch("assignees") || [];
+                                          setValue("assignees", [...currentAssignees, member._id]);
+                                          setSearchAssignee("");
+                                        }}
+                                      >
+                                        <div className="w-6 h-6 rounded-full bg-slate-200 overflow-hidden flex items-center justify-center shrink-0 border border-slate-300/50">
+                                          {member.avatarUrl ? <img src={member.avatarUrl} alt="avatar" className="w-full h-full object-cover" /> : <UserIcon className="w-3.5 h-3.5 text-slate-400"/>}
+                                        </div>
+                                        <div className="flex flex-col text-left overflow-hidden">
+                                          <span className="text-[13px] font-bold text-slate-700 truncate">{member.displayName || member.email.split('@')[0]}</span>
+                                        </div>
                                       </div>
-                                      <div className="flex flex-col text-left overflow-hidden">
-                                        <span className="text-[13px] font-bold text-slate-700 truncate">{member.displayName || member.email.split('@')[0]}</span>
-                                      </div>
-                                    </div>
-                                  );
-                                });
+                                    );
+                                  });
                               })()}
                             </div>
                           </div>
@@ -331,7 +335,7 @@ export const AddTaskModal = ({
                     <Label className="text-sm font-semibold">Độ ưu tiên</Label>
                     <Select
                       value={selectedPriority}
-                      onValueChange={(val: any) => setValue("priority", val)}
+                      onValueChange={(val: TaskPriorityType) => setValue("priority", val)}
                     >
                       <SelectTrigger className="w-full">
                         <SelectValue placeholder="Chọn độ ưu tiên" />

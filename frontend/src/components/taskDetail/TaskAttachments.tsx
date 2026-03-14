@@ -1,6 +1,7 @@
 import { useRef, useState, useEffect } from "react";
 import { Paperclip, UploadCloud, FileText, X, Image as ImageIcon, ChevronDown, ChevronUp, ChevronLeft, ChevronRight, Download } from "lucide-react";
 import { toast } from "sonner";
+import { getErrorMessage } from "@/types/error";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -58,9 +59,9 @@ export const TaskAttachments = ({
       };
       
       onChange?.([...attachments, newAttachment]);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Local file processing failed:", error);
-      toast.error("Lỗi khi xử lý file trên trình duyệt.");
+      toast.error(getErrorMessage(error) || "Lỗi khi xử lý file trên trình duyệt.");
     } finally {
       // Reset input so the same file can be selected again
       if (fileInputRef.current) fileInputRef.current.value = "";
