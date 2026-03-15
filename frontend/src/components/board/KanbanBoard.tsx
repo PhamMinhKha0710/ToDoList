@@ -1,5 +1,5 @@
-import { useEffect, useCallback, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useEffect, useCallback, useState, useRef } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { columnService } from "@/services/column.service";
 import { taskService } from "@/services/task.service";
 import { Loader2 } from "lucide-react";
@@ -40,6 +40,8 @@ export const KanbanBoard = ({ projectId }: KanbanBoardProps) => {
   const [activeColumn, setActiveColumn] = useState<Column | null>(null);
   const [activeTask, setActiveTask] = useState<Task | null>(null);
   const [dragInfo, setDragInfo] = useState<{ sourceColumnId: string; sourceIndex: number } | null>(null);
+  const originalColumnsRef = useRef<Column[] | null>(null);
+  const queryClient = useQueryClient();
 
   const {
     columns: storeColumns,
@@ -79,7 +81,9 @@ export const KanbanBoard = ({ projectId }: KanbanBoardProps) => {
     (event: DragStartEvent) => {
       const { active } = event;
       if (active.data?.current?.type === "column") {
+        const cols = useKanbanStore.getState().columns;
         setActiveColumn(active.data.current.column as Column);
+        originalColumnsRef.current = cols;
       }
       if (active.data?.current?.type === "task") {
         setActiveTask(active.data.current.task as Task);
@@ -104,42 +108,63 @@ export const KanbanBoard = ({ projectId }: KanbanBoardProps) => {
       if (activeId === overId) return;
 
       const isActiveTask = active.data?.current?.type === "task";
+      const isActiveColumn = active.data?.current?.type === "column";
       const isOverTask = over.data?.current?.type === "task";
       const isOverColumn = over.data?.current?.type === "column";
 
-      if (!isActiveTask) return;
+      // ─── Move Task ───
+      if (isActiveTask) {
+        const storeTasksFresh = useKanbanStore.getState().tasks;
 
-      const storeTasksFresh = useKanbanStore.getState().tasks;
+        const activeColumnId = Object.keys(storeTasksFresh).find((colId) =>
+          storeTasksFresh[colId].some((t) => t._id === activeId),
+        );
+        if (!activeColumnId) return;
 
-      const activeColumnId = Object.keys(storeTasksFresh).find((colId) =>
-        storeTasksFresh[colId].some((t) => t._id === activeId),
-      );
-      if (!activeColumnId) return;
+        const overColumnId = isOverColumn
+          ? overId
+          : (over.data?.current?.columnId as string);
 
-      const overColumnId = isOverColumn
-        ? overId
-        : (over.data?.current?.columnId as string);
+        if (activeColumnId !== overColumnId) {
+          // Task dropped over another task in a different column
+          if (isOverTask) {
+            const destList = storeTasksFresh[overColumnId] || [];
+            const overIndex = destList.findIndex((t) => t._id === overId);
+            moveTask(
+              activeColumnId,
+              overColumnId,
+              activeId,
+              overIndex !== -1 ? overIndex : 0,
+            );
+          }
 
-      if (activeColumnId !== overColumnId) {
-        // Task dropped over another task in a different column
-        if (isActiveTask && isOverTask) {
-          const destList = storeTasksFresh[overColumnId] || [];
-          const overIndex = destList.findIndex((t) => t._id === overId);
-          moveTask(
-            activeColumnId,
-            overColumnId,
-            activeId,
-            overIndex !== -1 ? overIndex : 0,
-          );
+          // Task dropped over an empty column
+          if (isOverColumn) {
+            moveTask(activeColumnId, overColumnId, activeId, 0);
+          }
         }
+      }
 
-        // Task dropped over an empty column
-        if (isActiveTask && isOverColumn) {
-          moveTask(activeColumnId, overColumnId, activeId, 0);
+      // ─── Move Column ───
+      if (isActiveColumn) {
+        const storeColsFresh = useKanbanStore.getState().columns;
+        const oldIndex = storeColsFresh.findIndex((c) => c._id === activeId);
+        
+        const overColumnId = isOverColumn 
+          ? overId 
+          : (over.data?.current?.columnId as string);
+          
+        const newIndex = storeColsFresh.findIndex((c) => c._id === overColumnId);
+
+        if (oldIndex !== -1 && newIndex !== -1 && oldIndex !== newIndex) {
+          const newColumns = arrayMove(storeColsFresh, oldIndex, newIndex).map(
+            (col, i) => ({ ...col, position: i }),
+          );
+          reorderColumns(newColumns);
         }
       }
     },
-    [moveTask],
+    [moveTask, reorderColumns],
   );
 
   const handleDragEnd = useCallback(
@@ -159,25 +184,26 @@ export const KanbanBoard = ({ projectId }: KanbanBoardProps) => {
       const isActiveTask = active.data?.current?.type === "task";
 
       // ─── Column Reorder ───────────────────────────────────────────────
-      if (isActiveColumn && activeId !== overId) {
-        const storeColsFresh = useKanbanStore.getState().columns;
-        const oldIndex = storeColsFresh.findIndex((c) => c._id === activeId);
-        const newIndex = storeColsFresh.findIndex((c) => c._id === overId);
-        if (oldIndex === -1 || newIndex === -1) return;
+      if (isActiveColumn) {
+        const finalColumns = useKanbanStore.getState().columns;
+        const snapshot = originalColumnsRef.current;
+        const hasChanged = snapshot &&
+          finalColumns.some((col, i) => col._id !== snapshot[i]?._id);
 
-        const newColumns = arrayMove(storeColsFresh, oldIndex, newIndex).map(
-          (col, i) => ({ ...col, position: i }),
-        );
-
-        reorderColumns(newColumns);
-        try {
-          await columnService.reorderColumns(
-            projectId,
-            newColumns.map((c) => c._id),
-          );
-        } catch {
-          reorderColumns(storeColsFresh);
+        if (hasChanged) {
+          try {
+            const updatedColumns = await columnService.reorderColumns(
+              projectId,
+              finalColumns.map((c) => c._id),
+            );
+            // Sync store and query cache with server truth
+            setColumns(updatedColumns);
+            queryClient.invalidateQueries({ queryKey: ["columns", projectId] });
+          } catch {
+            if (snapshot) reorderColumns(snapshot);
+          }
         }
+        originalColumnsRef.current = null;
         return;
       }
 
@@ -221,8 +247,11 @@ export const KanbanBoard = ({ projectId }: KanbanBoardProps) => {
                 sourceIndex: originalIndex,
                 destinationIndex: targetIndex,
               });
+              queryClient.invalidateQueries({ queryKey: ["tasks", originalColumnId] });
             } catch {
-              // Handle error
+              // Rollback or handle error
+              moveTask(originalColumnId, originalColumnId, activeId, originalIndex);
+              queryClient.invalidateQueries({ queryKey: ["tasks", originalColumnId] });
             }
           }
         } else {
@@ -252,8 +281,14 @@ export const KanbanBoard = ({ projectId }: KanbanBoardProps) => {
               sourceIndex: originalIndex,
               destinationIndex: finalDestIndex !== -1 ? finalDestIndex : 0,
             });
+            // Invalidate queries to get fresh data from server
+            queryClient.invalidateQueries({ queryKey: ["tasks", originalColumnId] });
+            queryClient.invalidateQueries({ queryKey: ["tasks", overColumnId] });
           } catch {
-            // Handle error
+            // Rollback on fail
+            moveTask(overColumnId, originalColumnId, activeId, originalIndex);
+            queryClient.invalidateQueries({ queryKey: ["tasks", originalColumnId] });
+            queryClient.invalidateQueries({ queryKey: ["tasks", overColumnId] });
           }
         }
         setDragInfo(null);

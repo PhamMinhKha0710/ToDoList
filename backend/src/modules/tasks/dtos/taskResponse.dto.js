@@ -25,6 +25,7 @@ const toTaskResponseDTO = (task) => {
     })),
     createdAt: task.createdAt,
     updatedAt: task.updatedAt,
+    position: task.position,
   };
 };
 

@@ -1,6 +1,7 @@
 const columnRepository = require('./column.repository');
 const Column = require('../../models/Column');
 const ApiError = require('../../utils/ApiError');
+const mongoose = require('mongoose');
 
 class ColumnService {
   async createColumn(columnData) {
@@ -69,7 +70,10 @@ class ColumnService {
     // Bulk update positions
     const bulkOps = orderedColumnIds.map((id, index) => ({
       updateOne: {
-        filter: { _id: id, projectId },
+        filter: { 
+          _id: new mongoose.Types.ObjectId(id), 
+          projectId: new mongoose.Types.ObjectId(projectId) 
+        },
         update: { $set: { position: index } },
       },
     }));

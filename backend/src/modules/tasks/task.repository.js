@@ -1,5 +1,6 @@
 const Task = require('../../models/Task');
 const Attachment = require('../../models/Attachment');
+const mongoose = require('mongoose');
 
 const createTask = async (taskData, files = []) => {
   // Tính position mới = số task hiện tại trong column
@@ -84,8 +85,8 @@ const reorderTasks = async (sourceTaskIds, sourceColumnId, destTaskIds, destColu
   sourceTaskIds.forEach((id, index) => {
     ops.push({
       updateOne: {
-        filter: { _id: id },
-        update: { $set: { position: index, columnId: sourceColumnId } },
+        filter: { _id: new mongoose.Types.ObjectId(id) },
+        update: { $set: { position: index, columnId: new mongoose.Types.ObjectId(sourceColumnId) } },
       },
     });
   });
@@ -95,8 +96,8 @@ const reorderTasks = async (sourceTaskIds, sourceColumnId, destTaskIds, destColu
     destTaskIds.forEach((id, index) => {
       ops.push({
         updateOne: {
-          filter: { _id: id },
-          update: { $set: { position: index, columnId: destColumnId } },
+          filter: { _id: new mongoose.Types.ObjectId(id) },
+          update: { $set: { position: index, columnId: new mongoose.Types.ObjectId(destColumnId) } },
         },
       });
     });
