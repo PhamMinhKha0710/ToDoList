@@ -33,9 +33,21 @@ const createTask = async (taskData, files = []) => {
 };
 
 const getTasksByColumnId = async (columnId) => {
-  return await Task.find({ columnId }).populate('creatorId assignees', 'displayName email avatar');
-};
+  const tasks = await Task.find({ columnId })
+    .populate('creatorId assignees', 'displayName email avatar avatarUrl');
 
+  // Fetch attachments for all these tasks concurrently
+  const tasksWithAttachments = await Promise.all(
+    tasks.map(async (task) => {
+      const taskObj = task.toObject();
+      const attachments = await Attachment.find({ taskId: task._id });
+      taskObj.attachments = attachments;
+      return taskObj;
+    })
+  );
+
+  return tasksWithAttachments;
+};
 const getTaskById = async (taskId) => {
   return await Task.findById(taskId).populate('creatorId assignees', 'displayName email avatar');
 };

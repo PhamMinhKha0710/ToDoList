@@ -41,8 +41,6 @@ interface ProjectHeaderProps {
 export const ProjectHeader = ({ project }: ProjectHeaderProps) => {
   const navigate = useNavigate();
 
-  console.log("project: ", project);
-
   const queryClient = useQueryClient();
   const { user: currentUser } = useAuthStore();
 
@@ -55,7 +53,8 @@ export const ProjectHeader = ({ project }: ProjectHeaderProps) => {
     (m) => (m.userId as User)._id === currentUser?._id,
   );
   const isOwner = currentMember?.role === "owner";
-  const isManager = currentMember?.role === "owner" || currentMember?.role === "admin";
+  const isManager =
+    currentMember?.role === "owner" || currentMember?.role === "admin";
 
   const deleteMutation = useMutation({
     mutationFn: () => projectService.deleteProject(project._id),
@@ -65,9 +64,7 @@ export const ProjectHeader = ({ project }: ProjectHeaderProps) => {
       navigate("/projects");
     },
     onError: (error: AppAxiosError) => {
-      toast.error(
-        getErrorMessage(error) || "Có lỗi xảy ra khi xóa dự án",
-      );
+      toast.error(getErrorMessage(error) || "Có lỗi xảy ra khi xóa dự án");
       setIsDeleteDialogOpen(false);
     },
   });

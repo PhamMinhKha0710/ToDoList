@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import type { Task, Attachment as TaskAttachment } from "@/types/task";
 import type { UpdateTaskPayload } from "@/schemas/task.schema";
 import { taskService } from "@/services/task.service";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import {
   Dialog,
   DialogContent,
@@ -42,6 +42,11 @@ interface TaskDetailModalProps {
   onOpenChange: (open: boolean) => void;
 }
 
+// Kiểu dữ liệu cho state chỉnh sửa trong Modal (assignees là mảng ID string)
+interface TaskFormState extends Partial<Omit<Task, "assignees">> {
+  assignees?: string[];
+}
+
 const PRESET_COLORS = [
   "#3b82f6",
   "#8b5cf6",
@@ -75,8 +80,7 @@ export const TaskDetailModal = ({
   open,
   onOpenChange,
 }: Omit<TaskDetailModalProps, "projectId">) => {
-  const queryClient = useQueryClient();
-  const [editedTask, setEditedTask] = useState<Partial<Task>>({});
+  const [editedTask, setEditedTask] = useState<TaskFormState>({});
   const [isEditing, setIsEditing] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
@@ -132,10 +136,10 @@ export const TaskDetailModal = ({
         description: task.description || "",
         status: task.status,
         priority: task.priority,
-        color: task.color,
         dueDate: task.dueDate,
         tags: task.tags || [],
-        assignees: (task.assigneeIds || []) as unknown as User[],
+        // Lưu mảng ID (string[]), đúng theo type UpdateTaskPayload
+        assignees: (task.assigneeIds || []) as string[],
       });
       setIsEditing(false);
       setDeletedAttachmentIds([]);
@@ -158,7 +162,7 @@ export const TaskDetailModal = ({
                 ({
                   ...prev,
                   attachments: mappedAtts as unknown as TaskAttachment[],
-                }) as Partial<Task>,
+                }) as TaskFormState,
             );
           })
           .catch((error) => {
@@ -172,24 +176,46 @@ export const TaskDetailModal = ({
     }
   }, [task, open]);
 
+  const { deleteTask: storeDeleteTask, updateTask: storeUpdateTask } = useKanbanStore();
+ 
   const updateTaskMutation = useMutation({
     mutationFn: (payload: UpdateTaskPayload) =>
       taskService.updateTask(task._id, payload),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["tasks"] });
+    onSuccess: (_, variables) => {
+      // Dựng lại Object task đầy đủ để update store local
+      const updatedTask = { ...task, ...variables };
+
+      // Quan trọng: Phải giữ lại attachments cũ vì API updateTask không trả về mảng này
+      updatedTask.attachments = task.attachments;
+
+      // Map lại assignees từ ID sang User object để UI hiển thị avatar đúng
+      if (variables.assignees) {
+        updatedTask.assignees = (variables.assignees as string[]).map((id) => {
+          const member = projectMembers.find(
+            (m) => ((m.userId as User)._id || m.userId) === id,
+          );
+          return member ? (member.userId as User) : ({ _id: id } as User);
+        });
+      } else {
+        updatedTask.assignees = task.assignees;
+      }
+
+      // Xử lý columnId: Lấy từ variables nếu có (khi đổi cột), nếu không dùng của task hiện tại
+      const currentColumnId = variables.columnId || task.columnId;
+
+      // Cập nhật store local - Zustand là nguồn duy nhất
+      storeUpdateTask(currentColumnId, task._id, updatedTask as Partial<Task>);
     },
     onError: (error: AppAxiosError) => {
       toast.error(getErrorMessage(error));
     },
   });
 
-  const { deleteTask: storeDeleteTask } = useKanbanStore();
-
   const deleteTaskMutation = useMutation({
     mutationFn: () => taskService.deleteTask(task._id),
     onSuccess: () => {
+      // Chỉ xóa ở store, không invalidateQueries
       storeDeleteTask(task.columnId, task._id);
-      queryClient.invalidateQueries({ queryKey: ["tasks"] });
       onOpenChange(false);
     },
     onError: (error: AppAxiosError) => {
@@ -295,7 +321,15 @@ export const TaskDetailModal = ({
   };
 
   const handleDiscardEditing = () => {
-    // Revert everything
+    // Revoke any temporary blob URLs trước khi reset state
+    // Dùng editedTask.attachments trực tiếp (currentAttachments khai báo ở dưới, không thể truy cập ở đây)
+    const attachmentsToRevoke = (editedTask.attachments || []) as Attachment[];
+    attachmentsToRevoke.forEach((a) => {
+      if (a.file && a.url.startsWith("blob:")) {
+        URL.revokeObjectURL(a.url);
+      }
+    });
+    // Revert tất cả lại giá trị gốc từ task prop
     setEditedTask({
       title: task.title,
       description: task.description || "",
@@ -304,16 +338,9 @@ export const TaskDetailModal = ({
       color: task.color,
       dueDate: task.dueDate,
       tags: task.tags || [],
-      assignees: (task.assigneeIds || []) as unknown as User[],
+      assignees: (task.assigneeIds || []) as string[],
     });
-    // Revoke any temporary blob URLs created
-    if (currentAttachments) {
-      (currentAttachments as Attachment[]).forEach((a) => {
-        if (a.file && a.url.startsWith("blob:")) {
-          URL.revokeObjectURL(a.url);
-        }
-      });
-    }
+    setDeletedAttachmentIds([]);
     setIsEditing(false);
   };
 

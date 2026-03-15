@@ -27,6 +27,8 @@ export const ColumnList = ({ columnId }: ColumnListProps) => {
   const { user: currentUser } = useAuthStore();
   const columnTasks = storeTasks[columnId] || [];
 
+  console.log("columnTasks: ", columnTasks);
+
   const currentMember = projectMembers.find(
     (m) => (m.userId as User)._id === currentUser?._id,
   );
