@@ -44,12 +44,6 @@ const projectSchema = new Schema(
       type: [memberSchema],
       default: [],
     },
-    columnOrder: [
-      {
-        type: Schema.Types.ObjectId,
-        ref: 'Column',
-      },
-    ],
   },
   { timestamps: true }
 );

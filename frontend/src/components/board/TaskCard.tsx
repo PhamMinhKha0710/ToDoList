@@ -10,10 +10,12 @@ import {
   Flame,
   Gauge,
   ArrowDown,
-  CalendarDays
+  CalendarDays,
 } from "lucide-react";
 import dayjs from "dayjs";
 import type { Task } from "@/types/task";
+import { useSortable } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 
 interface TaskCardProps {
   task: Task;
@@ -88,14 +90,41 @@ export const TaskCard = ({ task, onClick }: TaskCardProps) => {
     ? { backgroundColor: task.color }
     : { backgroundColor: "#ffffff" };
 
+  // DnD sortable
+  const {
+    setNodeRef,
+    attributes,
+    listeners,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({
+    id: task._id,
+    data: { type: "task", task, columnId: task.columnId },
+  });
+
+  const dndStyle = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
+
   return (
     <div
-      onClick={() => onClick(task)}
-      className="p-4 rounded-2xl shadow-sm hover:shadow-md hover:border-blue-400 border border-slate-200 transition-all cursor-pointer group flex flex-col relative overflow-hidden"
-      style={cardStyle}
+      ref={setNodeRef}
+      {...attributes}
+      {...listeners}
+      style={{ ...cardStyle, ...dndStyle }}
+      className={`p-4 rounded-2xl shadow-sm border transition-all cursor-pointer group flex flex-col relative overflow-hidden
+        ${isDragging 
+          ? "opacity-30 border-dashed border-primary/50 grayscale-[0.5]" 
+          : "hover:shadow-md hover:border-primary/40 border-slate-200"
+        }
+      `}
     >
-      {/* Container for Side-by-Side Top Section */}
-      <div className="flex justify-between gap-4">
+      {/* Header Side-by-Side */}
+      <div className="flex gap-2 items-start">
+        {/* Container for Side-by-Side Top Section */}
+        <div className="flex justify-between gap-4 flex-1" onClick={() => onClick(task)}>
         {/* Left Side: Title, Date, Description */}
         <div className="flex-1 flex flex-col gap-2">
           <h4 className="text-[16px] font-bold text-slate-800 leading-tight break-words">
@@ -120,8 +149,7 @@ export const TaskCard = ({ task, onClick }: TaskCardProps) => {
           )}
         </div>
 
-        {/* Right Side: Status and Priority */}
-        <div className="shrink-0 flex flex-col items-end gap-2">
+          <div className="shrink-0 flex flex-col items-end gap-2">
           {/* Status Label */}
           <div
             className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-[12px] font-bold tracking-wide shadow-sm border border-black/5 ${sConfig.classes}`}
@@ -138,7 +166,8 @@ export const TaskCard = ({ task, onClick }: TaskCardProps) => {
             <span>{pConfig.text}</span>
           </div>
         </div>
-      </div>
+        </div>{/* End flex justify-between (side-by-side) */}
+      </div>{/* End flex gap-2 (drag-handle + content) */}
 
       {/* Tags (Below the side-by-side header) */}
       {hasTags && (

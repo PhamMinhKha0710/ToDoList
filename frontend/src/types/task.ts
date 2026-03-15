@@ -25,8 +25,8 @@ export interface Task {
   color?: string;
   tags?: { name: string; color?: string }[];
   // attachments không còn nằm cứng trong Task, nhưng ở frontend có thể để dạng custom field
-  attachments?: Attachment[]; 
-  order: number;
+  attachments?: Attachment[];
+  position: number;
   createdAt: string;
   updatedAt: string;
 }

@@ -16,12 +16,10 @@ const columnSchema = new Schema(
       type: String,
       default: '#0733fa',
     },
-    taskOrder: [
-      {
-        type: Schema.Types.ObjectId,
-        ref: 'Task',
-      },
-    ],
+    position: {
+      type: Number,
+      default: 0,
+    },
   },
   { timestamps: true }
 );

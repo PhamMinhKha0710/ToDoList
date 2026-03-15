@@ -10,6 +10,7 @@ import { TaskDetailModal } from "../taskDetail/TaskDetailModal";
 import { useAuthStore } from "@/stores/auth.store";
 import type { User } from "@/types/user";
 import type { Task } from "@/types/task";
+import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
 
 interface ColumnListProps {
   columnId: string;
@@ -27,7 +28,6 @@ export const ColumnList = ({ columnId }: ColumnListProps) => {
   const { user: currentUser } = useAuthStore();
   const columnTasks = storeTasks[columnId] || [];
 
-  console.log("columnTasks: ", columnTasks);
 
   const currentMember = projectMembers.find(
     (m) => (m.userId as User)._id === currentUser?._id,
@@ -38,6 +38,7 @@ export const ColumnList = ({ columnId }: ColumnListProps) => {
     queryKey: ["tasks", columnId],
     queryFn: () => taskService.getTasksByColumnId(columnId),
     enabled: !!columnId,
+    staleTime: 1000 * 60 * 5, // 5 minutes
   });
 
   // Sync with store
@@ -74,11 +75,16 @@ export const ColumnList = ({ columnId }: ColumnListProps) => {
             </span>
           </div>
         ) : (
-          <div className="flex flex-col gap-3">
-            {columnTasks.map((task) => (
-              <TaskCard key={task._id} task={task} onClick={handleTaskClick} />
-            ))}
-          </div>
+          <SortableContext
+            items={columnTasks.map((t) => t._id)}
+            strategy={verticalListSortingStrategy}
+          >
+            <div className="flex flex-col gap-3">
+              {columnTasks.map((task) => (
+                <TaskCard key={task._id} task={task} onClick={handleTaskClick} />
+              ))}
+            </div>
+          </SortableContext>
         )}
       </div>
 

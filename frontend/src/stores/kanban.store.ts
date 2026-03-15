@@ -95,4 +95,6 @@ export const useKanbanStore = create<Kanban>()((set) => ({
       }
     };
   }),
+
+  reorderColumns: (newColumns) => set({ columns: newColumns }),
 }));

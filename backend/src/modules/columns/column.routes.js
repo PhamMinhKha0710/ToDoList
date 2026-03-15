@@ -15,6 +15,9 @@ const { isProjectMember } = require('../../middlewares/project.middleware');
 router.route('/project/:projectId')
   .get(isProjectMember, columnController.getProjectColumns);
 
+router.route('/project/:projectId/reorder')
+  .put(isProjectMember, columnController.reorderColumns);
+
 router.route('/')
   .post(validate(columnValidator.createColumnSchema), requireProjectOwnerFromBody, columnController.createColumn);
  

@@ -39,4 +39,15 @@ export const columnService = {
   deleteColumn: async (columnId: string): Promise<void> => {
     await axiosInstance.delete(`/columns/${columnId}`);
   },
+
+  reorderColumns: async (
+    projectId: string,
+    orderedColumnIds: string[],
+  ): Promise<Column[]> => {
+    const response = await axiosInstance.put<ApiResponse<{ columns: Column[] }>>(
+      `/columns/project/${projectId}/reorder`,
+      { orderedColumnIds },
+    );
+    return response.data.data.columns;
+  },
 };

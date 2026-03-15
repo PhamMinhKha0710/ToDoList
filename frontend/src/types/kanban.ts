@@ -34,4 +34,6 @@ export interface Kanban {
   moveTask: (fromColumnId: string, toColumnId: string, taskId: string, toIndex?: number) => void;
   deleteTask: (columnId: string, taskId: string) => void;
   setMembers: (members: ProjectMember[]) => void;
+  /** Reorder columns optimistically (for drag-drop) */
+  reorderColumns: (newColumns: Column[]) => void;
 }

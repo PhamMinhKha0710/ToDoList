@@ -103,7 +103,7 @@ const addMember = catchAsync(async (req, res) => {
 });
 
 /**
- * DELETE /api/v1/projects/:projectId/members/:memberId
+ * DELETE /api/projects/:projectId/members/:memberId
  */
 const removeMember = catchAsync(async (req, res) => {
   const project = await projectService.removeMember(
@@ -117,7 +117,7 @@ const removeMember = catchAsync(async (req, res) => {
 });
 
 /**
- * PUT /api/v1/projects/:projectId/members/:memberId
+ * PUT /api/projects/:projectId/members/:memberId
  */
 const updateMemberRole = catchAsync(async (req, res) => {
   const { role } = req.body;
@@ -133,7 +133,7 @@ const updateMemberRole = catchAsync(async (req, res) => {
 });
 
 /**
- * GET /api/v1/projects/:projectId/invitation
+ * GET /api/projects/:projectId/invitation
  */
 const getInvitationDetails = catchAsync(async (req, res) => {
   const projectDetails = await projectService.getInvitationDetails(
@@ -146,7 +146,7 @@ const getInvitationDetails = catchAsync(async (req, res) => {
 });
 
 /**
- * POST /api/v1/projects/:projectId/invitation/respond
+ * POST /api/projects/:projectId/invitation/respond
  */
 const respondToInvitation = catchAsync(async (req, res) => {
   const { action } = req.body;

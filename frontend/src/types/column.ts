@@ -3,7 +3,7 @@ export interface Column {
   projectId: string;
   title: string;
   color?: string;
-  order: number;
+  position: number;
   createdAt: string;
   updatedAt: string;
 }

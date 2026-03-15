@@ -43,7 +43,9 @@ export const taskService = {
     taskId: string;
     sourceColumnId: string;
     destinationColumnId: string;
-    sourceIndex: number;
+    sourceTaskIds: string[];       
+    destinationTaskIds: string[];  
+    sourceIndex: number;           // Thêm index theo yêu cầu
     destinationIndex: number;
   }): Promise<void> => {
     await axiosInstance.post("/tasks/move", data);

@@ -60,6 +60,10 @@ const taskSchema = new Schema(
       type: [tagSchema],
       default: [],
     },
+    position: {
+      type: Number,
+      default: 0,
+    },
   },
   { timestamps: true }
 );

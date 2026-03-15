@@ -1,5 +1,6 @@
 const taskRepository = require('./task.repository');
 const Column = require('../../models/Column');
+const Task = require('../../models/Task');
 const ApiError = require('../../utils/ApiError');
 const attachmentRepository = require('../attachments/attachment.repository');
 
@@ -9,7 +10,6 @@ const createTask = async (taskData, files) => {
     throw new ApiError(404, 'Không tìm thấy cột tương ứng');
   }
 
-  // Repository handles task creation, column order update, and attachments
   return await taskRepository.createTask(taskData, files);
 };
 
@@ -39,49 +39,45 @@ const deleteTask = async (taskId) => {
     throw new ApiError(404, 'Không tìm thấy task để xóa');
   }
 
-  // 1. Remove task ID from the associated column's taskOrder
-  await taskRepository.removeTaskFromColumnOrder(task.columnId, taskId);
+  const columnId = task.columnId;
+  const deletedPosition = task.position;
 
-  // 2. Delete the actual task
+  // Xóa task
   await taskRepository.deleteTask(taskId);
+
+  // Compact positions của tasks còn lại trong cùng column
+  await Task.updateMany(
+    { columnId, position: { $gt: deletedPosition } },
+    { $inc: { position: -1 } }
+  );
 };
 
+/**
+ * Di chuyển task (drag & drop)
+ * Nhận mảng taskIds theo thứ tự mới để bulk-update position
+ */
 const moveTask = async (moveData) => {
-  const { sourceColumnId, destinationColumnId, sourceIndex, destinationIndex, taskId } = moveData;
+  const { taskId, sourceColumnId, destinationColumnId, sourceTaskIds, destinationTaskIds } = moveData;
 
-  const sourceColumn = await Column.findById(sourceColumnId);
-  const destColumn = await Column.findById(destinationColumnId);
-
-  if (!sourceColumn || !destColumn) {
-    throw new ApiError(404, 'Không tìm thấy cột nguồn hoặc cột đích');
+  // Validate task tồn tại
+  const task = await taskRepository.getTaskById(taskId);
+  if (!task) {
+    throw new ApiError(404, 'Không tìm thấy task');
   }
 
-  // Same Column Move
   if (sourceColumnId === destinationColumnId) {
-    const newTaskOrder = Array.from(sourceColumn.taskOrder);
-    // Remove from sourceIndex
-    newTaskOrder.splice(sourceIndex, 1);
-    // Insert into destinationIndex
-    newTaskOrder.splice(destinationIndex, 0, taskId);
-
-    await Column.findByIdAndUpdate(sourceColumnId, { taskOrder: newTaskOrder }, { new: true });
-    return;
+    // Same column: chỉ reorder trong source
+    await taskRepository.reorderTasks(sourceTaskIds, sourceColumnId);
+  } else {
+    // Cross-column: reorder cả hai column và update columnId của task
+    await taskRepository.reorderTasks(
+      sourceTaskIds,
+      sourceColumnId,
+      destinationTaskIds,
+      destinationColumnId,
+      taskId
+    );
   }
-
-  // Different Column Move
-  const sourceTaskOrder = Array.from(sourceColumn.taskOrder);
-  const destTaskOrder = Array.from(destColumn.taskOrder);
-
-  // Remove from source
-  sourceTaskOrder.splice(sourceIndex, 1);
-  // Add to destination
-  destTaskOrder.splice(destinationIndex, 0, taskId);
-
-  await Promise.all([
-    Column.findByIdAndUpdate(sourceColumnId, { taskOrder: sourceTaskOrder }, { new: true }),
-    Column.findByIdAndUpdate(destinationColumnId, { taskOrder: destTaskOrder }, { new: true }),
-    taskRepository.updateTask(taskId, { columnId: destinationColumnId }) // Update columnRef of the task
-  ]);
 };
 
 const addTagsToTask = async (taskId, tagsArray) => {
@@ -91,16 +87,14 @@ const addTagsToTask = async (taskId, tagsArray) => {
   }
 
   if (!tagsArray || tagsArray.length === 0) {
-    return task; // No tags to add, return current task
+    return task;
   }
 
-  // Handle unique tag check via JS instead of raw mongo $addToSet for better colored duplicates resolution
-  // Assuming a tag name should be unique in the given task
   const existingNames = task.tags.map(t => t.name.toLowerCase());
   const newTagsToInsert = tagsArray.filter(t => !existingNames.includes(t.name.toLowerCase()));
 
   if (newTagsToInsert.length === 0) {
-    return task; // All tags already exist, return as is
+    return task;
   }
 
   return await taskRepository.addTagsToTask(taskId, newTagsToInsert);
