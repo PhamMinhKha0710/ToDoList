@@ -14,6 +14,8 @@ export interface Project {
   color?: string;
   members: ProjectMember[];
   columnOrder: string[];
+  owner?: User;
+  memberCount?: number;
   createdAt: string;
   updatedAt: string;
 }

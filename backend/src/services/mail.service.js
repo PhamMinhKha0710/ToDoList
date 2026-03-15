@@ -23,14 +23,14 @@ const sendOtpEmail = async (to, otp) => {
     to,
     subject: 'Mã OTP đặt lại mật khẩu',
     html: `
-      <div style="font-family: Arial, sans-serif; max-width: 480px; margin: 0 auto;">
-        <h2 style="color: #0733fa;">Đặt lại mật khẩu</h2>
+      <div style="font-family: Arial, sans-serif; max-width: 480px; margin: 0 auto; padding: 20px; border: 1px solid #e5e7eb; border-radius: 12px;">
+        <h2 style="color: #0733fa; margin-top: 0;">Đặt lại mật khẩu</h2>
         <p>Mã OTP của bạn là:</p>
         <div style="font-size: 36px; font-weight: bold; letter-spacing: 8px; color: #0733fa; padding: 16px 0;">
           ${otp}
         </div>
-        <p style="color: #888;">Mã có hiệu lực trong <strong>10 phút</strong>. Không chia sẻ mã này với bất kỳ ai.</p>
-        <p style="color: #aaa; font-size: 12px;">Nếu bạn không yêu cầu đặt lại mật khẩu, hãy bỏ qua email này.</p>
+        <p style="color: #6b7280; font-size: 14px;">Mã có hiệu lực trong <strong>10 phút</strong>. Không chia sẻ mã này với bất kỳ ai.</p>
+        <p style="color: #9ca3af; font-size: 12px; margin-top: 20px;">Nếu bạn không yêu cầu đặt lại mật khẩu, hãy bỏ qua email này.</p>
       </div>
     `,
   };
@@ -45,32 +45,40 @@ const sendOtpEmail = async (to, otp) => {
 };
 
 /**
- * Gửi thông báo mời tham gia dự án
+ * Gửi thông báo mời tham gia dự án (GitHub style)
  * @param {string} to - Email người nhận
  * @param {string} projectName - Tên dự án
  * @param {string} inviterName - Tên người mời
  * @param {string} projectUrl - Link đến dự án
+ * @param {string} projectColor - Màu sắc thương hiệu dự án
  */
-const sendProjectInvitationEmail = async (to, projectName, inviterName, projectUrl) => {
+const sendProjectInvitationEmail = async (to, projectName, inviterName, projectUrl, projectColor = '#4f46e5', projectImageUrl = null) => {
   const mailOptions = {
-    from: `"ToDoList App" <${MAIL_USER}>`,
+    from: `"ToDoList" <${MAIL_USER}>`,
     to,
     subject: `Bạn được mời tham gia dự án: ${projectName}`,
     html: `
-      <div style="font-family: Arial, sans-serif; max-width: 480px; margin: 0 auto; background-color: #f9fafb; padding: 30px; border-radius: 12px; border: 1px solid #e5e7eb;">
-        <h2 style="color: #111827; margin-top: 0;">Lời mời tham gia dự án</h2>
-        <p style="color: #4b5563; line-height: 1.6;">
-          Chào bạn,<br/>
-          <strong>${inviterName || 'Một thành viên'}</strong> vừa mời bạn tham gia dự án <strong style="color: #4f46e5;">${projectName}</strong> trên ToDoList.
-        </p>
-        <div style="text-align: center; margin: 30px 0;">
-          <a href="${projectUrl}" style="background-color: #4f46e5; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">
-            Xem Dự Án
-          </a>
+      <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; max-width: 500px; margin: 40px auto; padding: 32px; text-align: center; border: 1px solid #d0d7de; border-radius: 6px; background-color: #ffffff;">
+        <div style="margin-bottom: 24px;">
+           <img src="https://img.icons8.com/ios-filled/100/${projectColor.replace('#', '')}/filled-message.png" width="48" height="48" style="border-radius: 12px;" />
         </div>
-        <p style="color: #6b7280; font-size: 13px;">
-          Hãy nhấn vào nút trên để truy cập dự án và bắt đầu làm việc cùng nhóm nhé!
+        
+        <h1 style="font-size: 20px; font-weight: 600; color: #1f2328; margin-bottom: 8px; margin-top: 0;">
+          ${inviterName} mời bạn tham gia cộng tác
+        </h1>
+        
+        <p style="font-size: 14px; color: #636c76; line-height: 1.5; margin-bottom: 32px;">
+          Bạn vừa được mời tham gia vào dự án <strong style="color: #1f2328;">${projectName}</strong> trên hệ thống ToDoList. Hãy tham gia để bắt đầu làm việc cùng nhóm.
         </p>
+        
+        <a href="${projectUrl}" style="background-color: ${projectColor}; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-size: 14px; font-weight: 600; display: inline-block; margin-bottom: 32px;">
+          Chấp nhận lời mời
+        </a>
+        
+        <div style="border-top: 1px solid #d0d7de; padding-top: 24px; color: #636c76; font-size: 12px; text-align: left;">
+          <p style="margin: 0 0 4px 0;">Đây là lời mời tham gia dự án từ ToDoList.</p>
+          <p style="margin: 0;">Nếu bạn không mong muốn tham gia dự án này, bạn có thể bỏ qua email này.</p>
+        </div>
       </div>
     `,
   };

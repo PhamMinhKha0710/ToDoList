@@ -128,6 +128,10 @@ class ProjectService {
       throw new ApiError(400, 'Bạn đã là thành viên chính thức của dự án này');
     }
 
+    // Find owner
+    const owner = project.members.find(m => m.role === 'owner')?.userId;
+    const activeMembersCount = project.members.filter(m => m.status === 'active').length;
+
     // Return basic project details
     return {
       _id: project._id,
@@ -135,6 +139,13 @@ class ProjectService {
       description: project.description,
       imageUrl: project.imageUrl,
       color: project.color,
+      owner: owner ? {
+        _id: owner._id,
+        displayName: owner.displayName,
+        email: owner.email,
+        avatarUrl: owner.avatarUrl
+      } : null,
+      memberCount: activeMembersCount,
     };
   }
 

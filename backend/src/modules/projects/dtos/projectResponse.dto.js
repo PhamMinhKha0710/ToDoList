@@ -13,6 +13,8 @@ class ProjectResponseDTO {
         }))
       : [];
     this.columnOrder = project.columnOrder;
+    this.owner = project.owner;
+    this.memberCount = project.memberCount;
     this.createdAt = project.createdAt;
     this.updatedAt = project.updatedAt;
   }
