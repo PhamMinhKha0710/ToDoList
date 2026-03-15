@@ -5,10 +5,13 @@ class ProjectResponseDTO {
     this.description = project.description;
     this.imageUrl = project.imageUrl;
     this.color = project.color;
-    this.members = project.members ? project.members.map(member => ({
-      userId: member.userId,
-      role: member.role
-    })) : [];
+    this.members = project.members
+      ? project.members.map((member) => ({
+          userId: member.userId,
+          role: member.role,
+          status: member.status,
+        }))
+      : [];
     this.columnOrder = project.columnOrder;
     this.createdAt = project.createdAt;
     this.updatedAt = project.updatedAt;
@@ -19,7 +22,7 @@ class ProjectResponseDTO {
   }
 
   static fromEntities(projects) {
-    return projects.map(project => new ProjectResponseDTO(project));
+    return projects.map((project) => new ProjectResponseDTO(project));
   }
 }
 

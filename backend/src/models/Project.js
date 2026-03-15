@@ -12,6 +12,11 @@ const memberSchema = new Schema(
       enum: ['owner', 'admin', 'member', 'viewer'],
       default: 'member',
     },
+    status: {
+      type: String,
+      enum: ['pending', 'active'],
+      default: 'pending',
+    },
   },
   { _id: false }
 );

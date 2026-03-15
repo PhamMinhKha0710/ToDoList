@@ -40,9 +40,17 @@ const updateMemberRoleSchema = Joi.object({
   }),
 });
 
+const respondInvitationSchema = Joi.object({
+  action: Joi.string().valid('accept', 'decline').required().messages({
+    'any.only': 'Hành động không hợp lệ. Chỉ chấp nhận "accept" hoặc "decline".',
+    'any.required': 'Hành động là bắt buộc (action)',
+  }),
+});
+
 module.exports = {
   createProjectSchema,
   updateProjectSchema,
   addMemberSchema,
   updateMemberRoleSchema,
+  respondInvitationSchema,
 };

@@ -7,9 +7,17 @@ const Column = require('../models/Column');
 // Helper: lấy role của user hiện tại trong project
 const getUserRole = (project, userId) => {
   const member = project.members.find(
-    (m) => m.userId._id.toString() === userId.toString()
+    (m) => {
+      const mUserId = m.userId._id ? m.userId._id.toString() : m.userId.toString();
+      return mUserId === userId.toString();
+    }
   );
-  return member ? member.role : null;
+
+  // Nếu là thành viên và trạng thái KHÔNG phải pending (mặc định là active hoặc dành cho data cũ)
+  if (member && member.status !== 'pending') {
+    return member.role;
+  }
+  return null;
 };
 
 // ✅ Tất cả thành viên đều được xem (owner, admin, member, viewer)

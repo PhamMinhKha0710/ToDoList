@@ -69,7 +69,7 @@ const addMember = catchAsync(async (req, res) => {
   const project = await projectService.addMember(req.params.projectId, req.body.email, role);
   
   // Gửi email thông báo bất đồng bộ (không await để block response)
-  const projectUrl = `${CLIENT_URL}/projects/${project._id}`;
+  const projectUrl = `${CLIENT_URL}/projects/${project._id}/invite`;
   mailService.sendProjectInvitationEmail(
     req.body.email, 
     project.name, 
@@ -100,6 +100,24 @@ const updateMemberRole = catchAsync(async (req, res) => {
   new ApiResponse(200, 'Cập nhật phân quyền thành công', { project: projectDTO }).send(res);
 });
 
+/**
+ * GET /api/v1/projects/:projectId/invitation
+ */
+const getInvitationDetails = catchAsync(async (req, res) => {
+  const projectDetails = await projectService.getInvitationDetails(req.params.projectId, req.user._id);
+  new ApiResponse(200, 'Lấy thông tin lời mời thành công', { project: projectDetails }).send(res);
+});
+
+/**
+ * POST /api/v1/projects/:projectId/invitation/respond
+ */
+const respondToInvitation = catchAsync(async (req, res) => {
+  const { action } = req.body;
+  await projectService.respondToInvitation(req.params.projectId, req.user._id, action);
+  const message = action === 'accept' ? 'Chấp nhận lời mời thành công' : 'Đã từ chối lời mời';
+  new ApiResponse(200, message).send(res);
+});
+
 module.exports = {
   createProject,
   getUserProjects,
@@ -109,4 +127,6 @@ module.exports = {
   addMember,
   removeMember,
   updateMemberRole,
+  getInvitationDetails,
+  respondToInvitation,
 };

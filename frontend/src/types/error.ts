@@ -17,5 +17,9 @@ export type AppAxiosError = AxiosError<ApiErrorResponse>;
  */
 export const getErrorMessage = (error: unknown): string => {
   const axiosError = error as AppAxiosError;
-  return axiosError.response?.data?.message || (error as Error).message || "Đã có lỗi xảy ra.";
+  return (
+    axiosError.response?.data?.message ||
+    (error as Error).message ||
+    "Đã có lỗi xảy ra."
+  );
 };

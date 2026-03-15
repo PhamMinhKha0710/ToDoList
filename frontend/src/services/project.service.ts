@@ -65,4 +65,14 @@ export const projectService = {
     const response = await api.put(`/projects/${projectId}/members/${memberId}`, { role });
     return response.data;
   },
+
+  getInvitationDetails: async (projectId: string): Promise<ApiResponse<{ project: Partial<Project> }>> => {
+    const response = await api.get(`/projects/${projectId}/invitation`);
+    return response.data;
+  },
+
+  respondToInvitation: async (projectId: string, action: 'accept' | 'decline'): Promise<ApiResponse<void>> => {
+    const response = await api.post(`/projects/${projectId}/invitation/respond`, { action });
+    return response.data;
+  },
 };

@@ -9,9 +9,10 @@ class ProjectService {
     // Lưu ý: Đảm bảo không bị trùng ID nếu frontend có lỡ gửi lên (hiếm)
     const existingOwnerIndex = members.findIndex(m => m.userId.toString() === userId.toString());
     if (existingOwnerIndex === -1) {
-      members.push({ userId, role: 'owner' });
+      members.push({ userId, role: 'owner', status: 'active' });
     } else {
       members[existingOwnerIndex].role = 'owner';
+      members[existingOwnerIndex].status = 'active';
     }
 
     const newProjectData = {
@@ -65,6 +66,7 @@ class ProjectService {
     const memberData = {
       userId: userToAdd._id,
       role,
+      status: 'pending', // Thành viên mới được thêm vào ở trạng thái pending
     };
 
     return projectRepository.addMember(projectId, memberData);
@@ -108,6 +110,60 @@ class ProjectService {
     }
 
     return projectRepository.updateMemberRole(projectId, userIdToUpdate, newRole);
+  }
+
+  async getInvitationDetails(projectId, userId) {
+    const project = await this.getProjectById(projectId);
+    
+    // Check if user is in members array and has status pending
+    const member = project.members.find(
+      (m) => m.userId._id.toString() === userId.toString() || m.userId.toString() === userId.toString()
+    );
+
+    if (!member) {
+      throw new ApiError(403, 'Bạn không được mời tham gia dự án này');
+    }
+
+    if (member.status === 'active') {
+      throw new ApiError(400, 'Bạn đã là thành viên chính thức của dự án này');
+    }
+
+    // Return basic project details
+    return {
+      _id: project._id,
+      name: project.name,
+      description: project.description,
+      imageUrl: project.imageUrl,
+      color: project.color,
+    };
+  }
+
+  async respondToInvitation(projectId, userId, action) {
+    const project = await this.getProjectById(projectId);
+
+    const memberIndex = project.members.findIndex(
+      (m) => m.userId._id.toString() === userId.toString() || m.userId.toString() === userId.toString()
+    );
+
+    if (memberIndex === -1) {
+      throw new ApiError(403, 'Bạn không được mời tham gia dự án này');
+    }
+
+    const member = project.members[memberIndex];
+
+    if (member.status === 'active') {
+      throw new ApiError(400, 'Bạn đã là thành viên chính thức của dự án này');
+    }
+
+    if (action === 'accept') {
+      project.members[memberIndex].status = 'active';
+      await project.save();
+      return project;
+    } else if (action === 'decline') {
+      return projectRepository.removeMember(projectId, userId);
+    } else {
+      throw new ApiError(400, 'Hành động không hợp lệ');
+    }
   }
 }
 
