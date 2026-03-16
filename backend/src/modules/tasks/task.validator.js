@@ -18,7 +18,7 @@ const createTaskSchema = Joi.object({
     'any.required': 'Tiêu đề task là bắt buộc',
   }),
   description: Joi.string().allow('').optional(),
-  assigneeId: Joi.string().allow(null).optional(),
+  assignees: Joi.array().items(Joi.string()).optional(),
   status: Joi.string().valid('todo', 'in_progress', 'done').optional(),
   priority: Joi.string().valid('urgent', 'high', 'normal', 'low').optional(),
   dueDate: Joi.date().iso().allow(null).optional(),
@@ -29,7 +29,7 @@ const createTaskSchema = Joi.object({
 const updateTaskSchema = Joi.object({
   title: Joi.string().trim().optional(),
   description: Joi.string().allow('').optional(),
-  assigneeId: Joi.string().allow(null).optional(),
+  assignees: Joi.array().items(Joi.string()).optional(),
   status: Joi.string().valid('todo', 'in_progress', 'done').optional(),
   priority: Joi.string().valid('urgent', 'high', 'normal', 'low').optional(),
   dueDate: Joi.date().iso().allow(null).optional(),
@@ -38,11 +38,20 @@ const updateTaskSchema = Joi.object({
 });
 
 const moveTaskSchema = Joi.object({
+  taskId: Joi.string().required().messages({
+    'any.required': 'taskId là bắt buộc'
+  }),
   sourceColumnId: Joi.string().required().messages({
     'any.required': 'sourceColumnId là bắt buộc'
   }),
   destinationColumnId: Joi.string().required().messages({
     'any.required': 'destinationColumnId là bắt buộc'
+  }),
+  sourceTaskIds: Joi.array().items(Joi.string()).required().messages({
+    'any.required': 'sourceTaskIds là bắt buộc'
+  }),
+  destinationTaskIds: Joi.array().items(Joi.string()).required().messages({
+    'any.required': 'destinationTaskIds là bắt buộc'
   }),
   sourceIndex: Joi.number().integer().min(0).required().messages({
     'any.required': 'sourceIndex là bắt buộc'

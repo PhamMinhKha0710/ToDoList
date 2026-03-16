@@ -1,17 +1,29 @@
+import { useEffect } from "react";
 import { useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { projectService } from '@/services/project.service';
 import { ProjectHeader } from '@/components/project-detail/ProjectHeader';
 import { Loader2 } from 'lucide-react';
+import { KanbanBoard } from '@/components/board/KanbanBoard';
+import { useKanbanStore } from '@/stores/kanban.store';
 
 const ProjectDetailPage = () => {
   const { id } = useParams<{ id: string }>();
+  const { setMembers } = useKanbanStore();
 
   const { data: response, isLoading, error } = useQuery({
     queryKey: ['project', id],
     queryFn: () => projectService.getProjectById(id!),
     enabled: !!id,
   });
+
+  const project = response?.data?.project;
+
+  useEffect(() => {
+    if (project?.members) {
+      setMembers(project.members);
+    }
+  }, [project?.members, setMembers]);
 
   if (isLoading) {
     return (
@@ -21,7 +33,7 @@ const ProjectDetailPage = () => {
     );
   }
 
-  if (error || !response?.data?.project) {
+  if (error || !project) {
     return (
       <div className="flex h-full w-full flex-col items-center justify-center p-6 bg-accent-foreground/5 gap-4">
         <h2 className="text-xl font-semibold text-destructive">Không thể tải dữ liệu dự án</h2>
@@ -30,19 +42,15 @@ const ProjectDetailPage = () => {
     );
   }
 
-  const project = response.data.project;
-
   return (
     <div className="h-full w-full flex flex-col bg-background">
       <div className="p-6 pb-0">
         <ProjectHeader project={project} />
       </div>
       
-      {/* Kanban Board Area (Coming soon) */}
-      <div className="flex-1 p-6 pt-2 bg-accent-foreground/5 min-h-0 overflow-auto">
-        <div className="h-full w-full border-2 border-dashed border-border rounded-lg flex items-center justify-center bg-background/50">
-          <p className="text-muted-foreground">Kanban Board Coming soon...</p>
-        </div>
+      {/* Kanban Board Area */}
+      <div className="flex-1 overflow-hidden">
+        <KanbanBoard projectId={project._id} />
       </div>
     </div>
   );

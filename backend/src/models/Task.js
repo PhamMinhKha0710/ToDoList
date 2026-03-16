@@ -23,11 +23,15 @@ const taskSchema = new Schema(
       ref: 'Column',
       required: true,
     },
-    assigneeId: {
+    creatorId: {
       type: Schema.Types.ObjectId,
       ref: 'User',
-      default: null,
+      required: true,
     },
+    assignees: [{
+      type: Schema.Types.ObjectId,
+      ref: 'User',
+    }],
     title: {
       type: String,
       required: true,
@@ -55,6 +59,10 @@ const taskSchema = new Schema(
     tags: {
       type: [tagSchema],
       default: [],
+    },
+    position: {
+      type: Number,
+      default: 0,
     },
   },
   { timestamps: true }

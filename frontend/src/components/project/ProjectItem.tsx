@@ -1,6 +1,8 @@
 import { Link } from "react-router-dom";
 import dayjs from "dayjs";
 import type { Project } from "@/types/project";
+import type { User } from "@/types/user";
+import { useAuthStore } from "@/stores/auth.store";
 import {
   Card,
   CardTitle,
@@ -16,13 +18,21 @@ interface ProjectItemProps {
 }
 
 export const ProjectItem = ({ project, viewMode }: ProjectItemProps) => {
+  const { user: currentUser } = useAuthStore();
   const isGrid = viewMode === "grid";
   const accentColor = project.color || "#3b82f6";
   const initials = project.name.substring(0, 2).toUpperCase();
 
+  // Tìm status của user hiện tại
+  const member = project.members.find(
+    (m) => (typeof m.userId === "string" ? m.userId : (m.userId as User)._id) === currentUser?._id
+  );
+  const isPending = member?.status === "pending";
+  const targetUrl = isPending ? `/projects/${project._id}/invite` : `/projects/${project._id}`;
+
   return (
     <Link
-      to={`/projects/${project._id}`}
+      to={targetUrl}
       className="block h-full outline-none ring-offset-background focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-xl group"
     >
       <Card

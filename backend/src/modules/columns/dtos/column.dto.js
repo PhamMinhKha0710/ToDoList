@@ -10,6 +10,7 @@ const toColumnDTO = (column) => {
     projectId: column.projectId,
     title: column.title,
     color: column.color,
+    position: column.position,
     taskOrder: column.taskOrder || [],
     createdAt: column.createdAt,
     updatedAt: column.updatedAt,

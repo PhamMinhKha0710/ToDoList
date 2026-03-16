@@ -1,15 +1,19 @@
-const express = require('express');
-const projectController = require('./project.controller');
-const projectValidator = require('./project.validator');
-const { validate } = require('../../middlewares/validate.middleware');
-const { authenticate } = require('../../middlewares/auth.middleware');
-const { isProjectMember, isProjectOwner } = require('../../middlewares/project.middleware');
-const upload = require('../../middlewares/upload.middleware');
+const express = require("express");
+const projectController = require("./project.controller");
+const projectValidator = require("./project.validator");
+const { validate } = require("../../middlewares/validate.middleware");
+const { authenticate } = require("../../middlewares/auth.middleware");
+const {
+  isProjectMember,
+  isProjectOwner,
+  isProjectManagerOrAbove,
+} = require("../../middlewares/project.middleware");
+const upload = require("../../middlewares/upload.middleware");
 
 const router = express.Router();
 
 const parseMembers = (req, res, next) => {
-  if (req.body.members && typeof req.body.members === 'string') {
+  if (req.body.members && typeof req.body.members === "string") {
     try {
       req.body.members = JSON.parse(req.body.members);
     } catch (error) {
@@ -23,36 +27,58 @@ router.use(authenticate); // Tất cả route project đều cần đăng nhập
 
 // Lấy danh sách dự án của user và tạo dự án mới
 router
-  .route('/')
+  .route("/")
   .get(projectController.getUserProjects)
   .post(
-    upload.single('file'),
+    upload.single("file"),
     parseMembers,
-    validate(projectValidator.createProjectSchema), 
-    projectController.createProject
+    validate(projectValidator.createProjectSchema),
+    projectController.createProject,
   );
 
 // Lấy, cập nhật, xóa 1 dự án cụ thể
 router
-  .route('/:projectId')
+  .route("/:projectId")
   .get(isProjectMember, projectController.getProjectById)
   .put(
-    upload.single('file'),
+    upload.single("file"),
     parseMembers,
-    validate(projectValidator.updateProjectSchema), 
-    isProjectOwner, 
-    projectController.updateProject
+    validate(projectValidator.updateProjectSchema),
+    isProjectOwner, // Chỉ owner mới được sửa thông tin board
+    projectController.updateProject,
   )
-  .delete(isProjectOwner, projectController.deleteProject);
+  .delete(isProjectOwner, projectController.deleteProject); // Chỉ owner xóa board
 
-// Thêm, xóa thành viên trong dự án
+// Lấy thông tin lời mời
 router
-  .route('/:projectId/members')
-  .post(validate(projectValidator.addMemberSchema), isProjectOwner, projectController.addMember);
+  .route("/:projectId/invitation")
+  .get(projectController.getInvitationDetails);
 
+// Trả lời lời mời (chấp nhận/từ chối)
 router
-  .route('/:projectId/members/:memberId')
-  .put(isProjectOwner, projectController.updateMemberRole)
-  .delete(isProjectOwner, projectController.removeMember);
+  .route("/:projectId/invitation/respond")
+  .post(
+    validate(projectValidator.respondInvitationSchema),
+    projectController.respondToInvitation,
+  );
+
+// Thêm thành viên: Owner hoặc Admin
+router
+  .route("/:projectId/members")
+  .post(
+    validate(projectValidator.addMemberSchema),
+    isProjectManagerOrAbove,
+    projectController.addMember,
+  );
+
+// Xóa, đổi role thành viên
+router
+  .route("/:projectId/members/:memberId")
+  .put(
+    validate(projectValidator.updateMemberRoleSchema),
+    isProjectOwner, // Chỉ owner đổi role
+    projectController.updateMemberRole,
+  )
+  .delete(isProjectManagerOrAbove, projectController.removeMember); // Owner hoặc Admin xóa member
 
 module.exports = router;

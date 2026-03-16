@@ -9,8 +9,13 @@ const memberSchema = new Schema(
     },
     role: {
       type: String,
-      enum: ['owner', 'member'],
+      enum: ['owner', 'admin', 'member', 'viewer'],
       default: 'member',
+    },
+    status: {
+      type: String,
+      enum: ['pending', 'active'],
+      default: 'pending',
     },
   },
   { _id: false }
@@ -39,12 +44,6 @@ const projectSchema = new Schema(
       type: [memberSchema],
       default: [],
     },
-    columnOrder: [
-      {
-        type: Schema.Types.ObjectId,
-        ref: 'Column',
-      },
-    ],
   },
   { timestamps: true }
 );

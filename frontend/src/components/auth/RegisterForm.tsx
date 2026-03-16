@@ -42,7 +42,7 @@ export const RegisterForm = ({
       toast.success('Đăng ký thành công! Vui lòng đăng nhập.')
       navigate(ROUTES.LOGIN)
     } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Đăng ký thất bại. Vui lòng thử lại.')
+      // Global toast handled
     } finally {
       setIsLoading(false)
     }

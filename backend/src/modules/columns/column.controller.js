@@ -6,7 +6,7 @@ const { toCreateColumnDTO } = require('./dtos/createColumn.dto');
 const { toUpdateColumnDTO } = require('./dtos/updateColumn.dto');
 
 /**
- * POST /api/v1/columns
+ * POST /api/columns
  */
 const createColumn = catchAsync(async (req, res) => {
   const columnData = toCreateColumnDTO(req.body);
@@ -15,7 +15,7 @@ const createColumn = catchAsync(async (req, res) => {
 });
 
 /**
- * GET /api/v1/columns/project/:projectId
+ * GET /api/columns/project/:projectId
  */
 const getProjectColumns = catchAsync(async (req, res) => {
   const columns = await columnService.getColumnsByProjectId(req.params.projectId);
@@ -23,7 +23,7 @@ const getProjectColumns = catchAsync(async (req, res) => {
 });
 
 /**
- * PUT /api/v1/columns/:columnId
+ * PUT /api/columns/:columnId
  */
 const updateColumn = catchAsync(async (req, res) => {
   const updateData = toUpdateColumnDTO(req.body);
@@ -32,11 +32,20 @@ const updateColumn = catchAsync(async (req, res) => {
 });
 
 /**
- * DELETE /api/v1/columns/:columnId
+ * DELETE /api/columns/:columnId
  */
 const deleteColumn = catchAsync(async (req, res) => {
   await columnService.deleteColumn(req.params.columnId);
   new ApiResponse(200, 'Xóa cột thành công').send(res);
+});
+
+/**
+ * PUT /api/columns/project/:projectId/reorder
+ */
+const reorderColumns = catchAsync(async (req, res) => {
+  const { orderedColumnIds } = req.body;
+  const columns = await columnService.reorderColumns(req.params.projectId, orderedColumnIds);
+  new ApiResponse(200, 'Sắp xếp lại cột thành công', { columns: columns.map(toColumnDTO) }).send(res);
 });
 
 module.exports = {
@@ -44,4 +53,5 @@ module.exports = {
   getProjectColumns,
   updateColumn,
   deleteColumn,
+  reorderColumns,
 };

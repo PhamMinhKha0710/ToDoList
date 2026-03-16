@@ -8,12 +8,27 @@ const toCreateTaskDTO = (body) => {
   };
 
   if (body.description !== undefined) data.description = body.description;
-  if (body.assigneeId !== undefined) data.assigneeId = body.assigneeId;
+  
+  if (body.assignees !== undefined) {
+    try {
+      data.assignees = typeof body.assignees === 'string' ? JSON.parse(body.assignees) : body.assignees;
+    } catch (e) {
+      data.assignees = body.assignees;
+    }
+  }
   if (body.status !== undefined) data.status = body.status;
   if (body.priority !== undefined) data.priority = body.priority;
   if (body.dueDate !== undefined) data.dueDate = body.dueDate;
   if (body.color !== undefined) data.color = body.color;
-  if (body.tags !== undefined) data.tags = body.tags;
+  
+  // Tags might be sent as a JSON string when using FormData
+  if (body.tags !== undefined) {
+    try {
+      data.tags = typeof body.tags === 'string' ? JSON.parse(body.tags) : body.tags;
+    } catch (e) {
+      data.tags = body.tags;
+    }
+  }
 
   return data;
 };
