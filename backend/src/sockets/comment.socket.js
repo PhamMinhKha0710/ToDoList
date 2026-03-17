@@ -2,30 +2,29 @@ const { getIO } = require('../config/socket');
 
 /**
  * Emit khi một comment được tạo
- * @param {string} projectId
+ * @param {string} taskId
  * @param {object} comment - Comment document (đã populated)
  */
-const emitCommentCreated = (projectId, comment) => {
-  getIO().to(projectId).emit('comment:created', comment);
+const emitCommentCreated = (taskId, comment) => {
+  getIO().to(taskId).emit('comment:created', comment);
 };
 
 /**
  * Emit khi một comment bị xóa
- * @param {string} projectId
- * @param {string} commentId
  * @param {string} taskId
+ * @param {string} commentId
  */
-const emitCommentDeleted = (projectId, commentId, taskId) => {
-  getIO().to(projectId).emit('comment:deleted', { commentId, taskId });
+const emitCommentDeleted = (taskId, commentId) => {
+  getIO().to(taskId).emit('comment:deleted', { commentId, taskId });
 };
 
 /**
  * Emit khi một comment được chỉnh sửa
- * @param {string} projectId
+ * @param {string} taskId
  * @param {object} comment - Comment document sau update (đã populated)
  */
-const emitCommentUpdated = (projectId, comment) => {
-  getIO().to(projectId).emit('comment:updated', comment);
+const emitCommentUpdated = (taskId, comment) => {
+  getIO().to(taskId).emit('comment:updated', comment);
 };
 
 module.exports = { emitCommentCreated, emitCommentDeleted, emitCommentUpdated };

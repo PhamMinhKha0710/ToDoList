@@ -3,6 +3,7 @@ import { getSocket, connectSocket, disconnectSocket } from '@/lib/socket';
 import { useAuthStore } from '@/stores/auth.store';
 import { useKanbanStore } from '@/stores/kanban.store';
 import { useNotificationStore } from '@/stores/notification.store';
+import { useQueryClient } from '@tanstack/react-query';
 import type { Task } from '@/types/task';
 import type { Column } from '@/types/column';
 import type { Comment } from '@/types/comment';
@@ -33,13 +34,69 @@ interface ColumnDeletedPayload {
 }
 
 /**
+ * Hook để tham gia vào room của một task cụ thể và lắng nghe các sự kiện liên quan (Comment).
+ * Cập nhật trực tiếp vào cache của React Query.
+ * 
+ * @param taskId - ID của task đang mở
+ */
+export const useTaskSocket = (taskId: string | undefined) => {
+  const queryClient = useQueryClient();
+  const { accessToken: token, isSocketInitialized } = useAuthStore();
+
+  useEffect(() => {
+    const socket = getSocket();
+    if (!socket || !taskId || !token || !isSocketInitialized) return;
+
+    console.log(`[useTaskSocket] Joining room for task: ${taskId}`);
+    socket.emit('join:task', taskId);
+
+    // ─── Comment Events ──────────────────────────────────────────────────────
+    const onCommentCreated = (newComment: Comment) => {
+      console.log('[useTaskSocket] Real-time comment created:', newComment);
+      queryClient.setQueryData(['comments', taskId], (old: Comment[] | undefined) => {
+        if (!old) return [newComment];
+        // Đề phòng trường hợp nhận được event cho chính comment mình vừa tạo (đã có trong cache)
+        if (old.some(c => c._id === newComment._id)) return old;
+        return [...old, newComment];
+      });
+    };
+
+    const onCommentUpdated = (updatedComment: Comment) => {
+      console.log('[useTaskSocket] Real-time comment updated:', updatedComment);
+      queryClient.setQueryData(['comments', taskId], (old: Comment[] | undefined) => {
+        if (!old) return [];
+        return old.map(c => c._id === updatedComment._id ? updatedComment : c);
+      });
+    };
+
+    const onCommentDeleted = ({ commentId }: CommentDeletedPayload) => {
+      console.log('[useTaskSocket] Real-time comment deleted:', commentId);
+      queryClient.setQueryData(['comments', taskId], (old: Comment[] | undefined) => {
+        if (!old) return [];
+        return old.filter(c => c._id !== commentId);
+      });
+    };
+
+    socket.on('comment:created', onCommentCreated);
+    socket.on('comment:updated', onCommentUpdated);
+    socket.on('comment:deleted', onCommentDeleted);
+
+    return () => {
+      console.log(`[useTaskSocket] Leaving room for task: ${taskId}`);
+      socket.emit('leave:task', taskId);
+      socket.off('comment:created', onCommentCreated);
+      socket.off('comment:updated', onCommentUpdated);
+      socket.off('comment:deleted', onCommentDeleted);
+    };
+  }, [taskId, token, isSocketInitialized, queryClient]);
+};
+
+/**
  * Hook để join/leave project room và lắng nghe tất cả realtime events
  * của một project cụ thể. Cập nhật Zustand store trực tiếp.
  *
  * @param projectId - ID của project hiện tại đang xem
- * @param onCommentCreated - Callback khi có comment mới (để cập nhật trong TaskDetailModal nếu đang mở)
- * @param onCommentUpdated - Callback khi comment được chỉnh sửa
- * @param onCommentDeleted - Callback khi comment bị xóa
+ * @param options - Các callback tùy chọn (hiện tại comment đã dùng useTaskSocket nên có thể deprecate dần)
  */
 export const useProjectSocket = (
   projectId: string | undefined,

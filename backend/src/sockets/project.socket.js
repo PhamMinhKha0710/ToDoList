@@ -28,14 +28,24 @@ module.exports = (io, socket) => {
 
   // Client rời room khi thoát khỏi project
   socket.on("leave:project", (projectId) => {
+    console.log(`[Socket] User ${socket.user.id} leaving project: ${projectId}`);
     socket.leave(projectId);
     logger.info(`Socket ${socket.id} left project room: ${projectId}`);
 
-    console.log(`Socket: User ${userId} left project room: ${projectId}`);
     socket.to(projectId).emit("user:offline", {
-      userId,
+      userId: socket.user.id,
       projectId,
     });
+  });
+
+  socket.on('join:task', (taskId) => {
+    console.log(`[Socket] User ${socket.user.id} joining task: ${taskId}`);
+    socket.join(taskId);
+  });
+
+  socket.on('leave:task', (taskId) => {
+    console.log(`[Socket] User ${socket.user.id} leaving task: ${taskId}`);
+    socket.leave(taskId);
   });
 
   // Khi ngắt kết nối, Socket.IO tự xóa khỏi tất cả rooms

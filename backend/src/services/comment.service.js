@@ -9,20 +9,6 @@ const {
   emitCommentUpdated,
 } = require("../sockets/comment.socket");
 
-/**
- * Helper: lấy projectId từ taskId (qua Column)
- * @param {string} taskId
- * @returns {Promise<string|null>}
- */
-const getProjectIdByTaskId = async (taskId) => {
-  const task = await Task.findById(taskId).select("columnId").lean();
-  if (!task) return null;
-  const column = await Column.findById(task.columnId)
-    .select("projectId")
-    .lean();
-  return column ? column.projectId.toString() : null;
-};
-
 const createComment = async (commentData) => {
   const comment = await Comment.create(commentData);
   // Populate author details immediately so frontend can render securely without another fetch
@@ -32,8 +18,7 @@ const createComment = async (commentData) => {
   );
 
   // Realtime
-  const projectId = await getProjectIdByTaskId(commentData.taskId);
-  if (projectId) emitCommentCreated(projectId, populated);
+  emitCommentCreated(commentData.taskId.toString(), populated);
 
   return populated;
 };
@@ -64,8 +49,7 @@ const updateComment = async (commentId, authorId, content) => {
   );
 
   // Realtime
-  const projectId = await getProjectIdByTaskId(comment.taskId.toString());
-  if (projectId) emitCommentUpdated(projectId, updated);
+  emitCommentUpdated(comment.taskId.toString(), updated);
 
   return updated;
 };
@@ -107,8 +91,7 @@ const deleteComment = async (commentId, userId, userRole) => {
   await comment.deleteOne();
 
   // Realtime
-  const projectId = await getProjectIdByTaskId(taskId);
-  if (projectId) emitCommentDeleted(projectId, idComment, taskId);
+  emitCommentDeleted(taskId, idComment);
 };
 
 module.exports = {

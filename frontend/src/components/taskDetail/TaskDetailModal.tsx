@@ -31,6 +31,7 @@ import { TaskAttachments } from "./TaskAttachments";
 import { TaskTags } from "./TaskTags";
 import { TaskComments } from "./TaskComments";
 import { useAuthStore } from "@/stores/auth.store";
+import { useTaskSocket } from "@/hooks/use-socket";
 import type { User } from "@/types/user";
 import { type AppAxiosError, getErrorMessage } from "@/types/error";
 import type { Attachment } from "./TaskAttachments";
@@ -83,6 +84,9 @@ export const TaskDetailModal = ({
   const [editedTask, setEditedTask] = useState<TaskFormState>({});
   const [isEditing, setIsEditing] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+
+  // Real-time comments
+  useTaskSocket(task._id);
 
   const [isUploadingFiles, setIsUploadingFiles] = useState(false);
   const [deletedAttachmentIds, setDeletedAttachmentIds] = useState<string[]>(
