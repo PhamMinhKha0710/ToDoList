@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
-import { getSocket } from '@/lib/socket';
+import { getSocket, connectSocket, disconnectSocket } from '@/lib/socket';
+import { useAuthStore } from '@/stores/auth.store';
 import { useKanbanStore } from '@/stores/kanban.store';
 import { useNotificationStore } from '@/stores/notification.store';
 import type { Task } from '@/types/task';
@@ -50,6 +51,7 @@ export const useProjectSocket = (
 ) => {
   const {
     addTask,
+    addColumn,
     updateTask,
     deleteTask,
     moveTask,
@@ -58,13 +60,25 @@ export const useProjectSocket = (
     deleteColumn,
   } = useKanbanStore();
   const { increment } = useNotificationStore();
+  const { accessToken: token, isSocketInitialized } = useAuthStore();
 
   useEffect(() => {
     const socket = getSocket();
-    if (!socket || !projectId) return;
+    console.log('[useProjectSocket] Effect running. Project:', projectId, '| Token exists:', !!token, '| Socket exists:', !!socket, '| Socket initialized:', isSocketInitialized);
+    
+    if (!socket || !projectId || !token || !isSocketInitialized) return;
 
-    // ─── Join project room ────────────────────────────────────────────────────
-    socket.emit('join:project', projectId);
+    const joinRoom = () => {
+      console.log('[useProjectSocket] Emitting join:project for:', projectId);
+      socket.emit('join:project', projectId);
+    };
+
+    // ─── Join project room ngay lập tức hoặc khi connect ──────────────────────
+    if (socket.connected) {
+      joinRoom();
+    }
+    
+    socket.on('connect', joinRoom);
 
     // ─── Task events ──────────────────────────────────────────────────────────
     const onTaskCreated = (task: Task) => {
@@ -85,11 +99,7 @@ export const useProjectSocket = (
 
     // ─── Column events ────────────────────────────────────────────────────────
     const onColumnCreated = (column: Column) => {
-      // Thêm column mới vào danh sách nếu chưa có
-      const { columns } = useKanbanStore.getState();
-      if (!columns.some((c) => c._id === column._id)) {
-        setColumns([...columns, column]);
-      }
+       addColumn(column);
     };
 
     const onColumnUpdated = (column: Column) => {
@@ -141,7 +151,9 @@ export const useProjectSocket = (
 
     // ─── Cleanup ─────────────────────────────────────────────────────────────
     return () => {
+      console.log('[useProjectSocket] Cleanup for project:', projectId);
       socket.emit('leave:project', projectId);
+      socket.off('connect', joinRoom);
 
       socket.off('task:created', onTaskCreated);
       socket.off('task:updated', onTaskUpdated);
@@ -159,5 +171,26 @@ export const useProjectSocket = (
 
       socket.off('notification:new', onNotificationNew);
     };
-  }, [projectId]);
+  }, [projectId, token, isSocketInitialized]);
+};
+
+/**
+ * Hook toàn cục để quản lý kết nối socket dựa trên accessToken.
+ * Giúp tự động kết nối lại khi refresh token hoặc sau khi load trang.
+ */
+export const useAuthSocket = () => {
+  const { accessToken: token, setSocketInitialized } = useAuthStore();
+
+  useEffect(() => {
+    console.log('[useAuthSocket] Effect running. Token exists:', !!token);
+    if (token) {
+      connectSocket(token);
+      setSocketInitialized(true);
+    } else {
+      console.log('[useAuthSocket] No token, disconnecting socket');
+      // Nếu logout (token null), ngắt kết nối
+      disconnectSocket();
+      setSocketInitialized(false);
+    }
+  }, [token, setSocketInitialized]);
 };

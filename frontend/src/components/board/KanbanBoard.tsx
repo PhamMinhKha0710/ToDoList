@@ -8,7 +8,6 @@ import { AddColumnButton } from "./AddColumnButton";
 import { SortableColumn } from "./SortableColumn";
 import { useKanbanStore } from "@/stores/kanban.store";
 import { useAuthStore } from "@/stores/auth.store";
-import type { User } from "@/types/user";
 import type { Column } from "@/types/column";
 import type { Task } from "@/types/task";
 import { TaskCard } from "./TaskCard";
@@ -52,9 +51,10 @@ export const KanbanBoard = ({ projectId }: KanbanBoardProps) => {
   } = useKanbanStore();
 
   const { user: currentUser } = useAuthStore();
-  const currentMember = projectMembers.find(
-    (m) => (m.userId as User)._id === currentUser?._id,
-  );
+  const currentMember = projectMembers.find((m) => {
+    const mUserId = typeof m.userId === "string" ? m.userId : m.userId?._id;
+    return mUserId === currentUser?._id;
+  });
   const isManager =
     currentMember?.role === "owner" || currentMember?.role === "admin";
 
@@ -294,7 +294,7 @@ export const KanbanBoard = ({ projectId }: KanbanBoardProps) => {
         setDragInfo(null);
       }
     },
-    [projectId, reorderColumns, moveTask, dragInfo],
+    [projectId, reorderColumns, moveTask, dragInfo, setColumns, queryClient],
   );
 
   if (isLoading) {

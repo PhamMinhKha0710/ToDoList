@@ -6,7 +6,7 @@ const { getIO } = require('../config/socket');
  * @param {object} task - Task document (đã populate nếu cần)
  */
 const emitTaskCreated = (projectId, task) => {
-  getIO().to(`project:${projectId}`).emit('task:created', task);
+  getIO().to(projectId).emit('task:created', task);
 };
 
 /**
@@ -15,7 +15,7 @@ const emitTaskCreated = (projectId, task) => {
  * @param {object} task - Task document sau update
  */
 const emitTaskUpdated = (projectId, task) => {
-  getIO().to(`project:${projectId}`).emit('task:updated', task);
+  getIO().to(projectId).emit('task:updated', task);
 };
 
 /**
@@ -25,7 +25,7 @@ const emitTaskUpdated = (projectId, task) => {
  * @param {string} columnId
  */
 const emitTaskDeleted = (projectId, taskId, columnId) => {
-  getIO().to(`project:${projectId}`).emit('task:deleted', { taskId, columnId });
+  getIO().to(projectId).emit('task:deleted', { taskId, columnId });
 };
 
 /**
@@ -34,7 +34,7 @@ const emitTaskDeleted = (projectId, taskId, columnId) => {
  * @param {object} moveData - { taskId, sourceColumnId, destinationColumnId, sourceTaskIds, destinationTaskIds }
  */
 const emitTaskMoved = (projectId, moveData) => {
-  getIO().to(`project:${projectId}`).emit('task:moved', moveData);
+  getIO().to(projectId).emit('task:moved', moveData);
 };
 
 module.exports = { emitTaskCreated, emitTaskUpdated, emitTaskDeleted, emitTaskMoved };

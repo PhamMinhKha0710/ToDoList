@@ -6,7 +6,11 @@ import { router } from '@/router'
 import { queryClient } from '@/lib/queryClient'
 import { LoadingSpinner } from '@/components/common/LoadingSpinner'
 
+import { useAuthSocket } from '@/hooks/use-socket'
+
 function App() {
+  useAuthSocket()
+  
   return (
     <QueryClientProvider client={queryClient}>
       <Suspense fallback={<LoadingSpinner fullscreen />}>
