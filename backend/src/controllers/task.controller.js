@@ -73,7 +73,7 @@ class TaskController {
     const updateData = toUpdateTaskDTO(req.body);
     const existingTask = await taskService.getTaskById(req.params.taskId);
     
-    const task = await taskService.updateTask(req.params.taskId, updateData);
+    const task = await taskService.updateTask(req.params.taskId, updateData, req.user._id);
 
     // -- Thông báo Email Bất đồng bộ cho assignees mới --
     if (updateData.assignees !== undefined) {

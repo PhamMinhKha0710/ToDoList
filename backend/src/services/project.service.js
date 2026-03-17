@@ -1,6 +1,7 @@
 const projectRepository = require('../repositories/project.repository');
 const User = require('../entities/User');
 const ApiError = require('../utils/ApiError');
+const notificationService = require('./notification.service');
 
 class ProjectService {
   async createProject(userId, projectData) {
@@ -66,7 +67,19 @@ class ProjectService {
       status: 'pending',
     };
 
-    return projectRepository.addMember(projectId, memberData);
+    const result = await projectRepository.addMember(projectId, memberData);
+    
+
+    // Thông báo cho user được mời
+    await notificationService.createNotification({
+      recipientId: userToAdd._id,
+      type: 'project_invite',
+      title: 'Lời mời vào dự án',
+      message: `Bạn được mời tham gia vào dự án "${project.name}"`,
+      metadata: { projectId: project._id, projectName: project.name }
+    });
+
+    return result;
   }
 
   async removeMember(projectId, userIdToRemove) {

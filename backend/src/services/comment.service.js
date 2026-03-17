@@ -8,6 +8,7 @@ const {
   emitCommentDeleted,
   emitCommentUpdated,
 } = require("../sockets/comment.socket");
+const notificationService = require("./notification.service");
 
 const createComment = async (commentData) => {
   const comment = await Comment.create(commentData);
@@ -17,8 +18,34 @@ const createComment = async (commentData) => {
     "displayName email avatarUrl",
   );
 
+  const taskIdStr = commentData.taskId.toString();
+
   // Realtime
-  emitCommentCreated(commentData.taskId.toString(), populated);
+  emitCommentCreated(taskIdStr, populated);
+
+  // Thông báo cho những người liên quan (assignees + creator)
+  const task = await Task.findById(commentData.taskId).lean();
+  if (task) {
+    const recipients = new Set();
+    if (task.creatorId.toString() !== commentData.authorId.toString()) {
+      recipients.add(task.creatorId.toString());
+    }
+    task.assignees.forEach(id => {
+      if (id.toString() !== commentData.authorId.toString()) {
+        recipients.add(id.toString());
+      }
+    });
+
+    for (const recipientId of recipients) {
+      await notificationService.createNotification({
+        recipientId,
+        type: 'new_comment',
+        title: 'Bình luận mới',
+        message: `${populated.authorId.displayName} đã bình luận trong task "${task.title}"`,
+        metadata: { taskId: task._id, commentId: comment._id }
+      }, taskIdStr); // Smart delivery: Kiểm tra xem user có đang ở trong Task Room không
+    }
+  }
 
   return populated;
 };

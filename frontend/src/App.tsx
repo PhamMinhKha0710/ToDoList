@@ -6,10 +6,11 @@ import { router } from '@/router'
 import { queryClient } from '@/lib/queryClient'
 import { LoadingSpinner } from '@/components/common/LoadingSpinner'
 
-import { useAuthSocket } from '@/hooks/use-socket'
+import { useAuthSocket, useNotificationSocket } from '@/hooks/use-socket'
 
 function App() {
   useAuthSocket()
+  useNotificationSocket()
   
   return (
     <QueryClientProvider client={queryClient}>

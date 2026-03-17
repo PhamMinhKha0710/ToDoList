@@ -3,6 +3,7 @@
 import { SidebarIcon } from "lucide-react"
 
 import { SearchForm } from "@/components/search-form"
+import { NotificationBell } from "@/components/notifications/NotificationBell"
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -43,7 +44,11 @@ export function SiteHeader() {
             </BreadcrumbItem>
           </BreadcrumbList>
         </Breadcrumb>
-        <SearchForm className="w-full sm:ml-auto sm:w-auto" />
+        <div className="ml-auto flex items-center gap-2">
+          <NotificationBell />
+          <Separator orientation="vertical" className="h-4" />
+          <SearchForm className="w-full sm:w-auto" />
+        </div>
       </div>
     </header>
   )

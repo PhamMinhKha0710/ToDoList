@@ -6,7 +6,7 @@ const columnRoutes = require('./column.routes');
 const taskRoutes = require('./task.routes');
 const commentRoutes = require('./comment.routes');
 const attachmentRoutes = require('./attachment.routes');
-// const notificationRoutes = require('./notification.routes');
+const notificationRoutes = require('./notification.routes');
 // const personalTaskRoutes = require('./personalTask.routes');
 // const adminRoutes = require('./admin.routes');
 const uploadRoutes = require('./upload.routes');
@@ -20,7 +20,7 @@ router.use('/columns', columnRoutes);
 router.use('/tasks', taskRoutes);
 router.use('/comments', commentRoutes);
 router.use('/attachments', attachmentRoutes);
-// router.use('/notifications', notificationRoutes);
+router.use('/notifications', notificationRoutes);
 // router.use('/personal-tasks', personalTaskRoutes);
 // router.use('/admin', adminRoutes);
 

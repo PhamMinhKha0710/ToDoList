@@ -9,8 +9,10 @@ module.exports = (io, socket) => {
   // Mỗi user tự động join room riêng để nhận notification cá nhân
   const userId = socket.user?.id || socket.user?._id;
   if (userId) {
-    socket.join(`user:${userId}`);
-    logger.info(`Socket ${socket.id} joined user room: user:${userId}`);
+    const userRoom = `user:${userId}`;
+    socket.join(userRoom);
+    console.log(`[Socket] Socket ${socket.id} joined personal room: ${userRoom}`);
+    logger.info(`Socket ${socket.id} joined user room: ${userRoom}`);
   }
 
   // Client join room của project khi vào Kanban

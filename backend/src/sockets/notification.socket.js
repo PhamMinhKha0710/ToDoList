@@ -6,7 +6,9 @@ const { getIO } = require('../config/socket');
  * @param {object} notification - Notification document
  */
 const emitNotification = (userId, notification) => {
-  getIO().to(`user:${userId}`).emit('notification:new', notification);
+  const room = `user:${userId.toString()}`;
+  console.log(`[Socket] Emitting notification:new to room: ${room}`);
+  getIO().to(room).emit('notification:new', notification);
 };
 
 module.exports = { emitNotification };

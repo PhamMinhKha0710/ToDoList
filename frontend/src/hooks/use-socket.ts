@@ -116,7 +116,6 @@ export const useProjectSocket = (
     updateColumn,
     deleteColumn,
   } = useKanbanStore();
-  const { increment } = useNotificationStore();
   const { accessToken: token, isSocketInitialized } = useAuthStore();
 
   useEffect(() => {
@@ -137,8 +136,9 @@ export const useProjectSocket = (
     
     socket.on('connect', joinRoom);
 
-    // ─── Task events ──────────────────────────────────────────────────────────
+    // ─── Project Events ──────────────────────────────────────────────────────
     const onTaskCreated = (task: Task) => {
+      console.log('[Socket] Task created:', task);
       addTask(task.columnId, task);
     };
 
@@ -184,31 +184,13 @@ export const useProjectSocket = (
       options?.onCommentDeleted?.(payload);
     };
 
-    // ─── Notification events ──────────────────────────────────────────────────
-    const onNotificationNew = () => {
-      increment();
-    };
-
-    // ─── Register listeners ───────────────────────────────────────────────────
-    socket.on('task:created', onTaskCreated);
-    socket.on('task:updated', onTaskUpdated);
-    socket.on('task:deleted', onTaskDeleted);
-    socket.on('task:moved', onTaskMoved);
-
-    socket.on('column:created', onColumnCreated);
-    socket.on('column:updated', onColumnUpdated);
-    socket.on('column:deleted', onColumnDeleted);
-    socket.on('column:reordered', onColumnsReordered);
-
     socket.on('comment:created', onCommentCreated);
     socket.on('comment:updated', onCommentUpdated);
     socket.on('comment:deleted', onCommentDeleted);
 
-    socket.on('notification:new', onNotificationNew);
-
     // ─── Cleanup ─────────────────────────────────────────────────────────────
     return () => {
-      console.log('[useProjectSocket] Cleanup for project:', projectId);
+      console.log(`[useProjectSocket] Leaving room for project: ${projectId}`);
       socket.emit('leave:project', projectId);
       socket.off('connect', joinRoom);
 
@@ -225,10 +207,33 @@ export const useProjectSocket = (
       socket.off('comment:created', onCommentCreated);
       socket.off('comment:updated', onCommentUpdated);
       socket.off('comment:deleted', onCommentDeleted);
-
-      socket.off('notification:new', onNotificationNew);
     };
   }, [projectId, token, isSocketInitialized]);
+};
+
+/**
+ * Hook toàn cục để lắng nghe thông báo mới.
+ * Cần được gọi ở cấp cao nhất (App.tsx) sau khi socket đã initialized.
+ */
+export const useNotificationSocket = () => {
+  const { increment } = useNotificationStore();
+  const { isSocketInitialized } = useAuthStore();
+
+  useEffect(() => {
+    const socket = getSocket();
+    if (!socket || !isSocketInitialized) return;
+
+    const onNotificationNew = (notification: any) => {
+      console.log('[Socket Global] New notification:', notification);
+      increment();
+    };
+
+    socket.on('notification:new', onNotificationNew);
+
+    return () => {
+      socket.off('notification:new', onNotificationNew);
+    };
+  }, [isSocketInitialized, increment]);
 };
 
 /**
