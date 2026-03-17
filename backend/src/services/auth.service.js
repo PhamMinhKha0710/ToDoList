@@ -1,13 +1,13 @@
 const bcrypt = require("bcryptjs");
 const crypto = require("crypto");
-const User = require("../../entities/User");
+const User = require("../entities/User");
 const {
   generateAccessToken,
   generateRefreshToken,
-} = require("../../services/token.service");
-const { sendOtpEmail } = require("../../services/mail.service");
-const { toUserResponse } = require("../users/dtos/userResponse.dto");
-const ApiError = require("../../utils/ApiError");
+} = require("./token.service");
+const { sendOtpEmail } = require("./mail.service");
+const { toUserResponse } = require("../models/users/userResponse.model");
+const ApiError = require("../utils/ApiError");
 
 const REFRESH_COOKIE_OPTIONS = {
   httpOnly: true,
@@ -57,7 +57,7 @@ const refreshAccessToken = async (refreshToken) => {
   const {
     verifyRefreshToken,
     generateAccessToken: genAccess,
-  } = require("../../services/token.service");
+  } = require("./token.service");
   const payload = verifyRefreshToken(refreshToken); // throw nếu hết hạn / sai
   const user = await User.findById(payload._id);
   if (!user) throw new ApiError(401, "Người dùng không tồn tại");
