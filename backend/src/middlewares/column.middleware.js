@@ -1,5 +1,5 @@
-const Column = require('../models/Column');
-const projectService = require('../modules/projects/project.service');
+const Column = require('../entities/Column');
+const projectService = require('../services/project.service');
 const ApiError = require('../utils/ApiError');
 const catchAsync = require('../utils/catchAsync');
 

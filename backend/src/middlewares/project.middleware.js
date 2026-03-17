@@ -1,8 +1,8 @@
-const projectService = require('../modules/projects/project.service');
+const projectService = require('../services/project.service');
 const catchAsync = require('../utils/catchAsync');
 const ApiError = require('../utils/ApiError');
-const Task = require('../models/Task');
-const Column = require('../models/Column');
+const Task = require('../entities/Task');
+const Column = require('../entities/Column');
 
 // Helper: lấy role của user hiện tại trong project
 const getUserRole = (project, userId) => {
