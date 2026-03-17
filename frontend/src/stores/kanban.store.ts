@@ -11,9 +11,11 @@ export const useKanbanStore = create<Kanban>()((set) => ({
 
   setColumns: (columns) => set({ columns }),
   setMembers: (members) => set({ members }),
-  
-  addColumn: (column) => set((state) => ({ 
-    columns: [...state.columns, column] 
+
+  addColumn: (column) => set((state) => ({
+    columns: state.columns.some((c) => c._id === column._id)
+      ? state.columns
+      : [...state.columns, column],
   })),
 
   updateColumn: (columnId, data) => set((state) => ({

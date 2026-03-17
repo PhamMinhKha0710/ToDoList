@@ -6,6 +6,7 @@ import { ProjectHeader } from '@/components/project-detail/ProjectHeader';
 import { Loader2 } from 'lucide-react';
 import { KanbanBoard } from '@/components/board/KanbanBoard';
 import { useKanbanStore } from '@/stores/kanban.store';
+import { useProjectSocket } from '@/hooks/use-socket';
 
 const ProjectDetailPage = () => {
   const { id } = useParams<{ id: string }>();
@@ -24,6 +25,9 @@ const ProjectDetailPage = () => {
       setMembers(project.members);
     }
   }, [project?.members, setMembers]);
+
+  // Kết nối realtime cho project room này
+  useProjectSocket(id);
 
   if (isLoading) {
     return (
