@@ -3,6 +3,7 @@ const Column = require('../entities/Column');
 const Task = require('../entities/Task');
 const ApiError = require('../utils/ApiError');
 const attachmentRepository = require('../repositories/attachment.repository');
+const { emitTaskCreated, emitTaskUpdated, emitTaskDeleted, emitTaskMoved } = require('../sockets/task.socket');
 
 const createTask = async (taskData, files) => {
   const column = await Column.findById(taskData.columnId);
@@ -10,7 +11,12 @@ const createTask = async (taskData, files) => {
     throw new ApiError(404, 'Không tìm thấy cột tương ứng');
   }
 
-  return await taskRepository.createTask(taskData, files);
+  const task = await taskRepository.createTask(taskData, files);
+
+  // Realtime: broadcast tới tất cả client trong project room
+  emitTaskCreated(column.projectId.toString(), task);
+
+  return task;
 };
 
 const getTasksByColumnId = async (columnId) => {
@@ -30,6 +36,11 @@ const updateTask = async (taskId, updateData) => {
   if (!task) {
     throw new ApiError(404, 'Không tìm thấy task để cập nhật');
   }
+
+  // Realtime
+  const column = await Column.findById(task.columnId).select('projectId').lean();
+  if (column) emitTaskUpdated(column.projectId.toString(), task);
+
   return task;
 };
 
@@ -50,6 +61,10 @@ const deleteTask = async (taskId) => {
     { columnId, position: { $gt: deletedPosition } },
     { $inc: { position: -1 } }
   );
+
+  // Realtime
+  const column = await Column.findById(columnId).select('projectId').lean();
+  if (column) emitTaskDeleted(column.projectId.toString(), taskId, columnId);
 };
 
 /**
@@ -77,6 +92,18 @@ const moveTask = async (moveData) => {
       destinationColumnId,
       taskId
     );
+  }
+
+  // Realtime: broadcast move event tới project room
+  const column = await Column.findById(sourceColumnId).select('projectId').lean();
+  if (column) {
+    emitTaskMoved(column.projectId.toString(), {
+      taskId,
+      sourceColumnId,
+      destinationColumnId,
+      sourceTaskIds,
+      destinationTaskIds,
+    });
   }
 };
 
