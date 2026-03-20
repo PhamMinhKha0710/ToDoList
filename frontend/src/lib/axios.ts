@@ -7,6 +7,8 @@ export const api = axios.create({
   withCredentials: true, // gửi cookie refreshToken
 });
 
+console.log("API Base URL:", BASE_URL);
+
 // ───────── REQUEST INTERCEPTOR ─────────
 api.interceptors.request.use(async (config) => {
   const { useAuthStore } = await import("@/stores/auth.store");
