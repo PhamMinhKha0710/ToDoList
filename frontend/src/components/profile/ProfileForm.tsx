@@ -32,7 +32,7 @@ export default function ProfileForm() {
   const { register, handleSubmit, reset, formState: { errors } } = useForm<ProfileFormValues>({
     resolver: zodResolver(profileSchema),
     defaultValues: {
-      fullName: user?.displayName || "",
+      fullName: user?.fullName || "",
       displayName: user?.displayName || "",
     },
   });
@@ -40,7 +40,7 @@ export default function ProfileForm() {
   useEffect(() => {
     if (user) {
       reset({
-        fullName: user.displayName || "",
+        fullName: user.fullName || "",
         displayName: user.displayName || "",
       });
       if (user.avatarUrl) {
