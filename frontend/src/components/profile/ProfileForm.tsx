@@ -11,6 +11,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuthStore } from "@/stores/auth.store";
 import { toast } from "sonner";
 import { userService } from "@/services/user.service";
+import { uploadService } from "@/services/upload.service";
 
 const profileSchema = z.object({
   fullName: z.string().min(1, "Họ và tên là bắt buộc").max(50, "Tối đa 50 ký tự"),
@@ -59,19 +60,25 @@ export default function ProfileForm() {
     }
   };
 
-  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      if (file.size > 2 * 1024 * 1024) {
+        toast.error("Ảnh không được vượt quá 2MB");
+        return;
+      }
       setIsSavingAvatar(true);
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setAvatarPreview(reader.result as string);
-        setTimeout(() => setIsSavingAvatar(false), 800); // Simulate network
-      };
-      reader.readAsDataURL(file);
+      try {
+        const imageUrl = await uploadService.uploadFile(file);
+        setAvatarPreview(imageUrl);
+        toast.success("Tải ảnh lên thành công");
+      } catch (error: any) {
+        toast.error(error.message || "Lỗi khi tải ảnh lên");
+      } finally {
+        setIsSavingAvatar(false);
+      }
     }
   };
-
   const handleSelectDefaultAvatar = (emoji: string) => {
     setIsSavingAvatar(true);
     setAvatarPreview(emoji);

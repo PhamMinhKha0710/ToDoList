@@ -14,7 +14,7 @@ class UploadController {
 
     const imageUrl = uploadService.handleUpload(req.file);
 
-    res.status(200).json(new ApiResponse(200, { imageUrl }, 'Tải ảnh lên thành công'));
+    res.status(200).json(new ApiResponse(200, 'Tải ảnh lên thành công', { imageUrl }));
   });
 }
 
