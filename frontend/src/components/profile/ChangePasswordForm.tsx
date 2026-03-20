@@ -11,11 +11,11 @@ import { toast } from "sonner";
 import { userService } from "@/services/user.service";
 
 const passwordSchema = z.object({
-  currentPassword: z.string().min(1, "Current password is required"),
-  newPassword: z.string().min(8, "Password must be at least 8 characters"),
-  confirmPassword: z.string().min(1, "Please confirm your password"),
+  currentPassword: z.string().min(1, "Mật khẩu hiện tại là bắt buộc"),
+  newPassword: z.string().min(8, "Mật khẩu phải có ít nhất 8 ký tự"),
+  confirmPassword: z.string().min(1, "Vui lòng xác nhận mật khẩu"),
 }).refine((data) => data.newPassword === data.confirmPassword, {
-  message: "Passwords do not match",
+  message: "Mật khẩu xác nhận không khớp",
   path: ["confirmPassword"],
 });
 
@@ -49,9 +49,9 @@ export default function ChangePasswordForm() {
   // Basic password strength logic
   const getPasswordStrength = (pass: string) => {
     if (!pass) return { label: "", color: "bg-slate-200", text: "" };
-    if (pass.length < 6) return { label: "Weak", color: "bg-red-400", text: "text-red-500" };
-    if (pass.length < 10) return { label: "Medium", color: "bg-amber-400", text: "text-amber-500" };
-    return { label: "Strong", color: "bg-emerald-500", text: "text-emerald-500" };
+    if (pass.length < 6) return { label: "Yếu", color: "bg-red-400", text: "text-red-500" };
+    if (pass.length < 10) return { label: "Trung bình", color: "bg-amber-400", text: "text-amber-500" };
+    return { label: "Mạnh", color: "bg-emerald-500", text: "text-emerald-500" };
   };
 
   const strength = getPasswordStrength(newPassword);
@@ -61,9 +61,9 @@ export default function ChangePasswordForm() {
       <CardHeader>
         <CardTitle className="text-xl text-slate-900 flex items-center gap-2">
           <ShieldCheck className="text-indigo-600" size={24} />
-          Security Options
+          Tùy chọn Bảo mật
         </CardTitle>
-        <CardDescription>Manage your password and authentication methods.</CardDescription>
+        <CardDescription>Quản lý mật khẩu và các phương thức xác thực của bạn.</CardDescription>
       </CardHeader>
       <CardContent className="space-y-8">
         
@@ -71,8 +71,8 @@ export default function ChangePasswordForm() {
         <div className="space-y-4 border rounded-xl p-5 border-slate-100 bg-slate-50/50">
           <div className="flex flex-col sm:flex-row gap-4 sm:justify-between sm:items-center">
             <div>
-              <h4 className="font-medium text-slate-900 text-sm">Change Password</h4>
-              <p className="text-sm text-slate-500">Update your account password</p>
+              <h4 className="font-medium text-slate-900 text-sm">Đổi mật khẩu</h4>
+              <p className="text-sm text-slate-500">Cập nhật mật khẩu tài khoản của bạn</p>
             </div>
             <Button 
               variant="outline" 
@@ -80,7 +80,7 @@ export default function ChangePasswordForm() {
               className="w-full sm:w-auto bg-white hover:bg-slate-50 text-slate-700"
             >
               <KeyRound className="w-4 h-4 mr-2" />
-              {isChangingPassword ? "Cancel" : "Change Password"}
+              {isChangingPassword ? "Hủy" : "Đổi mật khẩu"}
             </Button>
           </div>
 
@@ -88,7 +88,7 @@ export default function ChangePasswordForm() {
             <div className="overflow-hidden">
               <form onSubmit={handleSubmit(onSubmit)} className="space-y-5 pt-2">
                 <div className="space-y-2">
-                  <Label htmlFor="currentPassword">Current Password</Label>
+                  <Label htmlFor="currentPassword">Mật khẩu hiện tại</Label>
                   <Input 
                     id="currentPassword" 
                     type="password" 
@@ -99,7 +99,7 @@ export default function ChangePasswordForm() {
                 </div>
                 
                 <div className="space-y-2">
-                  <Label htmlFor="newPassword">New Password</Label>
+                  <Label htmlFor="newPassword">Mật khẩu mới</Label>
                   <Input 
                     id="newPassword" 
                     type="password" 
@@ -113,10 +113,10 @@ export default function ChangePasswordForm() {
                     <div className="flex items-center gap-3 mt-2">
                       <div className="flex-1 flex gap-1 h-1.5">
                         <div className={`flex-1 rounded-full ${strength.color}`}></div>
-                        <div className={`flex-1 rounded-full ${strength.label === 'Medium' || strength.label === 'Strong' ? strength.color : 'bg-slate-200'}`}></div>
-                        <div className={`flex-1 rounded-full ${strength.label === 'Strong' ? strength.color : 'bg-slate-200'}`}></div>
+                        <div className={`flex-1 rounded-full ${strength.label === 'Trung bình' || strength.label === 'Mạnh' ? strength.color : 'bg-slate-200'}`}></div>
+                        <div className={`flex-1 rounded-full ${strength.label === 'Mạnh' ? strength.color : 'bg-slate-200'}`}></div>
                       </div>
-                      <span className={`text-xs font-medium w-12 text-right ${strength.text}`}>
+                      <span className={`text-xs font-medium w-max text-right ${strength.text}`}>
                         {strength.label}
                       </span>
                     </div>
@@ -124,7 +124,7 @@ export default function ChangePasswordForm() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="confirmPassword">Confirm New Password</Label>
+                  <Label htmlFor="confirmPassword">Xác nhận mật khẩu mới</Label>
                   <Input 
                     id="confirmPassword" 
                     type="password" 
@@ -136,7 +136,7 @@ export default function ChangePasswordForm() {
 
                 <div className="pt-2">
                   <Button type="submit" className="bg-indigo-600 hover:bg-indigo-700 text-white w-full sm:w-auto">
-                    Update Password
+                    Cập nhật mật khẩu
                   </Button>
                 </div>
               </form>
@@ -148,11 +148,11 @@ export default function ChangePasswordForm() {
         <div className="flex items-start sm:items-center justify-between gap-4 p-5 rounded-xl border border-slate-100 bg-white shadow-sm">
           <div className="space-y-1">
             <h4 className="font-medium text-slate-900 flex items-center gap-2">
-              Two-Factor Authentication (2FA)
-              {is2FAEnabled && <span className="text-[10px] font-bold tracking-wider uppercase bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full">Active</span>}
+              Xác thực 2 yếu tố (2FA)
+              {is2FAEnabled && <span className="text-[10px] font-bold tracking-wider uppercase bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full">Đang bật</span>}
             </h4>
             <p className="text-sm text-slate-500">
-              Add an extra layer of security to your account.
+              Thêm một lớp bảo mật bổ sung cho tài khoản của bạn.
             </p>
           </div>
           

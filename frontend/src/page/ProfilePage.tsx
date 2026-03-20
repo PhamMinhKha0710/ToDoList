@@ -9,15 +9,15 @@ export default function ProfilePage() {
         
         {/* Sidebar */}
         <div className="w-full md:w-64 flex flex-col gap-2 shrink-0">
-          <h1 className="text-3xl font-bold tracking-tight text-slate-900 mb-6">Settings</h1>
+          <h1 className="text-3xl font-bold tracking-tight text-slate-900 mb-6">Cài đặt</h1>
           <nav className="flex flex-col space-y-1">
             <a href="#basic-info" className="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-indigo-50 text-indigo-700 font-medium transition-colors">
               <User size={18} />
-              Basic Information
+              Thông tin cơ bản
             </a>
             <a href="#security" className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-colors">
               <Shield size={18} />
-              Security
+              Bảo mật
             </a>
           </nav>
         </div>

@@ -13,8 +13,8 @@ import { toast } from "sonner";
 import { userService } from "@/services/user.service";
 
 const profileSchema = z.object({
-  fullName: z.string().min(1, "Full Name is required").max(50, "Max 50 characters allowed"),
-  displayName: z.string().min(1, "Display Name is required").max(50, "Max 50 characters allowed"),
+  fullName: z.string().min(1, "Họ và tên là bắt buộc").max(50, "Tối đa 50 ký tự"),
+  displayName: z.string().min(1, "Tên hiển thị là bắt buộc").max(50, "Tối đa 50 ký tự"),
 });
 
 type ProfileFormValues = z.infer<typeof profileSchema>;
@@ -83,8 +83,8 @@ export default function ProfileForm() {
   return (
     <Card className="shadow-sm border-slate-200">
       <CardHeader>
-        <CardTitle className="text-xl text-slate-900">Basic Information</CardTitle>
-        <CardDescription>Update your photo and personal details here.</CardDescription>
+        <CardTitle className="text-xl text-slate-900">Thông tin cơ bản</CardTitle>
+        <CardDescription>Cập nhật ảnh đại diện và chi tiết thông tin cá nhân của bạn.</CardDescription>
       </CardHeader>
       <CardContent className="space-y-8">
         
@@ -118,8 +118,8 @@ export default function ProfileForm() {
 
           <div className="flex-1 space-y-2">
             <h4 className="text-sm font-medium text-slate-700 flex items-center gap-2">
-              Default Avatars
-              {isSavingAvatar && <span className="text-xs text-indigo-500 font-normal flex items-center gap-1"><Loader2 className="w-3 h-3 animate-spin"/> Saving...</span>}
+              Ảnh đại diện mẫu
+              {isSavingAvatar && <span className="text-xs text-indigo-500 font-normal flex items-center gap-1"><Loader2 className="w-3 h-3 animate-spin"/> Đang lưu...</span>}
             </h4>
             <div className="flex flex-wrap gap-2">
               {DEFAULT_AVATARS.map((emoji) => (
@@ -134,17 +134,17 @@ export default function ProfileForm() {
                 </button>
               ))}
             </div>
-            <p className="text-xs text-slate-500">Or upload a custom .jpg or .png image</p>
+            <p className="text-xs text-slate-500">Hoặc tải lên ảnh tùy chỉnh định dạng .jpg, .png</p>
           </div>
         </div>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
-              <Label htmlFor="fullName" className="text-slate-700">Full Name</Label>
+              <Label htmlFor="fullName" className="text-slate-700">Họ và tên</Label>
               <Input 
                 id="fullName" 
-                placeholder="John Doe" 
+                placeholder="Nguyễn Văn A" 
                 {...register("fullName")}
                 className="focus-visible:ring-indigo-500 transition-shadow"
               />
@@ -152,10 +152,10 @@ export default function ProfileForm() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="displayName" className="text-slate-700">Display Name</Label>
+              <Label htmlFor="displayName" className="text-slate-700">Tên hiển thị</Label>
               <Input 
                 id="displayName" 
-                placeholder="John" 
+                placeholder="Văn A" 
                 {...register("displayName")}
                 className="focus-visible:ring-indigo-500 transition-shadow"
               />
@@ -164,19 +164,19 @@ export default function ProfileForm() {
           </div>
 
           <Button type="submit" className="bg-indigo-600 hover:bg-indigo-700 text-white">
-            Save Changes
+            Lưu thay đổi
           </Button>
         </form>
 
         <div className="pt-6 border-t border-slate-100">
           <div className="space-y-4">
             <div>
-              <Label className="text-slate-700 mb-2 block">Email Address</Label>
+              <Label className="text-slate-700 mb-2 block">Địa chỉ Email</Label>
               <div className="flex flex-col sm:flex-row gap-4 sm:items-center">
                 <div className="relative flex-1">
                   <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
                   <Input 
-                    value={user?.email || "No email"} 
+                    value={user?.email || "Chưa có email"} 
                     readOnly 
                     className="pl-9 bg-slate-50 text-slate-600 focus-visible:ring-0 border-slate-200 cursor-default"
                   />
@@ -188,7 +188,7 @@ export default function ProfileForm() {
                   onClick={() => setIsUpdatingEmail(!isUpdatingEmail)}
                   className="shrink-0 text-slate-700 hover:bg-slate-50"
                 >
-                  {isUpdatingEmail ? "Cancel" : "Update Email"}
+                  {isUpdatingEmail ? "Hủy" : "Cập nhật Email"}
                 </Button>
               </div>
             </div>
@@ -196,16 +196,16 @@ export default function ProfileForm() {
             {isUpdatingEmail && (
               <div className="bg-slate-50 p-4 rounded-lg border border-slate-200 space-y-3 animate-in fade-in zoom-in-95 duration-200">
                 <div className="space-y-2">
-                  <Label htmlFor="newEmail" className="text-slate-700">New Email Address</Label>
+                  <Label htmlFor="newEmail" className="text-slate-700">Địa chỉ Email mới</Label>
                   <Input 
                     id="newEmail" 
                     type="email" 
-                    placeholder="Enter new email" 
+                    placeholder="Nhập email mới" 
                     className="bg-white focus-visible:ring-indigo-500"
                   />
                 </div>
                 <Button type="button" size="sm" className="bg-indigo-600 hover:bg-indigo-700 text-white">
-                  Send Verification Link
+                  Gửi liên kết xác minh
                 </Button>
               </div>
             )}
