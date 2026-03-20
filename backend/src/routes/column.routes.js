@@ -22,6 +22,7 @@ router.route('/')
   .post(validate(columnValidator.createColumnSchema), requireProjectOwnerFromBody, columnController.createColumn);
  
 router.route('/:columnId')
+  .get(columnController.getColumnById)
   .put(validate(columnValidator.updateColumnSchema), requireColumnOwner, columnController.updateColumn)
   .delete(requireColumnOwner, columnController.deleteColumn);
 
