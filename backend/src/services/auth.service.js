@@ -39,6 +39,18 @@ const login = async ({ email, password }) => {
   const isMatch = await bcrypt.compare(password, user.passwordHash);
   if (!isMatch) throw new ApiError(401, "Email hoặc mật khẩu không đúng");
 
+  // --- NEW 2FA LOGIC ---
+  if (user.is2FAEnabled) {
+    const jwt = require("jsonwebtoken");
+    const tempToken = jwt.sign(
+      { _id: user._id.toString(), type: '2fa_temp' }, 
+      process.env.JWT_ACCESS_SECRET, 
+      { expiresIn: '5m' }
+    );
+    return { require2FA: true, tempToken };
+  }
+  // ---------------------
+
   const payload = {
     _id: user._id.toString(),
     role: user.role,
@@ -131,6 +143,61 @@ const verifyOtp = async ({ email, otp, action }) => {
   return true;
 };
 
+/**
+ * Xác thực bước 2 sử dụng mã Authenticator App hoặc Backup Code
+ */
+const authenticate2FA = async ({ tempToken, code }) => {
+  const jwt = require("jsonwebtoken");
+  let decoded;
+  try {
+    decoded = jwt.verify(tempToken, process.env.JWT_ACCESS_SECRET);
+    if (decoded.type !== '2fa_temp') throw new Error();
+  } catch (err) {
+    throw new ApiError(401, "Phiên đăng nhập không hợp lệ hoặc đã hết hạn");
+  }
+
+  const user = await User.findById(decoded._id);
+  if (!user || !user.is2FAEnabled) throw new ApiError(400, "Xác thực 2 bước không khả dụng");
+
+  const { verify: totpVerify } = require('otplib');
+  const { decrypt } = require('../utils/encryption');
+  
+  const decryptedSecret = decrypt(user.twoFactorSecret);
+  
+  let isValid = false;
+  const normalizedCode = code.replace(/\s/g, ''); // Xóa khoảng trắng (nếu có)
+  
+  if (normalizedCode.length === 6) {
+    isValid = totpVerify({ token: normalizedCode, secret: decryptedSecret });
+  } else if (normalizedCode.length === 8) {
+    const hashedCodes = user.twoFactorBackupCodes || [];
+    for (let i = 0; i < hashedCodes.length; i++) {
+      const isMatch = await bcrypt.compare(normalizedCode, hashedCodes[i]);
+      if (isMatch) {
+        isValid = true;
+        // Phải burn (xóa bỏ) backup code này sau khi dùng
+        hashedCodes.splice(i, 1);
+        user.twoFactorBackupCodes = hashedCodes;
+        await user.save();
+        break;
+      }
+    }
+  }
+
+  if (!isValid) throw new ApiError(400, "Mã xác thực không chính xác");
+
+  const payload = {
+    _id: user._id.toString(),
+    role: user.role,
+    displayName: user.displayName,
+    email: user.email,
+  };
+  const accessToken = generateAccessToken(payload);
+  const refreshToken = generateRefreshToken({ _id: user._id.toString() });
+
+  return { accessToken, refreshToken, user: toUserResponse(user) };
+};
+
 module.exports = {
   register,
   login,
@@ -139,5 +206,6 @@ module.exports = {
   resetPassword,
   requestOtp,
   verifyOtp,
+  authenticate2FA,
   REFRESH_COOKIE_OPTIONS,
 };

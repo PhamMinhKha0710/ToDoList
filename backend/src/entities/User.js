@@ -38,6 +38,18 @@ const userSchema = new Schema(
       type: Date,
       default: null,
     },
+    // 2FA Fields
+    is2FAEnabled: {
+      type: Boolean,
+      default: false,
+    },
+    twoFactorSecret: {
+      type: String,
+      default: null, // will be encrypted string
+    },
+    twoFactorBackupCodes: [{
+      type: String, // array of hashed strings
+    }],
   },
   { timestamps: true },
 );
