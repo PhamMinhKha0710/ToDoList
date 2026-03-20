@@ -19,8 +19,15 @@ export const authService = {
 
   login: async (
     data: LoginInput,
-  ): Promise<ApiResponse<{ accessToken: string; user: User }>> => {
+  ): Promise<ApiResponse<{ accessToken?: string; user?: User; require2FA?: boolean; tempToken?: string }>> => {
     const response = await api.post("/auth/login", data);
+    return response.data;
+  },
+
+  authenticate2FA: async (
+    data: { tempToken: string; code: string }
+  ): Promise<ApiResponse<{ accessToken: string; user: User }>> => {
+    const response = await api.post("/2fa/authenticate", data);
     return response.data;
   },
 };

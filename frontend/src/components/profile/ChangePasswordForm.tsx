@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import { userService } from "@/services/user.service";
 import { useAuthStore } from "@/stores/auth.store";
 import { OtpModal } from "@/components/common/OtpModal";
+import { TwoFactorSetupModal } from "@/components/common/TwoFactorSetupModal";
 
 const passwordSchema = z.object({
   currentPassword: z.string().min(1, "Mật khẩu hiện tại là bắt buộc"),
@@ -26,8 +27,11 @@ type PasswordFormValues = z.infer<typeof passwordSchema>;
 export default function ChangePasswordForm() {
   const { user } = useAuthStore();
   const [isChangingPassword, setIsChangingPassword] = useState(false);
-  const [is2FAEnabled, setIs2FAEnabled] = useState(false);
   
+  // 2FA Flow mapping
+  const is2faActive = user?.is2FAEnabled || false;
+  const [show2FASetupModal, setShow2FASetupModal] = useState(false);
+
   // OTP States
   const [isRequestingOtp, setIsRequestingOtp] = useState(false);
   const [showOtpModal, setShowOtpModal] = useState(false);
@@ -184,7 +188,7 @@ export default function ChangePasswordForm() {
           <div className="space-y-1">
             <h4 className="font-medium text-slate-900 flex items-center gap-2">
               Xác thực 2 yếu tố (2FA)
-              {is2FAEnabled && <span className="text-[10px] font-bold tracking-wider uppercase bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full">Đang bật</span>}
+              {is2faActive && <span className="text-[10px] font-bold tracking-wider uppercase bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full">Đang bật</span>}
             </h4>
             <p className="text-sm text-slate-500">
               Thêm một lớp bảo mật bổ sung cho tài khoản của bạn.
@@ -195,16 +199,22 @@ export default function ChangePasswordForm() {
           <button
             type="button"
             role="switch"
-            aria-checked={is2FAEnabled}
-            onClick={() => setIs2FAEnabled(!is2FAEnabled)}
+            aria-checked={is2faActive}
+            onClick={() => {
+              if (is2faActive) {
+                toast.info("Tính năng hủy liên kết Authenticator đang được cập nhật.");
+                return;
+              }
+              setShow2FASetupModal(true);
+            }}
             className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:ring-offset-2 ${
-              is2FAEnabled ? 'bg-indigo-600' : 'bg-slate-200'
+              is2faActive ? 'bg-indigo-600' : 'bg-slate-200'
             }`}
           >
             <span
               aria-hidden="true"
               className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
-                is2FAEnabled ? 'translate-x-5' : 'translate-x-0'
+                is2faActive ? 'translate-x-5' : 'translate-x-0'
               }`}
             />
           </button>
@@ -218,6 +228,12 @@ export default function ChangePasswordForm() {
         onSubmit={handleOtpSubmit}
         isLoading={isVerifying}
         email={user?.email || ""}
+      />
+
+      <TwoFactorSetupModal 
+        isOpen={show2FASetupModal}
+        onClose={() => setShow2FASetupModal(false)}
+        onSuccess={() => setShow2FASetupModal(false)}
       />
     </Card>
   );

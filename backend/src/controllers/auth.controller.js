@@ -15,10 +15,17 @@ class AuthController {
    * POST /api/v1/auth/login
    */
   login = catchAsync(async (req, res) => {
-    const { accessToken, refreshToken, user } = await authService.login(req.body);
+    const loginResult = await authService.login(req.body);
 
+    if (loginResult.require2FA) {
+      return new ApiResponse(200, "Yêu cầu xác thực 2 bước", { 
+        require2FA: true, 
+        tempToken: loginResult.tempToken 
+      }).send(res);
+    }
+
+    const { accessToken, refreshToken, user } = loginResult;
     res.cookie('refreshToken', refreshToken, authService.REFRESH_COOKIE_OPTIONS);
-
     new ApiResponse(200, 'Đăng nhập thành công', { accessToken, user }).send(res);
   });
 

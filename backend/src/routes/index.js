@@ -10,6 +10,7 @@ const attachmentRoutes = require('./attachment.routes');
 // const personalTaskRoutes = require('./personalTask.routes');
 // const adminRoutes = require('./admin.routes');
 const uploadRoutes = require('./upload.routes');
+const twoFactorRoutes = require('./twoFactor.routes');
 
 const router = Router();
 
@@ -25,5 +26,6 @@ router.use('/attachments', attachmentRoutes);
 // router.use('/admin', adminRoutes);
 
 router.use('/upload', uploadRoutes);
+router.use('/2fa', twoFactorRoutes);
 
 module.exports = router;

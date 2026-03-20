@@ -14,6 +14,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { cn } from '@/lib/utils'
+import { TwoFactorLoginModal } from '@/components/common/TwoFactorLoginModal'
 
 export const LoginForm = ({
   className,
@@ -22,6 +23,8 @@ export const LoginForm = ({
   const navigate = useNavigate()
   const login = useAuthStore((s) => s.login)
   const [isLoading, setIsLoading] = useState(false)
+  const [show2FA, setShow2FA] = useState(false)
+  const [tempToken, setTempToken] = useState("")
 
   const {
     register,
@@ -39,7 +42,16 @@ export const LoginForm = ({
     try {
       setIsLoading(true)
       const res = await authService.login(data)
-      const { accessToken, user } = res.data
+      
+      // Nếu server yêu cầu cấu hình 2FA
+      if (res.data?.require2FA && res.data?.tempToken) {
+        setTempToken(res.data.tempToken)
+        setShow2FA(true)
+        return
+      }
+
+      // Xử lý login bình thường
+      const { accessToken, user } = res.data as any
 
       // Lưu trữ user info & setup socket real-time.
       login(user, accessToken)
@@ -112,6 +124,13 @@ export const LoginForm = ({
           </div>
         </div>
       </form>
+
+      {/* Intercept Overlay for 2FA */}
+      <TwoFactorLoginModal 
+        isOpen={show2FA} 
+        onClose={() => setShow2FA(false)} 
+        tempToken={tempToken} 
+      />
     </div>
   )
 }
