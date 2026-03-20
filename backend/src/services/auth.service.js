@@ -1,6 +1,7 @@
 const bcrypt = require("bcryptjs");
 const crypto = require("crypto");
 const User = require("../entities/User");
+const Otp = require("../entities/Otp");
 const {
   generateAccessToken,
   generateRefreshToken,
@@ -84,7 +85,7 @@ const forgotPassword = async ({ email }) => {
   user.otpExpires = new Date(Date.now() + 10 * 60 * 1000); // hết hạn sau 10 phút
   await user.save();
 
-  await sendOtpEmail(email, otp);
+  await sendOtpEmail(email, otp, 'Khôi phục mật khẩu');
 };
 
 /**
@@ -103,11 +104,40 @@ const resetPassword = async ({ email, otp, newPassword }) => {
   await user.save();
 };
 
+/**
+ * Yêu cầu gửi OTP (Change Password / Update Email)
+ */
+const requestOtp = async ({ email, action }) => {
+  const otpCode = crypto.randomInt(100000, 999999).toString();
+  
+  // Xóa các OTP cũ của email và action này để tránh spam database
+  await Otp.deleteMany({ email, action });
+  
+  await Otp.create({ email, otp: otpCode, action });
+  await sendOtpEmail(email, otpCode, action);
+};
+
+/**
+ * Xác minh OTP (Single-use)
+ */
+const verifyOtp = async ({ email, otp, action }) => {
+  const record = await Otp.findOne({ email, otp, action });
+  if (!record) {
+    throw new ApiError(400, "Mã OTP không hợp lệ hoặc đã hết hạn");
+  }
+  
+  // Xác thực chặt chẽ: mã chỉ được sử dụng 1 lần (delete after use)
+  await Otp.deleteOne({ _id: record._id });
+  return true;
+};
+
 module.exports = {
   register,
   login,
   refreshAccessToken,
   forgotPassword,
   resetPassword,
+  requestOtp,
+  verifyOtp,
   REFRESH_COOKIE_OPTIONS,
 };

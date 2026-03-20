@@ -2,13 +2,15 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { ShieldCheck, KeyRound } from "lucide-react";
+import { ShieldCheck, KeyRound, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
 import { userService } from "@/services/user.service";
+import { useAuthStore } from "@/stores/auth.store";
+import { OtpModal } from "@/components/common/OtpModal";
 
 const passwordSchema = z.object({
   currentPassword: z.string().min(1, "Mật khẩu hiện tại là bắt buộc"),
@@ -22,25 +24,57 @@ const passwordSchema = z.object({
 type PasswordFormValues = z.infer<typeof passwordSchema>;
 
 export default function ChangePasswordForm() {
+  const { user } = useAuthStore();
   const [isChangingPassword, setIsChangingPassword] = useState(false);
   const [is2FAEnabled, setIs2FAEnabled] = useState(false);
   
+  // OTP States
+  const [isRequestingOtp, setIsRequestingOtp] = useState(false);
+  const [showOtpModal, setShowOtpModal] = useState(false);
+  const [isVerifying, setIsVerifying] = useState(false);
+  const [pendingPasswordData, setPendingPasswordData] = useState<PasswordFormValues | null>(null);
+
   const { register, handleSubmit, watch, reset, formState: { errors } } = useForm<PasswordFormValues>({
     resolver: zodResolver(passwordSchema),
   });
 
   const onSubmit = async (data: PasswordFormValues) => {
+    if (!user?.email) {
+      toast.error("Không tìm thấy thông tin email của bạn");
+      return;
+    }
     try {
+      setIsRequestingOtp(true);
+      await userService.requestOtp({ email: user.email, action: 'CHANGE_PASSWORD' });
+      setPendingPasswordData(data);
+      setShowOtpModal(true);
+      toast.success("Mã OTP đã được gửi đến email của bạn");
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || "Lỗi khi yêu cầu OTP");
+    } finally {
+      setIsRequestingOtp(false);
+    }
+  };
+
+  const handleOtpSubmit = async (otp: string) => {
+    if (!pendingPasswordData) return;
+    try {
+      setIsVerifying(true);
       await userService.changePassword({ 
-        currentPassword: data.currentPassword, 
-        newPassword: data.newPassword, 
-        confirmPassword: data.confirmPassword 
+        currentPassword: pendingPasswordData.currentPassword, 
+        newPassword: pendingPasswordData.newPassword, 
+        confirmPassword: pendingPasswordData.confirmPassword,
+        otp
       });
       toast.success("Đổi mật khẩu thành công!");
       setIsChangingPassword(false);
+      setShowOtpModal(false);
+      setPendingPasswordData(null);
       reset({ currentPassword: "", newPassword: "", confirmPassword: "" });
     } catch (error: any) {
       toast.error(error.response?.data?.message || "Lỗi khi đổi mật khẩu");
+    } finally {
+      setIsVerifying(false);
     }
   };
 
@@ -135,7 +169,8 @@ export default function ChangePasswordForm() {
                 </div>
 
                 <div className="pt-2">
-                  <Button type="submit" className="bg-indigo-600 hover:bg-indigo-700 text-white w-full sm:w-auto">
+                  <Button type="submit" disabled={isRequestingOtp} className="bg-indigo-600 hover:bg-indigo-700 text-white w-full sm:w-auto">
+                    {isRequestingOtp && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
                     Cập nhật mật khẩu
                   </Button>
                 </div>
@@ -176,6 +211,14 @@ export default function ChangePasswordForm() {
         </div>
 
       </CardContent>
+
+      <OtpModal 
+        isOpen={showOtpModal} 
+        onClose={() => setShowOtpModal(false)}
+        onSubmit={handleOtpSubmit}
+        isLoading={isVerifying}
+        email={user?.email || ""}
+      />
     </Card>
   );
 }

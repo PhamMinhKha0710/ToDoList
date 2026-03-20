@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f3f4f6; margin: 0; padding: 0; }
+    .container { max-width: 500px; margin: 40px auto; background-color: #ffffff; padding: 32px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+    .header { text-align: center; margin-bottom: 24px; }
+    .logo { width: 56px; border-radius: 12px; }
+    .title { color: #111827; font-size: 22px; font-weight: 700; margin: 16px 0 8px; }
+    .message { color: #4b5563; font-size: 15px; line-height: 1.6; text-align: center; margin-bottom: 32px; }
+    .otp-container { background-color: #f9fafb; border: 2px dashed #d1d5db; border-radius: 8px; padding: 24px; text-align: center; margin-bottom: 32px; }
+    .otp-code { font-size: 36px; font-weight: 800; letter-spacing: 12px; color: #4f46e5; margin: 0; }
+    .footer { border-top: 1px solid #e5e7eb; padding-top: 24px; text-align: center; color: #6b7280; font-size: 13px; }
+    .warning { color: #dc2626; font-weight: 600; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <img src="https://img.icons8.com/color/96/000000/task--v1.png" alt="ToDoList Logo" class="logo" />
+      <h2 class="title">Xác thực tài khoản</h2>
+    </div>
+    <div class="message">
+      Xin chào!<br/>
+      Bạn vừa yêu cầu mã OTP để <strong><%= actionText %></strong>. Vui lòng sử dụng mã gồm 6 chữ số ngẫu nhiên dưới đây để tiếp tục định danh:
+    </div>
+    <div class="otp-container">
+      <p class="otp-code"><%= otp %></p>
+    </div>
+    <div class="message" style="margin-bottom: 16px;">
+      <span class="warning">CẢNH BÁO BẢO MẬT:</span> Mã OTP có tính chất tuyệt mật. Chỉ sử dụng <strong>1 lần duy nhất</strong> và hệ thống tự hủy mã trong <strong>5 phút</strong>. KHÔNG CHIA SẺ MÃ NÀY CHO BẤT KỲ AI.
+    </div>
+    <div class="footer">
+      Nếu bạn không thực hiện yêu cầu này, có thể tài khoản của bạn đang bị xâm nhập. Vui lòng đăng nhập và đổi mật khẩu lập tức.
+      <br/><br/>
+      &copy; <%= new Date().getFullYear() %> ToDoList App
+    </div>
+  </div>
+</body>
+</html>

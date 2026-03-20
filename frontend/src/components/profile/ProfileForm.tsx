@@ -13,6 +13,7 @@ import { toast } from "sonner";
 import { userService } from "@/services/user.service";
 import { uploadService } from "@/services/upload.service";
 import { isEmojiUrl, getAvatarUrl } from "@/lib/utils";
+import { OtpModal } from "@/components/common/OtpModal";
 
 const profileSchema = z.object({
   fullName: z.string().min(1, "Họ và tên là bắt buộc").max(50, "Tối đa 50 ký tự"),
@@ -29,6 +30,12 @@ export default function ProfileForm() {
   const [isSavingAvatar, setIsSavingAvatar] = useState(false);
   const [isUpdatingEmail, setIsUpdatingEmail] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Email Update States
+  const [newEmailValue, setNewEmailValue] = useState("");
+  const [isRequestingEmailOtp, setIsRequestingEmailOtp] = useState(false);
+  const [showEmailOtpModal, setShowEmailOtpModal] = useState(false);
+  const [isVerifyingEmailOtp, setIsVerifyingEmailOtp] = useState(false);
 
   const { register, handleSubmit, reset, formState: { errors } } = useForm<ProfileFormValues>({
     resolver: zodResolver(profileSchema),
@@ -84,6 +91,42 @@ export default function ProfileForm() {
     setIsSavingAvatar(true);
     setAvatarPreview(emoji);
     setTimeout(() => setIsSavingAvatar(false), 500);
+  };
+
+  const handleRequestEmailOtp = async () => {
+    if (!newEmailValue || !/^\S+@\S+\.\S+$/.test(newEmailValue)) {
+      toast.error("Vui lòng nhập định dạng email hợp lệ");
+      return;
+    }
+    if (!user?.email) return;
+
+    try {
+      setIsRequestingEmailOtp(true);
+      await userService.requestOtp({ email: user.email, action: 'UPDATE_EMAIL' });
+      setShowEmailOtpModal(true);
+      toast.success("Mã OTP đã được gửi đến email hiện tại của bạn");
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || "Lỗi khi yêu cầu OTP");
+    } finally {
+      setIsRequestingEmailOtp(false);
+    }
+  };
+
+  const handleEmailOtpSubmit = async (otp: string) => {
+    try {
+      setIsVerifyingEmailOtp(true);
+      const payload = { fullName: user?.fullName, displayName: user?.displayName, email: newEmailValue, otp };
+      const res = await userService.updateProfile(payload);
+      useAuthStore.getState().setUser(res.data.user);
+      toast.success("Cập nhật địa chỉ email thành công!");
+      setShowEmailOtpModal(false);
+      setIsUpdatingEmail(false);
+      setNewEmailValue("");
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || "Lỗi khi cập nhật email");
+    } finally {
+      setIsVerifyingEmailOtp(false);
+    }
   };
 
   return (
@@ -206,11 +249,20 @@ export default function ProfileForm() {
                   <Input 
                     id="newEmail" 
                     type="email" 
+                    value={newEmailValue}
+                    onChange={(e) => setNewEmailValue(e.target.value)}
                     placeholder="Nhập email mới" 
                     className="bg-white focus-visible:ring-indigo-500"
                   />
                 </div>
-                <Button type="button" size="sm" className="bg-indigo-600 hover:bg-indigo-700 text-white">
+                <Button 
+                  type="button" 
+                  size="sm" 
+                  onClick={handleRequestEmailOtp}
+                  disabled={isRequestingEmailOtp || !newEmailValue}
+                  className="bg-indigo-600 hover:bg-indigo-700 text-white"
+                >
+                  {isRequestingEmailOtp && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
                   Gửi liên kết xác minh
                 </Button>
               </div>
@@ -219,6 +271,14 @@ export default function ProfileForm() {
         </div>
 
       </CardContent>
+
+      <OtpModal 
+        isOpen={showEmailOtpModal}
+        onClose={() => setShowEmailOtpModal(false)}
+        onSubmit={handleEmailOtpSubmit}
+        isLoading={isVerifyingEmailOtp}
+        email={user?.email || ""}
+      />
     </Card>
   );
 }

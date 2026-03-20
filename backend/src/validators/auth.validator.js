@@ -41,9 +41,37 @@ const resetPasswordSchema = Joi.object({
   }),
 });
 
+const requestOtpSchema = Joi.object({
+  email: Joi.string().email().required().messages({
+    'string.email': 'Email không hợp lệ',
+    'any.required': 'Email là bắt buộc',
+  }),
+  action: Joi.string().valid('CHANGE_PASSWORD', 'UPDATE_EMAIL').required().messages({
+    'any.only': 'Hành động không hợp lệ',
+    'any.required': 'Hành động là bắt buộc',
+  })
+});
+
+const verifyOtpSchema = Joi.object({
+  email: Joi.string().email().required().messages({
+    'string.email': 'Email không hợp lệ',
+    'any.required': 'Email là bắt buộc',
+  }),
+  otp: Joi.string().length(6).required().messages({
+    'string.length': 'OTP phải có đúng 6 ký tự',
+    'any.required': 'OTP là bắt buộc',
+  }),
+  action: Joi.string().valid('CHANGE_PASSWORD', 'UPDATE_EMAIL').required().messages({
+    'any.only': 'Hành động không hợp lệ',
+    'any.required': 'Hành động là bắt buộc',
+  })
+});
+
 module.exports = {
   registerSchema,
   loginSchema,
   forgotPasswordSchema,
   resetPasswordSchema,
+  requestOtpSchema,
+  verifyOtpSchema,
 };

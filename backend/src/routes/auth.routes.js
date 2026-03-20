@@ -1,11 +1,14 @@
 const { Router } = require('express');
 const controller = require('../controllers/auth.controller');
 const { validate } = require('../middlewares/validate.middleware');
+const { otpLimiter } = require('../middlewares/rateLimiter.middleware');
 const {
   registerSchema,
   loginSchema,
   forgotPasswordSchema,
   resetPasswordSchema,
+  requestOtpSchema,
+  verifyOtpSchema,
 } = require('../validators/auth.validator');
 
 const router = Router();
@@ -27,5 +30,11 @@ router.post('/forgot-password', validate(forgotPasswordSchema), controller.forgo
 
 // POST /api/v1/auth/reset-password
 router.post('/reset-password', validate(resetPasswordSchema), controller.resetPassword);
+
+// POST /api/v1/auth/request-otp
+router.post('/request-otp', otpLimiter, validate(requestOtpSchema), controller.requestOtp);
+
+// POST /api/v1/auth/verify-otp
+router.post('/verify-otp', validate(verifyOtpSchema), controller.verifyOtp);
 
 module.exports = router;
