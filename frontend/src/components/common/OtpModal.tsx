@@ -10,6 +10,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Loader2 } from "lucide-react";
+import { toast } from "sonner";
 
 interface OtpModalProps {
   isOpen: boolean;
@@ -22,11 +23,16 @@ interface OtpModalProps {
 export function OtpModal({ isOpen, onClose, onSubmit, isLoading, email }: OtpModalProps) {
   const [otp, setOtp] = useState("");
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (otp.length === 6) {
-      onSubmit(otp);
+  const handleConfirmClick = () => {
+    if (otp.length === 0) {
+      toast.error("Vui lòng nhập mã OTP");
+      return;
     }
+    if (otp.length !== 6) {
+      toast.error("Mã OTP phải bao gồm chính xác 6 chữ số");
+      return;
+    }
+    onSubmit(otp);
   };
 
   return (
@@ -40,7 +46,8 @@ export function OtpModal({ isOpen, onClose, onSubmit, isLoading, email }: OtpMod
             Mã bảo mật gồm <strong>6 chữ số</strong> vừa được gửi đến email <span className="font-semibold text-indigo-600">{email}</span>. <br/>Mã sẽ tự hủy sau 5 phút.
           </DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-6 mt-4">
+        
+        <div className="space-y-6 mt-4">
           <div className="flex justify-center">
             <Input
               type="text"
@@ -55,15 +62,26 @@ export function OtpModal({ isOpen, onClose, onSubmit, isLoading, email }: OtpMod
             />
           </div>
           <DialogFooter className="gap-2 sm:gap-0">
-            <Button type="button" variant="outline" onClick={onClose} disabled={isLoading} className="border-slate-300 hover:bg-slate-50 text-slate-700">
+            <Button 
+              type="button" 
+              variant="outline" 
+              onClick={onClose} 
+              disabled={isLoading} 
+              className="border-slate-300 hover:bg-slate-50 text-slate-700"
+            >
               Hủy
             </Button>
-            <Button type="submit" disabled={otp.length !== 6 || isLoading} className="bg-indigo-600 hover:bg-indigo-700 text-white font-medium">
+            <Button 
+              type="button" 
+              onClick={handleConfirmClick}
+              disabled={isLoading} 
+              className="bg-indigo-600 hover:bg-indigo-700 text-white font-medium"
+            >
               {isLoading && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
               Xác nhận
             </Button>
           </DialogFooter>
-        </form>
+        </div>
       </DialogContent>
     </Dialog>
   );
