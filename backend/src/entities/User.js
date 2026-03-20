@@ -22,6 +22,10 @@ const userSchema = new Schema(
       type: String,
       trim: true,
     },
+    fullName: {
+      type: String,
+      trim: true,
+    },
     avatarUrl: {
       type: String,
     },

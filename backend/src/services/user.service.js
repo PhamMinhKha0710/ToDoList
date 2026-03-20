@@ -6,6 +6,7 @@ class UserService {
   async updateProfile(userId, data) {
     const updateData = {};
     if (data.displayName !== undefined) updateData.displayName = data.displayName;
+    if (data.fullName !== undefined) updateData.fullName = data.fullName;
     if (data.avatarUrl !== undefined) updateData.avatarUrl = data.avatarUrl;
 
     const user = await User.findByIdAndUpdate(userId, updateData, { new: true });

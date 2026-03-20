@@ -10,6 +10,7 @@ class UserController {
       user: {
         _id: user._id,
         email: user.email,
+        fullName: user.fullName,
         displayName: user.displayName,
         avatarUrl: user.avatarUrl,
         role: user.role

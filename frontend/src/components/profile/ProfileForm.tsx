@@ -50,7 +50,7 @@ export default function ProfileForm() {
 
   const onSubmit = async (data: ProfileFormValues) => {
     try {
-      const payload = { displayName: data.displayName, avatarUrl: avatarPreview };
+      const payload = { fullName: data.fullName, displayName: data.displayName, avatarUrl: avatarPreview };
       const res = await userService.updateProfile(payload);
       useAuthStore.getState().setUser(res.data.user);
       toast.success("Thông tin đã được cập nhật thành công!");
