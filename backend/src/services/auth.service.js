@@ -159,7 +159,7 @@ const authenticate2FA = async ({ tempToken, code }) => {
   const user = await User.findById(decoded._id);
   if (!user || !user.is2FAEnabled) throw new ApiError(400, "Xác thực 2 bước không khả dụng");
 
-  const { authenticator } = require('otplib');
+  const { verify: totpVerify } = require('otplib');
   const { decrypt } = require('../utils/encryption');
   
   const decryptedSecret = decrypt(user.twoFactorSecret);
@@ -168,7 +168,7 @@ const authenticate2FA = async ({ tempToken, code }) => {
   const normalizedCode = code.replace(/\s/g, ''); // Xóa khoảng trắng (nếu có)
   
   if (normalizedCode.length === 6) {
-    isValid = authenticator.verify({ token: normalizedCode, secret: decryptedSecret });
+    isValid = totpVerify({ token: normalizedCode, secret: decryptedSecret });
   } else if (normalizedCode.length === 8) {
     const hashedCodes = user.twoFactorBackupCodes || [];
     for (let i = 0; i < hashedCodes.length; i++) {
