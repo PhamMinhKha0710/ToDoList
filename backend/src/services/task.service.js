@@ -109,6 +109,10 @@ const removeTagFromTask = async (taskId, tagName) => {
   return await taskRepository.removeTagFromTask(taskId, tagName);
 };
 
+const getAllTasksForUser = async (userId) => {
+  return await taskRepository.getAllTasksForUser(userId);
+};
+
 module.exports = {
   createTask,
   getTasksByColumnId,
@@ -118,4 +122,5 @@ module.exports = {
   moveTask,
   addTagsToTask,
   removeTagFromTask,
+  getAllTasksForUser,
 };

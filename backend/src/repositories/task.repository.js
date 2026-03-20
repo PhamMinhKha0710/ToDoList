@@ -124,6 +124,32 @@ const removeTagFromTask = async (taskId, tagName) => {
   ).populate('creatorId assignees', 'displayName email avatar');
 };
 
+const getAllTasksForUser = async (userId) => {
+  const Project = require('../entities/Project');
+  const Column = require('../entities/Column');
+
+  // 1. Find all projects where user is a member
+  const projects = await Project.find({
+    'members.userId': userId
+  });
+
+  const projectIds = projects.map(p => p._id);
+
+  // 2. Find all columns belong to those projects
+  const columns = await Column.find({
+    projectId: { $in: projectIds }
+  });
+
+  const columnIds = columns.map(c => c._id);
+
+  // 3. Find all tasks in those columns
+  const tasks = await Task.find({
+    columnId: { $in: columnIds }
+  }).populate('creatorId assignees', 'displayName email avatar avatarUrl');
+
+  return tasks;
+};
+
 module.exports = {
   createTask,
   getTasksByColumnId,
@@ -134,4 +160,5 @@ module.exports = {
   reorderTasks,
   addTagsToTask,
   removeTagFromTask,
+  getAllTasksForUser,
 };
