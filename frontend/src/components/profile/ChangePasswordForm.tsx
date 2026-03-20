@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { toast } from "sonner";
+import { userService } from "@/services/user.service";
 
 const passwordSchema = z.object({
   currentPassword: z.string().min(1, "Current password is required"),
@@ -23,13 +25,23 @@ export default function ChangePasswordForm() {
   const [isChangingPassword, setIsChangingPassword] = useState(false);
   const [is2FAEnabled, setIs2FAEnabled] = useState(false);
   
-  const { register, handleSubmit, watch, formState: { errors } } = useForm<PasswordFormValues>({
+  const { register, handleSubmit, watch, reset, formState: { errors } } = useForm<PasswordFormValues>({
     resolver: zodResolver(passwordSchema),
   });
 
-  const onSubmit = (data: PasswordFormValues) => {
-    console.log("Password Data:", data);
-    // Submit password change logic here
+  const onSubmit = async (data: PasswordFormValues) => {
+    try {
+      await userService.changePassword({ 
+        currentPassword: data.currentPassword, 
+        newPassword: data.newPassword, 
+        confirmPassword: data.confirmPassword 
+      });
+      toast.success("Đổi mật khẩu thành công!");
+      setIsChangingPassword(false);
+      reset({ currentPassword: "", newPassword: "", confirmPassword: "" });
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || "Lỗi khi đổi mật khẩu");
+    }
   };
 
   const newPassword = watch("newPassword", "");

@@ -9,4 +9,14 @@ export const userService = {
     });
     return response.data;
   },
+
+  updateProfile: async (data: { displayName?: string; avatarUrl?: string }): Promise<ApiResponse<{ user: User }>> => {
+    const response = await api.put('/users/profile', data);
+    return response.data;
+  },
+
+  changePassword: async (data: { currentPassword: string; newPassword: string; confirmPassword?: string }): Promise<ApiResponse<undefined>> => {
+    const response = await api.put('/users/change-password', data);
+    return response.data;
+  },
 };

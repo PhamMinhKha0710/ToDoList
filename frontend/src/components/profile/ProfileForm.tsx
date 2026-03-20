@@ -9,6 +9,8 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuthStore } from "@/stores/auth.store";
+import { toast } from "sonner";
+import { userService } from "@/services/user.service";
 
 const profileSchema = z.object({
   fullName: z.string().min(1, "Full Name is required").max(50, "Max 50 characters allowed"),
@@ -46,9 +48,15 @@ export default function ProfileForm() {
     }
   }, [user, reset]);
 
-  const onSubmit = (data: ProfileFormValues) => {
-    console.log("Profile Data:", data);
-    // Submit logic here
+  const onSubmit = async (data: ProfileFormValues) => {
+    try {
+      const payload = { displayName: data.displayName, avatarUrl: avatarPreview };
+      const res = await userService.updateProfile(payload);
+      useAuthStore.getState().setUser(res.data.user);
+      toast.success("Thông tin đã được cập nhật thành công!");
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || "Lỗi khi cập nhật");
+    }
   };
 
   const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
