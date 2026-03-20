@@ -19,6 +19,8 @@ export function getAvatarUrl(url?: string): string {
   if (isEmojiUrl(url)) return url;
   if (url.startsWith('http') || url.startsWith('data:')) return url;
   
-  const backendUrl = import.meta.env.VITE_API_URL?.split('/api')[0] || 'http://localhost:4000';
-  return `${backendUrl}${url}`;
+  // Trả về url gốc (vd: /uploads/...) vì frontend đã cấu hình proxy (Vite)
+  // hoặc cấu hình routing trên server production cho thư mục này.
+  // Việc thêm tên miền khác port trực tiếp sẽ bị block bởi Cross-Origin-Resource-Policy từ Helmet.
+  return url;
 }
