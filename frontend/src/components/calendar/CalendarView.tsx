@@ -6,6 +6,8 @@ import { taskService } from "@/services/task.service";
 import { useNavigate } from "react-router-dom";
 import { ROUTES } from "@/constants/routes";
 import { Loader2 } from "lucide-react";
+import { useState } from "react";
+import { QuickCreateTaskModal } from "./QuickCreateTaskModal";
 import "./calendar.css";
 
 const STATUS_COLORS = {
@@ -16,6 +18,8 @@ const STATUS_COLORS = {
 
 const CalendarView = () => {
   const navigate = useNavigate();
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedDate, setSelectedDate] = useState<string>("");
 
   const { data: tasks, isLoading } = useQuery({
     queryKey: ["all-tasks"],
@@ -31,15 +35,18 @@ const CalendarView = () => {
   }
 
   const events = (tasks || [])
-    .filter((task) => task.dueDate)
+    .filter((task) => task.dueDate || task.startDate)
     .map((task) => ({
       id: task._id,
-      title: task.title,
-      start: task.dueDate,
-      backgroundColor: STATUS_COLORS[task.status as keyof typeof STATUS_COLORS] || STATUS_COLORS.todo,
+      title: task.isPersonal ? `[Cá nhân] ${task.title}` : task.title,
+      start: task.startDate || task.dueDate,
+      end: task.endDate,
+      backgroundColor: task.isPersonal ? "#8b5cf6" : (STATUS_COLORS[task.status as keyof typeof STATUS_COLORS] || STATUS_COLORS.todo),
       borderColor: "transparent",
+      className: task.isPersonal ? "personal-task-event" : "project-task-event",
       extendedProps: {
         status: task.status,
+        isPersonal: task.isPersonal,
       },
     }));
 
@@ -51,6 +58,10 @@ const CalendarView = () => {
         events={events}
         eventClick={(info) => {
           navigate(ROUTES.TASK_DETAIL(info.event.id));
+        }}
+        dateClick={(info) => {
+          setSelectedDate(info.dateStr);
+          setIsModalOpen(true);
         }}
         height="100%"
         headerToolbar={{
@@ -65,6 +76,12 @@ const CalendarView = () => {
             hour12: false
         }}
         dayMaxEvents={true}
+      />
+
+      <QuickCreateTaskModal
+        open={isModalOpen}
+        onOpenChange={setIsModalOpen}
+        initialDate={selectedDate}
       />
     </div>
   );
