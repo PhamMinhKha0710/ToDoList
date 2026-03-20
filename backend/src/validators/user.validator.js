@@ -6,6 +6,8 @@ const updateProfileSchema = Joi.object({
   }),
   fullName: Joi.string().trim().max(50).optional().allow(""), // Add if the frontend sends it
   avatarUrl: Joi.string().trim().allow("").optional(),
+  email: Joi.string().email().optional(),
+  otp: Joi.string().length(6).optional(),
 });
 
 const changePasswordSchema = Joi.object({
@@ -19,6 +21,9 @@ const changePasswordSchema = Joi.object({
   confirmPassword: Joi.string().valid(Joi.ref('newPassword')).required().messages({
     "any.only": "Mật khẩu xác nhận không khớp",
     "any.required": "Yêu cầu xác nhận mật khẩu mới",
+  }),
+  otp: Joi.string().length(6).optional().messages({
+    "string.length": "Mã OTP phải có 6 chữ số",
   }),
 });
 

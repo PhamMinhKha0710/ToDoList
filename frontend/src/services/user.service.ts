@@ -10,13 +10,23 @@ export const userService = {
     return response.data;
   },
 
-  updateProfile: async (data: { fullName?: string; displayName?: string; avatarUrl?: string }): Promise<ApiResponse<{ user: User }>> => {
+  updateProfile: async (data: { email?: string; fullName?: string; displayName?: string; avatarUrl?: string; otp?: string }): Promise<ApiResponse<{ user: User }>> => {
     const response = await api.put('/users/profile', data);
     return response.data;
   },
 
-  changePassword: async (data: { currentPassword: string; newPassword: string; confirmPassword?: string }): Promise<ApiResponse<undefined>> => {
+  changePassword: async (data: { currentPassword: string; newPassword: string; confirmPassword?: string; otp?: string }): Promise<ApiResponse<undefined>> => {
     const response = await api.put('/users/change-password', data);
+    return response.data;
+  },
+
+  requestOtp: async (data: { email: string; action: 'CHANGE_PASSWORD' | 'UPDATE_EMAIL' }): Promise<ApiResponse<undefined>> => {
+    const response = await api.post('/auth/request-otp', data);
+    return response.data;
+  },
+
+  verifyOtp: async (data: { email: string; otp: string; action: 'CHANGE_PASSWORD' | 'UPDATE_EMAIL' }): Promise<ApiResponse<undefined>> => {
+    const response = await api.post('/auth/verify-otp', data);
     return response.data;
   },
 };

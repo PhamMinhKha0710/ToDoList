@@ -1,4 +1,6 @@
 const nodemailer = require('nodemailer');
+const ejs = require('ejs');
+const path = require('path');
 const { MAIL_HOST, MAIL_PORT, MAIL_USER, MAIL_PASS } = require('../config/env');
 const logger = require('../utils/logger');
 
@@ -17,25 +19,26 @@ const transporter = nodemailer.createTransport({
  * @param {string} to - Email người nhận
  * @param {string} otp - Mã OTP 6 số
  */
-const sendOtpEmail = async (to, otp) => {
-  const mailOptions = {
-    from: `"ToDoList App" <${MAIL_USER}>`,
-    to,
-    subject: 'Mã OTP đặt lại mật khẩu',
-    html: `
-      <div style="font-family: Arial, sans-serif; max-width: 480px; margin: 0 auto; padding: 20px; border: 1px solid #e5e7eb; border-radius: 12px;">
-        <h2 style="color: #0733fa; margin-top: 0;">Đặt lại mật khẩu</h2>
-        <p>Mã OTP của bạn là:</p>
-        <div style="font-size: 36px; font-weight: bold; letter-spacing: 8px; color: #0733fa; padding: 16px 0;">
-          ${otp}
-        </div>
-        <p style="color: #6b7280; font-size: 14px;">Mã có hiệu lực trong <strong>10 phút</strong>. Không chia sẻ mã này với bất kỳ ai.</p>
-        <p style="color: #9ca3af; font-size: 12px; margin-top: 20px;">Nếu bạn không yêu cầu đặt lại mật khẩu, hãy bỏ qua email này.</p>
-      </div>
-    `,
-  };
+const sendOtpEmail = async (to, otp, action = 'Xác thực tài khoản') => {
+  let actionText = action;
+  if (action === 'CHANGE_PASSWORD') actionText = 'Đổi mật khẩu';
+  if (action === 'UPDATE_EMAIL') actionText = 'Cập nhật Email mới';
 
+  const templatePath = path.join(__dirname, '../templates/otp-email.ejs');
+  
   try {
+    const htmlContent = await ejs.renderFile(templatePath, {
+      otp: otp,
+      actionText: actionText,
+    });
+
+    const mailOptions = {
+      from: `"ToDoList App" <${MAIL_USER}>`,
+      to,
+      subject: `Mã OTP: ${actionText}`,
+      html: htmlContent,
+    };
+
     await transporter.sendMail(mailOptions);
     logger.info(`OTP email sent to ${to}`);
   } catch (error) {

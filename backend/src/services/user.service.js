@@ -4,22 +4,36 @@ const ApiError = require('../utils/ApiError');
 
 class UserService {
   async updateProfile(userId, data) {
-    const updateData = {};
-    if (data.displayName !== undefined) updateData.displayName = data.displayName;
-    if (data.fullName !== undefined) updateData.fullName = data.fullName;
-    if (data.avatarUrl !== undefined) updateData.avatarUrl = data.avatarUrl;
-
-    const user = await User.findByIdAndUpdate(userId, updateData, { new: true });
+    const user = await User.findById(userId);
     if (!user) throw new ApiError(404, "Người dùng không tồn tại");
+
+    if (data.displayName !== undefined) user.displayName = data.displayName;
+    if (data.fullName !== undefined) user.fullName = data.fullName;
+    if (data.avatarUrl !== undefined) user.avatarUrl = data.avatarUrl;
+
+    // Yêu cầu OTP nếu như đổi email
+    if (data.email !== undefined && data.email !== user.email) {
+      if (!data.otp) throw new ApiError(400, "Yêu cầu mã OTP để cập nhật email");
+      const authService = require('./auth.service');
+      await authService.verifyOtp({ email: user.email, otp: data.otp, action: 'UPDATE_EMAIL' });
+      user.email = data.email;
+    }
+
+    await user.save();
     return user;
   }
 
-  async changePassword(userId, { currentPassword, newPassword }) {
+  async changePassword(userId, { currentPassword, newPassword, otp }) {
     const user = await User.findById(userId);
     if (!user) throw new ApiError(404, "Người dùng không tồn tại");
 
     const isMatch = await bcrypt.compare(currentPassword, user.passwordHash);
     if (!isMatch) throw new ApiError(400, "Mật khẩu hiện tại không chính xác");
+
+    // Yêu cầu xác thực OTP
+    if (!otp) throw new ApiError(400, "Yêu cầu mã OTP để đổi mật khẩu");
+    const authService = require('./auth.service');
+    await authService.verifyOtp({ email: user.email, otp, action: 'CHANGE_PASSWORD' });
 
     user.passwordHash = await bcrypt.hash(newPassword, 10);
     await user.save();

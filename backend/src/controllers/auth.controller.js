@@ -59,6 +59,22 @@ class AuthController {
     await authService.resetPassword(req.body);
     new ApiResponse(200, 'Đặt lại mật khẩu thành công').send(res);
   });
+
+  /**
+   * POST /api/v1/auth/request-otp
+   */
+  requestOtp = catchAsync(async (req, res) => {
+    await authService.requestOtp(req.body);
+    new ApiResponse(200, 'Mã OTP đã được gửi đến email của bạn').send(res);
+  });
+
+  /**
+   * POST /api/v1/auth/verify-otp
+   */
+  verifyOtp = catchAsync(async (req, res) => {
+    await authService.verifyOtp(req.body);
+    new ApiResponse(200, 'Xác thực OTP thành công').send(res);
+  });
 }
 
 module.exports = new AuthController();
