@@ -16,6 +16,8 @@ const toUpdateTaskDTO = (body) => {
   if (body.status !== undefined) data.status = body.status;
   if (body.priority !== undefined) data.priority = body.priority;
   if (body.dueDate !== undefined) data.dueDate = body.dueDate;
+  if (body.startDate !== undefined) data.startDate = body.startDate;
+  if (body.endDate !== undefined) data.endDate = body.endDate;
   if (body.color !== undefined) data.color = body.color;
   if (body.tags !== undefined) {
     try {
