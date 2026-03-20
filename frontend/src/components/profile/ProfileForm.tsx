@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useAuthStore } from "@/stores/auth.store";
 
 const profileSchema = z.object({
   fullName: z.string().min(1, "Full Name is required").max(50, "Max 50 characters allowed"),
@@ -19,18 +20,31 @@ type ProfileFormValues = z.infer<typeof profileSchema>;
 const DEFAULT_AVATARS = ["✨", "🔥", "🚀", "🌟", "🎨", "👽"];
 
 export default function ProfileForm() {
-  const [avatarPreview, setAvatarPreview] = useState<string>("✨");
+  const { user } = useAuthStore();
+  const [avatarPreview, setAvatarPreview] = useState<string>(user?.avatarUrl || "✨");
   const [isSavingAvatar, setIsSavingAvatar] = useState(false);
   const [isUpdatingEmail, setIsUpdatingEmail] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const { register, handleSubmit, formState: { errors } } = useForm<ProfileFormValues>({
+  const { register, handleSubmit, reset, formState: { errors } } = useForm<ProfileFormValues>({
     resolver: zodResolver(profileSchema),
     defaultValues: {
-      fullName: "John Doe",
-      displayName: "John",
+      fullName: user?.displayName || "",
+      displayName: user?.displayName || "",
     },
   });
+
+  useEffect(() => {
+    if (user) {
+      reset({
+        fullName: user.displayName || "",
+        displayName: user.displayName || "",
+      });
+      if (user.avatarUrl) {
+        setAvatarPreview(user.avatarUrl);
+      }
+    }
+  }, [user, reset]);
 
   const onSubmit = (data: ProfileFormValues) => {
     console.log("Profile Data:", data);
@@ -154,11 +168,11 @@ export default function ProfileForm() {
                 <div className="relative flex-1">
                   <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
                   <Input 
-                    value="john.doe@example.com" 
+                    value={user?.email || "No email"} 
                     readOnly 
                     className="pl-9 bg-slate-50 text-slate-600 focus-visible:ring-0 border-slate-200 cursor-default"
                   />
-                  <BadgeCheck className="absolute right-3 top-1/2 -translate-y-1/2 text-emerald-500" size={18} title="Verified" />
+                  <BadgeCheck className="absolute right-3 top-1/2 -translate-y-1/2 text-emerald-500" size={18} />
                 </div>
                 <Button 
                   type="button" 
