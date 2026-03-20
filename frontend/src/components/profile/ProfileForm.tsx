@@ -12,6 +12,7 @@ import { useAuthStore } from "@/stores/auth.store";
 import { toast } from "sonner";
 import { userService } from "@/services/user.service";
 import { uploadService } from "@/services/upload.service";
+import { isEmojiUrl, getAvatarUrl } from "@/lib/utils";
 
 const profileSchema = z.object({
   fullName: z.string().min(1, "Họ và tên là bắt buộc").max(50, "Tối đa 50 ký tự"),
@@ -85,8 +86,6 @@ export default function ProfileForm() {
     setTimeout(() => setIsSavingAvatar(false), 500);
   };
 
-  const isEmoji = (str: string) => str.length <= 2;
-
   return (
     <Card className="shadow-sm border-slate-200">
       <CardHeader>
@@ -100,9 +99,9 @@ export default function ProfileForm() {
           <div className="relative">
             <Avatar className="w-24 h-24 border-4 border-white shadow-md">
               <AvatarFallback className="text-4xl bg-indigo-50 text-indigo-500">
-                {isSavingAvatar ? <Loader2 className="animate-spin w-8 h-8" /> : (isEmoji(avatarPreview) ? avatarPreview : "JD")}
+                {isSavingAvatar ? <Loader2 className="animate-spin w-8 h-8" /> : (isEmojiUrl(avatarPreview) ? avatarPreview : "JD")}
               </AvatarFallback>
-              {!isEmoji(avatarPreview) && <AvatarImage src={avatarPreview} className="object-cover" />}
+              {!isEmojiUrl(avatarPreview) && <AvatarImage src={getAvatarUrl(avatarPreview)} className="object-cover" />}
             </Avatar>
             <Button
               type="button"
