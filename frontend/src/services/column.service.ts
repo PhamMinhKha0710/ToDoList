@@ -50,4 +50,11 @@ export const columnService = {
     );
     return response.data.data.columns;
   },
+
+  getColumnById: async (columnId: string): Promise<Column> => {
+    const response = await axiosInstance.get<ApiResponse<{ column: Column }>>(
+      `/columns/${columnId}`,
+    );
+    return response.data.data.column;
+  },
 };
