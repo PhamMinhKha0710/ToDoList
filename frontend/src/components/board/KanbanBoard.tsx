@@ -2,7 +2,7 @@ import { useEffect, useCallback, useState, useRef } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { columnService } from "@/services/column.service";
 import { taskService } from "@/services/task.service";
-import { Loader2 } from "lucide-react";
+import { Loader2, ChevronLeft, ChevronRight } from "lucide-react";
 import { AddColumnModal } from "./AddColumnModal";
 import { AddColumnButton } from "./AddColumnButton";
 import { SortableColumn } from "./SortableColumn";
@@ -11,6 +11,8 @@ import { useAuthStore } from "@/stores/auth.store";
 import type { Column } from "@/types/column";
 import type { Task } from "@/types/task";
 import { TaskCard } from "./TaskCard";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import {
   DndContext,
   closestCorners,
@@ -70,6 +72,97 @@ export const KanbanBoard = ({ projectId }: KanbanBoardProps) => {
       setColumns(queryColumns);
     }
   }, [queryColumns, setColumns]);
+
+  // Navigation scrolling logic
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const [showLeftArrow, setShowLeftArrow] = useState(false);
+  const [showRightArrow, setShowRightArrow] = useState(false);
+  const [isNearLeft, setIsNearLeft] = useState(false);
+  const [isNearRight, setIsNearRight] = useState(false);
+
+  const checkScroll = useCallback(() => {
+    const container = scrollContainerRef.current;
+    if (container) {
+      const { scrollLeft, scrollWidth, clientWidth } = container;
+      // Buffer of 10px to be safe against subpixel rendering
+      const canScrollLeft = scrollLeft > 10;
+      const canScrollRight = Math.ceil(scrollLeft + clientWidth) < scrollWidth - 10;
+      
+      setShowLeftArrow(canScrollLeft);
+      setShowRightArrow(canScrollRight);
+    }
+  }, []);
+
+  // Global mouse listener for viewport-edge detection
+  useEffect(() => {
+    const handleGlobalMouseMove = (e: MouseEvent) => {
+      const container = scrollContainerRef.current;
+      if (!container) return;
+
+      const rect = container.getBoundingClientRect();
+      const trigger = 40; // Proximity to activate
+      const maintain = 150; // Distance to keep active
+      
+      const x = e.clientX;
+      const windowWidth = window.innerWidth;
+      
+      // Right edge detection (relative to window width)
+      const distFromRight = windowWidth - x;
+      setIsNearRight(prev => prev ? (distFromRight <= maintain) : (distFromRight <= trigger));
+      
+      // Left edge detection (relative to container start)
+      const distFromLeft = x - rect.left;
+      setIsNearLeft(prev => prev ? (distFromLeft >= 0 && distFromLeft <= maintain) : (distFromLeft >= 0 && distFromLeft <= trigger));
+      
+      // Always keep checkScroll sync
+      checkScroll();
+    };
+
+    window.addEventListener("mousemove", handleGlobalMouseMove);
+    return () => window.removeEventListener("mousemove", handleGlobalMouseMove);
+  }, [checkScroll]);
+
+  useEffect(() => {
+    const container = scrollContainerRef.current;
+    if (container) {
+      checkScroll();
+      container.addEventListener("scroll", checkScroll, { passive: true });
+      window.addEventListener("resize", checkScroll);
+      
+      const resizeObserver = new ResizeObserver(() => checkScroll());
+      resizeObserver.observe(container);
+
+      const mutationObserver = new MutationObserver(() => checkScroll());
+      mutationObserver.observe(container, { childList: true, subtree: true, characterData: true });
+      
+      return () => {
+        container.removeEventListener("scroll", checkScroll);
+        window.removeEventListener("resize", checkScroll);
+        resizeObserver.disconnect();
+        mutationObserver.disconnect();
+      };
+    }
+  }, [checkScroll]);
+
+  // Re-check scroll buttons when columns change or after a short delay for rendering
+  useEffect(() => {
+    checkScroll();
+    const timer = setTimeout(checkScroll, 300); // Wait bit longer for layout
+    return () => clearTimeout(timer);
+  }, [storeColumns, checkScroll]);
+
+  const scroll = (direction: "left" | "right") => {
+    const container = scrollContainerRef.current;
+    if (container) {
+      // Cuộn theo 50% chiều rộng của vùng chứa hiển thị
+      // Lấy chiều rộng hiện tại của container (phần đang nhìn thấy)
+      const scrollAmount = container.clientWidth * 0.5;
+      container.scrollBy({
+        left: direction === "left" ? -scrollAmount : scrollAmount,
+        behavior: "smooth",
+      });
+    }
+  };
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -315,14 +408,53 @@ export const KanbanBoard = ({ projectId }: KanbanBoardProps) => {
       onDragOver={handleDragOver}
       onDragEnd={handleDragEnd}
     >
-      <div className="flex gap-4 h-full p-4 overflow-x-auto">
-        <SortableContext items={columnIds} strategy={horizontalListSortingStrategy}>
-          {storeColumns.map((column) => (
-            <SortableColumn key={column._id} column={column} />
-          ))}
-        </SortableContext>
+      <div 
+        className="relative h-full w-full group/board overflow-hidden min-w-0"
+      >
+        {/* Navigation Arrows & Gradient Overlays */}
+        <div className={cn(
+          "absolute left-0 top-0 bottom-0 w-32 z-40 flex items-center pl-4 pointer-events-none transition-all duration-500 ease-out",
+          (showLeftArrow && isNearLeft) ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-full"
+        )}>
+          <div className="absolute inset-0 bg-gradient-to-r from-background via-background/60 to-transparent" />
+          <Button
+            variant="secondary"
+            size="icon"
+            className="relative h-14 w-14 rounded-full shadow-2xl border border-primary/20 bg-background/80 backdrop-blur-xl hover:scale-110 pointer-events-auto transition-all duration-300 flex items-center justify-center group"
+            onClick={() => scroll("left")}
+          >
+            <ChevronLeft className="h-10 w-10 text-primary group-hover:-translate-x-0.5 transition-transform" strokeWidth={2.5} />
+          </Button>
+        </div>
 
-        {isManager && <AddColumnButton onClick={() => setIsAddModalOpen(true)} />}
+        <div className={cn(
+          "absolute right-20 top-0 bottom-0 w-32 z-40 flex items-center justify-end pr-4 pointer-events-none transition-all duration-500 ease-out",
+          (showRightArrow && isNearRight) ? "opacity-100 translate-x-0" : "opacity-0 translate-x-full"
+        )}>
+
+          <div className="absolute inset-0 bg-gradient-to-l from-background via-background/60 to-transparent" />
+          <Button
+            variant="secondary"
+            size="icon"
+            className="relative h-14 w-14 rounded-full shadow-2xl border border-primary/20 bg-background/80 backdrop-blur-xl hover:scale-110 pointer-events-auto transition-all duration-300 flex items-center justify-center group"
+            onClick={() => scroll("right")}
+          >
+            <ChevronRight className="h-10 w-10 text-primary group-hover:translate-x-0.5 transition-transform" strokeWidth={2.5} />
+          </Button>
+        </div>
+
+        <div 
+          ref={scrollContainerRef}
+          className="flex gap-4 h-full w-full p-4 overflow-x-auto overflow-y-hidden"
+        >
+          <SortableContext items={columnIds} strategy={horizontalListSortingStrategy}>
+            {storeColumns.map((column) => (
+              <SortableColumn key={column._id} column={column} />
+            ))}
+          </SortableContext>
+
+          {isManager && <AddColumnButton onClick={() => setIsAddModalOpen(true)} />}
+        </div>
 
         {isManager && (
           <AddColumnModal
