@@ -26,13 +26,42 @@ interface TaskCardProps {
 
 const getPriorityConfig = (priority: string) => {
   switch (priority) {
-    case 'urgent': return { icon: Flame, text: 'KHẨN CẤP', classes: 'text-red-600 bg-red-50' };
-    case 'high': return { icon: Flame, text: 'CAO', classes: 'text-orange-600 bg-orange-50' };
-    case 'normal': return { icon: Gauge, text: 'THƯỜNG', classes: 'text-emerald-600 bg-emerald-50' };
-    case 'low': return { icon: ArrowDown, text: 'THẤP', classes: 'text-slate-600 bg-slate-50' };
-    default: return { icon: Gauge, text: 'THƯỜNG', classes: 'text-blue-600 bg-blue-50' };
+    case 'urgent':
+      return {
+        icon: Flame,
+        text: 'URGENT',
+        classes: 'text-red-600 bg-red-50/40 border border-red-200'
+      };
+
+    case 'high':
+      return {
+        icon: Flame,
+        text: 'HIGH',
+        classes: 'text-orange-600 bg-orange-50/40 border border-orange-200'
+      };
+
+    case 'normal':
+      return {
+        icon: Gauge,
+        text: 'NORMAL',
+        classes: 'text-emerald-600 bg-emerald-50/40 border border-emerald-200'
+      };
+
+    case 'low':
+      return {
+        icon: ArrowDown,
+        text: 'LOW',
+        classes: 'text-slate-600 bg-slate-50/40 border border-slate-200'
+      };
+
+    default:
+      return {
+        icon: Gauge,
+        text: 'NORMAL',
+        classes: 'text-blue-600 bg-blue-50/40 border border-blue-200'
+      };
   }
-}
+};
 
 const getStatusConfig = (status: string) => {
   switch (status) {
@@ -46,16 +75,16 @@ const getStatusConfig = (status: string) => {
     case "in_progress":
       return {
         icon: Clock4,
-        classes: "bg-blue-100 text-blue-600",
+        classes: "bg-blue-100/80 text-blue-700",
         dotClass: "bg-blue-500",
         label: "In Progress",
       };
     default:
       return {
         icon: Circle,
-        classes: "bg-slate-100 text-slate-600",
+        classes: "bg-slate-100/80 text-slate-600",
         dotClass: "bg-slate-300",
-        label: "To Do",
+        label: "ToDo",
       };
   }
 };
@@ -86,7 +115,7 @@ export const TaskCard = ({ task, onClick }: TaskCardProps) => {
     task.dueDate && dayjs(task.dueDate).isBefore(dayjs().startOf("day"));
 
   const cardStyle = task.color
-    ? { backgroundColor: task.color }
+    ? { backgroundColor: task.color, opacity: 0.9 }
     : { backgroundColor: "#ffffff" };
 
   const {

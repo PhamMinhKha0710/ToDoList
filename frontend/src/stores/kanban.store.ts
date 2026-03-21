@@ -5,10 +5,12 @@ import type { Kanban } from '@/types/kanban';
 
 
 export const useKanbanStore = create<Kanban>()((set) => ({
+  activeProject: null,
   columns: [],
   tasks: {},
   members: [],
 
+  setActiveProject: (project) => set({ activeProject: project }),
   setColumns: (columns) => set({ columns }),
   setMembers: (members) => set({ members }),
 
