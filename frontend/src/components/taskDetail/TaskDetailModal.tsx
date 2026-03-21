@@ -20,6 +20,7 @@ import {
   User as UserIcon,
   Palette,
   MessageSquare,
+  Activity,
   X,
   Plus,
   Loader2,
@@ -30,6 +31,7 @@ import { DeleteTaskConfirmModal } from "./DeleteTaskConfirmModal";
 import { TaskAttachments } from "./TaskAttachments";
 import { TaskTags } from "./TaskTags";
 import { TaskComments } from "./TaskComments";
+import { TaskActivities } from "./TaskActivities";
 import { useAuthStore } from "@/stores/auth.store";
 import { useTaskSocket } from "@/hooks/use-socket";
 import type { User } from "@/types/user";
@@ -576,6 +578,16 @@ export const TaskDetailModal = ({
                   currentUser={currentUser}
                   canInteract={canInteract}
                 />
+              </div>
+            </div>
+
+            {/* Activity Stream */}
+            <div className="space-y-6 pt-6 border-t border-slate-100 pb-10">
+              <h3 className="text-sm font-extrabold uppercase tracking-widest text-slate-400 flex items-center gap-2">
+                <Activity className="w-4 h-4" /> Lịch sử hoạt động
+              </h3>
+              <div className="mt-6">
+                <TaskActivities taskId={task._id} />
               </div>
             </div>
           </div>
