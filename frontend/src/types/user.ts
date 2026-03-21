@@ -4,4 +4,5 @@ export interface User {
   displayName?: string;
   avatarUrl?: string;
   role: "user" | "admin";
+  isActive: boolean;
 }

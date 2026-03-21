@@ -1,8 +1,8 @@
 const { Router } = require('express');
 const authRoutes = require('../modules/auth/auth.routes');
+const userRoutes = require('../modules/users/user.routes');
 
 // Các module khác sẽ được thêm dần khi implement
-// const userRoutes = require('../modules/users/user.routes');
 // const projectRoutes = require('../modules/projects/project.routes');
 // const columnRoutes = require('../modules/columns/column.routes');
 // const taskRoutes = require('../modules/tasks/task.routes');
@@ -15,7 +15,7 @@ const authRoutes = require('../modules/auth/auth.routes');
 const router = Router();
 
 router.use('/auth', authRoutes);
-// router.use('/users', userRoutes);
+router.use('/admin/users', userRoutes);
 // router.use('/projects', projectRoutes);
 // router.use('/columns', columnRoutes);
 // router.use('/tasks', taskRoutes);
