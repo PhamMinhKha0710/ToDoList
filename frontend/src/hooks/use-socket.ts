@@ -4,6 +4,7 @@ import { useAuthStore } from '@/stores/auth.store';
 import { useKanbanStore } from '@/stores/kanban.store';
 import { useNotificationStore } from '@/stores/notification.store';
 import { useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
 import type { Task } from '@/types/task';
 import type { Column } from '@/types/column';
 import type { Comment } from '@/types/comment';
@@ -117,6 +118,7 @@ export const useProjectSocket = (
     deleteColumn,
   } = useKanbanStore();
   const { accessToken: token, isSocketInitialized } = useAuthStore();
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     const socket = getSocket();
@@ -171,6 +173,13 @@ export const useProjectSocket = (
       setColumns(columns);
     };
 
+    const onActivityCreated = (activity: any) => {
+      queryClient.invalidateQueries({ queryKey: ['activities', projectId] });
+      if (activity.entityId) {
+        queryClient.invalidateQueries({ queryKey: ['activities', activity.entityId] });
+      }
+    };
+
     // ─── Comment events ───────────────────────────────────────────────────────
     const onCommentCreated = (comment: Comment) => {
       options?.onCommentCreated?.(comment);
@@ -188,6 +197,18 @@ export const useProjectSocket = (
     socket.on('comment:updated', onCommentUpdated);
     socket.on('comment:deleted', onCommentDeleted);
 
+    socket.on('task:created', onTaskCreated);
+    socket.on('task:updated', onTaskUpdated);
+    socket.on('task:deleted', onTaskDeleted);
+    socket.on('task:moved', onTaskMoved);
+
+    socket.on('column:created', onColumnCreated);
+    socket.on('column:updated', onColumnUpdated);
+    socket.on('column:deleted', onColumnDeleted);
+    socket.on('column:reordered', onColumnsReordered);
+
+    socket.on('activity:created', onActivityCreated);
+
     // ─── Cleanup ─────────────────────────────────────────────────────────────
     return () => {
       console.log(`[useProjectSocket] Leaving room for project: ${projectId}`);
@@ -203,6 +224,7 @@ export const useProjectSocket = (
       socket.off('column:updated', onColumnUpdated);
       socket.off('column:deleted', onColumnDeleted);
       socket.off('column:reordered', onColumnsReordered);
+      socket.off('activity:created', onActivityCreated);
 
       socket.off('comment:created', onCommentCreated);
       socket.off('comment:updated', onCommentUpdated);
@@ -226,6 +248,9 @@ export const useNotificationSocket = () => {
     const onNotificationNew = (notification: any) => {
       console.log('[Socket Global] New notification:', notification);
       increment();
+      if (notification?.title) {
+        toast.info(notification.title, { description: notification.message });
+      }
     };
 
     socket.on('notification:new', onNotificationNew);
