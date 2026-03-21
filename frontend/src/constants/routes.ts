@@ -9,6 +9,7 @@ export const ROUTES = {
   CALENDAR: '/calendar',
   MY_TASKS: '/my-tasks',
   PROFILE: '/profile',
+  ADMIN: '/admin',
   ADMIN_USERS: '/admin/users',
   ADMIN_PROJECTS: '/admin/projects',
 } as const
