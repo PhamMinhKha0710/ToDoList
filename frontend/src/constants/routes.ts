@@ -11,4 +11,5 @@ export const ROUTES = {
   PROFILE: '/profile',
   ADMIN_USERS: '/admin/users',
   ADMIN_PROJECTS: '/admin/projects',
+  GOOGLE_CALLBACK: '/auth/google/callback',
 } as const

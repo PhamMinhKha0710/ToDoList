@@ -82,6 +82,17 @@ class AuthController {
     await authService.verifyOtp(req.body);
     new ApiResponse(200, 'Xác thực OTP thành công').send(res);
   });
+
+  /**
+   * GET /api/auth/google/callback
+   * Passport đã xác thực xong và gắn user vào req.user
+   */
+  googleCallback = catchAsync(async (req, res) => {
+    const { accessToken, refreshToken } = await authService.loginWithGoogle(req.user);
+    res.cookie('refreshToken', refreshToken, authService.REFRESH_COOKIE_OPTIONS);
+    // Redirect về frontend kèm accessToken trong URL (frontend sẽ lưu vào store)
+    res.redirect(`${process.env.CLIENT_URL}/auth/google/callback?accessToken=${accessToken}`);
+  });
 }
 
 module.exports = new AuthController();

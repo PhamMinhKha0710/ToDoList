@@ -198,9 +198,25 @@ const authenticate2FA = async ({ tempToken, code }) => {
   return { accessToken, refreshToken, user: toUserResponse(user) };
 };
 
+/**
+ * Đăng nhập / đăng ký qua Google OAuth (user đã được Passport tìm/tạo sẵn)
+ */
+const loginWithGoogle = async (user) => {
+  const payload = {
+    _id: user._id.toString(),
+    role: user.role,
+    displayName: user.displayName,
+    email: user.email,
+  };
+  const accessToken = generateAccessToken(payload);
+  const refreshToken = generateRefreshToken({ _id: user._id.toString() });
+  return { accessToken, refreshToken, user: toUserResponse(user) };
+};
+
 module.exports = {
   register,
   login,
+  loginWithGoogle,
   refreshAccessToken,
   forgotPassword,
   resetPassword,
