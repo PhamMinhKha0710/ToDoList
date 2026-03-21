@@ -25,6 +25,10 @@ const userSchema = new Schema(
     avatarUrl: {
       type: String,
     },
+    isActive: {
+      type: Boolean,
+      default: true,
+    },
     // Dùng cho tính năng forgot/reset password
     otpCode: {
       type: String,

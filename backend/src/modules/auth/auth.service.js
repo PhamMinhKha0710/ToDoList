@@ -32,6 +32,10 @@ const login = async ({ email, password }) => {
   const user = await User.findOne({ email });
   if (!user) throw new ApiError(401, 'Email hoặc mật khẩu không đúng');
 
+  if (user.isActive === false) {
+    throw new ApiError(403, 'Tài khoản đã bị khóa');
+  }
+
   const isMatch = await bcrypt.compare(password, user.passwordHash);
   if (!isMatch) throw new ApiError(401, 'Email hoặc mật khẩu không đúng');
 
