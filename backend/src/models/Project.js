@@ -23,6 +23,15 @@ const projectSchema = new Schema(
       required: true,
       trim: true,
     },
+    imageUrl: {
+      type: String,
+      trim: true,
+    },
+    color: {
+      type: String,
+      trim: true,
+      default: '#3b82f6', // Default blue color
+    },
     description: {
       type: String,
     },
