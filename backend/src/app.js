@@ -4,7 +4,8 @@ const cors = require('cors');
 const morgan = require('morgan');
 const cookieParser = require('cookie-parser');
 const rateLimit = require('express-rate-limit');
-const { CLIENT_URL } = require('./config/env');
+const { CLIENT_URL } = require('./config/env'); // Vẫn phải load trước thư viện nội bộ config
+const passport = require('./config/passport');
 const routes = require('./routes/index');
 const errorMiddleware = require('./middlewares/error.middleware');
 
@@ -25,6 +26,9 @@ app.use(
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
+
+// ─── Passport (OAuth) ─────────────────────────────────────────────────────────
+app.use(passport.initialize());
 
 // ─── Static Files ─────────────────────────────────────────────────────────────
 const path = require('path');

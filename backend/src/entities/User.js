@@ -9,9 +9,13 @@ const userSchema = new Schema(
       // lowercase: true,
       trim: true,
     },
+    googleId: {
+      type: String,
+      default: null,
+    },
     passwordHash: {
       type: String,
-      required: true,
+      default: null, // null nếu đăng nhập bằng Google
     },
     role: {
       type: String,
@@ -28,6 +32,12 @@ const userSchema = new Schema(
     },
     avatarUrl: {
       type: String,
+      default: null,
+    },
+    provider: {
+      type: String,
+      enum: ['local', 'google'],
+      default: 'local',
     },
     // Dùng cho tính năng forgot/reset password
     otpCode: {

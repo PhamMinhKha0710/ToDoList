@@ -9,6 +9,7 @@ const router = express.Router();
 // Tất cả các route của user đều yêu cầu đăng nhập
 router.use(authenticate);
 
+router.get("/me", userController.getMe);
 router.get("/search", userController.searchUsers);
 router.put("/profile", validate(updateProfileSchema), userController.updateProfile);
 router.put("/change-password", validate(changePasswordSchema), userController.changePassword);

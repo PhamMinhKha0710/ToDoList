@@ -18,6 +18,7 @@ const ProfilePage = lazy(() => import("@/page/ProfilePage"));
 const AdminUsersPage = lazy(() => import("@/page/AdminUsersPage"));
 const AdminProjectsPage = lazy(() => import("@/page/AdminProjectsPage"));
 const InvitationPage = lazy(() => import("@/page/InvitationPage"));
+const GoogleCallbackPage = lazy(() => import("@/page/GoogleCallbackPage"));
 
 export const router = createBrowserRouter([
   // ─── Guest routes ──────────────────────────────────────────────────
@@ -25,6 +26,7 @@ export const router = createBrowserRouter([
   { path: ROUTES.REGISTER, element: <RegisterPage /> },
   { path: ROUTES.FORGOT_PASSWORD, element: <ForgotPasswordPage /> },
   { path: ROUTES.RESET_PASSWORD, element: <ResetPasswordPage /> },
+  { path: ROUTES.GOOGLE_CALLBACK, element: <GoogleCallbackPage /> },
 
   // ─── Protected routes ──────────────────────────────────────────────
   {
