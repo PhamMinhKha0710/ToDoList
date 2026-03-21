@@ -36,6 +36,22 @@ const createComment = async (commentData) => {
       }
     });
 
+    // Notify mentioned users first 
+    if (commentData.mentions && Array.isArray(commentData.mentions)) {
+      for (const mentionId of commentData.mentions) {
+        if (mentionId.toString() !== commentData.authorId.toString()) {
+          await notificationService.createNotification({
+            recipientId: mentionId,
+            type: 'mention',
+            title: 'Nhắc đến',
+            message: `${populated.authorId.displayName} đã nhắc đến bạn trong task "${task.title}"`,
+            metadata: { taskId: task._id, commentId: comment._id, projectId: task.columnId ? true : false } 
+          }, taskIdStr); // Check delivery via Task Room
+          recipients.delete(mentionId.toString()); // Remove from general comment noti
+        }
+      }
+    }
+
     for (const recipientId of recipients) {
       await notificationService.createNotification({
         recipientId,

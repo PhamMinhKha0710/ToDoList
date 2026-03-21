@@ -4,6 +4,7 @@ const Task = require("../entities/Task");
 const ApiError = require("../utils/ApiError");
 const attachmentRepository = require("../repositories/attachment.repository");
 const notificationService = require("./notification.service");
+const activityService = require("./activity.service");
 const {
   emitTaskCreated,
   emitTaskUpdated,
@@ -21,6 +22,16 @@ const createTask = async (taskData, files) => {
 
   // Realtime: broadcast tới tất cả client trong project room
   emitTaskCreated(column.projectId.toString(), task);
+
+  // Log Activity
+  await activityService.createActivityLog({
+    projectId: column.projectId,
+    userId: taskData.creatorId,
+    action: 'TASK_CREATED',
+    entityType: 'task',
+    entityId: task._id,
+    detail: { title: task.title }
+  });
 
   // Thông báo gán task
   if (task.assignees && task.assignees.length > 0) {
@@ -67,6 +78,16 @@ const updateTask = async (taskId, updateData, userId) => {
     const projectId = column.projectId.toString();
     emitTaskUpdated(projectId, task);
 
+    // Log Activity
+    await activityService.createActivityLog({
+      projectId,
+      userId,
+      action: 'TASK_UPDATED',
+      entityType: 'task',
+      entityId: task._id,
+      detail: updateData
+    });
+
     // Thông báo cập nhật cho assignees (trừ người thực hiện)
     const isMajorUpdate =
       (updateData.status && updateData.status !== oldTask.status) ||
@@ -93,7 +114,7 @@ const updateTask = async (taskId, updateData, userId) => {
   return task;
 };
 
-const deleteTask = async (taskId) => {
+const deleteTask = async (taskId, userId) => {
   const task = await taskRepository.getTaskById(taskId);
   if (!task) {
     throw new ApiError(404, "Không tìm thấy task để xóa");
@@ -113,14 +134,24 @@ const deleteTask = async (taskId) => {
 
   // Realtime
   const column = await Column.findById(columnId).select("projectId").lean();
-  if (column) emitTaskDeleted(column.projectId.toString(), taskId, columnId);
+  if (column) {
+    emitTaskDeleted(column.projectId.toString(), taskId, columnId);
+    await activityService.createActivityLog({
+      projectId: column.projectId,
+      userId,
+      action: 'TASK_DELETED',
+      entityType: 'task',
+      entityId: taskId,
+      detail: { taskTitle: task.title, columnId }
+    });
+  }
 };
 
 /**
  * Di chuyển task (drag & drop)
  * Nhận mảng taskIds theo thứ tự mới để bulk-update position
  */
-const moveTask = async (moveData) => {
+const moveTask = async (moveData, userId) => {
   const {
     taskId,
     sourceColumnId,
@@ -160,6 +191,14 @@ const moveTask = async (moveData) => {
       destinationColumnId,
       sourceTaskIds,
       destinationTaskIds,
+    });
+    await activityService.createActivityLog({
+      projectId: column.projectId,
+      userId,
+      action: 'TASK_MOVED',
+      entityType: 'task',
+      entityId: taskId,
+      detail: { sourceColumnId, destinationColumnId }
     });
   }
 };
