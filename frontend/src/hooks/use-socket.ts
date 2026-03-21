@@ -247,7 +247,7 @@ export const useNotificationSocket = () => {
 
     const onNotificationNew = (notification: any) => {
       console.log('[Socket Global] New notification:', notification);
-      increment();
+      useNotificationStore.getState().addNotification(notification);
       if (notification?.title) {
         toast.info(notification.title, { description: notification.message });
       }

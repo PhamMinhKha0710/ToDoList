@@ -7,6 +7,7 @@ interface NotificationState {
   notifications: Notification[]
   setUnreadCount: (n: number) => void
   setNotifications: (notifications: Notification[]) => void
+  addNotification: (notification: Notification) => void
   increment: () => void
   reset: () => void
   fetchUnreadCount: () => Promise<void>
@@ -17,6 +18,10 @@ export const useNotificationStore = create<NotificationState>((set) => ({
   notifications: [],
   setUnreadCount: (n) => set({ unreadCount: n }),
   setNotifications: (notifications) => set({ notifications }),
+  addNotification: (notification) => set((s) => ({
+    notifications: [notification, ...s.notifications],
+    unreadCount: s.unreadCount + 1
+  })),
   increment: () => set((s) => ({ unreadCount: s.unreadCount + 1 })),
   reset: () => set({ unreadCount: 0 }),
   fetchUnreadCount: async () => {

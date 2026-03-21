@@ -88,25 +88,39 @@ const updateTask = async (taskId, updateData, userId) => {
       detail: updateData
     });
 
-    // Thông báo cập nhật cho assignees (trừ người thực hiện)
+    // Thông báo cập nhật cho creators và assignees (trừ người thực hiện)
     const isMajorUpdate =
       (updateData.status && updateData.status !== oldTask.status) ||
-      (updateData.priority && updateData.priority !== oldTask.priority);
+      (updateData.priority && updateData.priority !== oldTask.priority) ||
+      updateData.title ||
+      updateData.description;
 
     console.log("isMajorUpdate : ", isMajorUpdate);
     console.log("task.assignees: ", task.assignees);
 
-    if (isMajorUpdate && task.assignees) {
-      for (const assigneeId of task.assignees) {
-        if (assigneeId.toString() !== userId?.toString()) {
-          await notificationService.createNotification({
-            recipientId: assigneeId,
-            type: "task_update",
-            title: "Cập nhật task",
-            message: `Task "${task.title}" đã được cập nhật trạng thái/độ ưu tiên`,
-            metadata: { taskId: task._id, projectId },
-          });
-        }
+    if (isMajorUpdate) {
+      const usersToNotify = new Set();
+      if (task.assignees) {
+        task.assignees.forEach(assignee => {
+          const id = assignee._id || assignee;
+          usersToNotify.add(id.toString());
+        });
+      }
+      if (task.creatorId) {
+        const cId = task.creatorId._id || task.creatorId;
+        usersToNotify.add(cId.toString());
+      }
+      
+      if (userId) usersToNotify.delete(userId.toString());
+
+      for (const recipientId of usersToNotify) {
+        await notificationService.createNotification({
+          recipientId,
+          type: "task_update",
+          title: "Cập nhật công việc",
+          message: `Công việc "${task.title}" vừa được cập nhật`,
+          metadata: { taskId: task._id, projectId },
+        });
       }
     }
   }
@@ -200,6 +214,35 @@ const moveTask = async (moveData, userId) => {
       entityId: taskId,
       detail: { sourceColumnId, destinationColumnId }
     });
+
+    if (sourceColumnId !== destinationColumnId) {
+      const usersToNotify = new Set();
+      if (task.assignees) {
+        task.assignees.forEach(assignee => {
+          const id = assignee._id || assignee;
+          usersToNotify.add(id.toString());
+        });
+      }
+      if (task.creatorId) {
+        const cId = task.creatorId._id || task.creatorId;
+        usersToNotify.add(cId.toString());
+      }
+      
+      if (userId) usersToNotify.delete(userId.toString());
+
+      if (usersToNotify.size > 0) {
+        const destCol = await Column.findById(destinationColumnId).select('title').lean();
+        for (const recipientId of usersToNotify) {
+          await notificationService.createNotification({
+            recipientId,
+            type: "task_update",
+            title: "Di chuyển công việc",
+            message: `Công việc "${task.title}" vừa được chuyển sang cột "${destCol?.title || 'khác'}"`,
+            metadata: { taskId: task._id, projectId: column.projectId.toString() },
+          });
+        }
+      }
+    }
   }
 };
 
