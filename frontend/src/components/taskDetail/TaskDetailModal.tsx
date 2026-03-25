@@ -112,8 +112,12 @@ export const TaskDetailModal = ({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const { members: projectMembers } = useKanbanStore();
+  const { members: projectMembers, tasks: storeTasks } = useKanbanStore();
   const { user: currentUser } = useAuthStore();
+
+  // Tìm task hiện tại từ Zustand store (được cập nhật real-time bởi socket)
+  const storeTask = Object.values(storeTasks).flat().find(t => t._id === task._id);
+  const lastSyncedRef = useRef<string | undefined>(task.updatedAt);
 
   const currentMember = projectMembers.find(
     (m) => (m.userId as User)._id === currentUser?._id,
@@ -181,6 +185,35 @@ export const TaskDetailModal = ({
       });
     }
   }, [task, open]);
+
+  // ─── Real-time sync: Đồng bộ editedTask khi store thay đổi từ socket ────────
+  useEffect(() => {
+    if (!storeTask || !open) return;
+    // Bỏ qua nếu updatedAt chưa đổi (tránh re-sync loop)
+    if (storeTask.updatedAt === lastSyncedRef.current) return;
+
+    if (!isEditing) {
+      // Auto-sync khi không đang chỉnh sửa
+      setEditedTask(prev => ({
+        ...prev,
+        title: storeTask.title,
+        description: storeTask.description || '',
+        status: storeTask.status,
+        priority: storeTask.priority,
+        dueDate: storeTask.dueDate,
+        color: storeTask.color,
+        tags: storeTask.tags || [],
+        assignees: (storeTask.assigneeIds || []) as string[],
+      }));
+      lastSyncedRef.current = storeTask.updatedAt;
+    } else {
+      // Cảnh báo khi đang edit mà có thay đổi từ người khác
+      toast.info('Task vừa được cập nhật bởi người khác', {
+        description: 'Hoàn tất chỉnh sửa và mở lại để xem bản mới nhất.',
+      });
+      lastSyncedRef.current = storeTask.updatedAt;
+    }
+  }, [storeTask?.updatedAt, open, isEditing]);
 
   const { deleteTask: storeDeleteTask, updateTask: storeUpdateTask } = useKanbanStore();
  

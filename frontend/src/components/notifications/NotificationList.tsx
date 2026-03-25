@@ -5,7 +5,9 @@ import {
   MessageSquare, 
   UserPlus, 
   ClipboardList, 
-  AlertCircle 
+  AlertCircle,
+  UserCheck,
+  UserX
 } from "lucide-react";
 import type { Notification, NotificationType } from "@/types/notification";
 import { notificationService } from "@/services/notification.service";
@@ -21,8 +23,10 @@ const getIcon = (type: NotificationType) => {
   switch (type) {
     case 'new_comment': return <MessageSquare className="w-4 h-4 text-emerald-500" />;
     case 'project_invite': return <UserPlus className="w-4 h-4 text-indigo-500" />;
-    case 'task_assigned': return <ClipboardList className="w-4 h-4 text-amber-500" />;
+    case 'task_assigned': return <UserCheck className="w-4 h-4 text-emerald-600" />;
     case 'task_update': return <ClipboardList className="w-4 h-4 text-blue-500" />;
+    case 'member_joined': return <UserCheck className="w-4 h-4 text-green-600" />;
+    case 'member_declined': return <UserX className="w-4 h-4 text-red-500" />;
     default: return <AlertCircle className="w-4 h-4 text-slate-500" />;
   }
 };
@@ -52,7 +56,7 @@ export const NotificationList = ({ notifications, onClose }: NotificationListPro
 
     // Điều hướng dựa trên metadata
     if (notif.type === 'project_invite' && notif.metadata?.projectId) {
-      navigate(`/projects/${notif.metadata.projectId}/invitation`);
+      navigate(`/projects/${notif.metadata.projectId}/invite`);
     } else if (notif.metadata?.projectId) {
       navigate(`/projects/${notif.metadata.projectId}`);
       // Nếu có taskId, có thể cân nhắc mở modal task (cần state management hoặc URL params)

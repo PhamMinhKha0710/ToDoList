@@ -1,4 +1,4 @@
-export type NotificationType = 'project_invite' | 'task_assigned' | 'new_comment' | 'task_update';
+export type NotificationType = 'project_invite' | 'task_assigned' | 'new_comment' | 'task_update' | 'member_joined' | 'member_declined';
 
 export interface Notification {
   _id: string;

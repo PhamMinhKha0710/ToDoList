@@ -88,27 +88,56 @@ const updateTask = async (taskId, updateData, userId) => {
       detail: updateData
     });
 
+    // Tính toán những assignee MỚI được thêm vào
+    const oldAssigneesStr = (oldTask.assignees || []).map(id => id.toString());
+    const isAssigneesUpdated = updateData.assignees !== undefined;
+    let newAssignedIds = [];
+    
+    if (isAssigneesUpdated) {
+      const currentAssigneesStr = (updateData.assignees || []).map(id => typeof id === 'object' ? (id._id || id).toString() : id.toString());
+      newAssignedIds = currentAssigneesStr.filter(id => !oldAssigneesStr.includes(id));
+      
+      // Gửi thông báo "Bạn vừa được phân công" riêng cho người mới
+      for (const assigneeId of newAssignedIds) {
+        if (userId && assigneeId === userId.toString()) continue;
+        await notificationService.createNotification({
+          recipientId: assigneeId,
+          type: "task_assigned",
+          title: "Phân công công việc",
+          message: `Bạn vừa được phân công vào công việc "${task.title}"`,
+          metadata: { taskId: task._id, projectId },
+        });
+      }
+    }
+
     // Thông báo cập nhật cho creators và assignees (trừ người thực hiện)
     const isMajorUpdate =
       (updateData.status && updateData.status !== oldTask.status) ||
       (updateData.priority && updateData.priority !== oldTask.priority) ||
       updateData.title ||
-      updateData.description;
+      updateData.description || 
+      (isAssigneesUpdated && oldAssigneesStr.length !== updateData.assignees.length);
 
-    console.log("isMajorUpdate : ", isMajorUpdate);
-    console.log("task.assignees: ", task.assignees);
+    console.log("isMajorUpdate : ", !!isMajorUpdate);
 
-    if (isMajorUpdate) {
+    if (isMajorUpdate || newAssignedIds.length > 0) {
       const usersToNotify = new Set();
       if (task.assignees) {
         task.assignees.forEach(assignee => {
           const id = assignee._id || assignee;
-          usersToNotify.add(id.toString());
+          const strId = id.toString();
+          // Lọc ra, không gửi "task_update" cho ng vừa nhận "task_assigned"
+          if (!newAssignedIds.includes(strId)) {
+            usersToNotify.add(strId);
+          }
         });
       }
       if (task.creatorId) {
         const cId = task.creatorId._id || task.creatorId;
-        usersToNotify.add(cId.toString());
+        const strId = cId.toString();
+        if (!newAssignedIds.includes(strId)) {
+          usersToNotify.add(strId);
+        }
       }
       
       if (userId) usersToNotify.delete(userId.toString());

@@ -202,12 +202,17 @@ export const useProjectSocket = (
     socket.on('task:deleted', onTaskDeleted);
     socket.on('task:moved', onTaskMoved);
 
+    const onProjectMemberUpdated = () => {
+      queryClient.invalidateQueries({ queryKey: ['project', projectId] });
+    };
+
     socket.on('column:created', onColumnCreated);
     socket.on('column:updated', onColumnUpdated);
     socket.on('column:deleted', onColumnDeleted);
     socket.on('column:reordered', onColumnsReordered);
 
     socket.on('activity:created', onActivityCreated);
+    socket.on('project:member_updated', onProjectMemberUpdated);
 
     // ─── Cleanup ─────────────────────────────────────────────────────────────
     return () => {
@@ -225,6 +230,7 @@ export const useProjectSocket = (
       socket.off('column:deleted', onColumnDeleted);
       socket.off('column:reordered', onColumnsReordered);
       socket.off('activity:created', onActivityCreated);
+      socket.off('project:member_updated', onProjectMemberUpdated);
 
       socket.off('comment:created', onCommentCreated);
       socket.off('comment:updated', onCommentUpdated);
