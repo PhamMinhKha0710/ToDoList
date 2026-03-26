@@ -13,7 +13,9 @@ import {
   ChevronUp,
   Reply,
   X,
+  AtSign,
 } from "lucide-react";
+import { useKanbanStore } from "@/stores/kanban.store";
 import { toast } from "sonner";
 import { commentService } from "@/services/comment.service";
 import type { User } from "@/types/user";
@@ -44,6 +46,8 @@ export const TaskComments = ({
 }: TaskCommentsProps) => {
   const queryClient = useQueryClient();
   const [newComment, setNewComment] = useState("");
+  const [mentions, setMentions] = useState<string[]>([]);
+  const { members: projectMembers } = useKanbanStore();
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editContent, setEditContent] = useState("");
   const [isExpanded, setIsExpanded] = useState(true);
@@ -113,6 +117,7 @@ export const TaskComments = ({
         taskId,
         content,
         parentId: replyingTo?.id || null,
+        mentions: mentions.length > 0 ? mentions : undefined,
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["comments", taskId] });
@@ -121,6 +126,7 @@ export const TaskComments = ({
       }
       setNewComment("");
       setReplyingTo(null);
+      setMentions([]);
     },
     onError: (error) => {
       // toast.error(getErrorMessage(error) || "Lỗi khi gửi bình luận");
@@ -472,9 +478,59 @@ export const TaskComments = ({
                     onKeyDown={(e) => handleKeyDown(e, false)}
                     disabled={createMutation.isPending}
                   />
+
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="shrink-0 w-9 h-9 rounded-xl hover:bg-slate-100 text-slate-400 hover:text-indigo-600 transition-colors ml-2 mb-0.5"
+                        disabled={createMutation.isPending}
+                        type="button"
+                        title="Nhắc đến ai đó"
+                      >
+                        <AtSign className="w-4 h-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-56 max-h-60 overflow-y-auto">
+                      {projectMembers.map((m: any) => {
+                        const user = m.userId as User;
+                        if (!user || user._id === currentUser?._id) return null;
+                        return (
+                          <DropdownMenuItem
+                            key={user._id}
+                            className="cursor-pointer"
+                            onClick={() => {
+                              const mentionStr = `@${user.displayName || user.email} `;
+                              setNewComment(prev => prev + mentionStr);
+                              setMentions(prev => [...new Set([...prev, user._id])]);
+                              if (inputRef.current) inputRef.current.focus();
+                            }}
+                          >
+                            <div className="flex items-center gap-2">
+                              <div className="w-6 h-6 rounded-full bg-slate-200 overflow-hidden flex items-center justify-center">
+                                {user.avatarUrl ? (
+                                  <img src={user.avatarUrl} alt="avatar" className="w-full h-full object-cover" />
+                                ) : (
+                                  <span className="text-[10px] font-bold text-slate-500 uppercase">
+                                    {user.displayName?.charAt(0) || "U"}
+                                  </span>
+                                )}
+                              </div>
+                              <span className="text-sm">{user.displayName || user.email}</span>
+                            </div>
+                          </DropdownMenuItem>
+                        );
+                      })}
+                      {projectMembers.filter((m: any) => m.userId && m.userId._id !== currentUser?._id).length === 0 && (
+                        <div className="p-2 text-sm text-center text-slate-500 italic">Không có thành viên khác</div>
+                      )}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+
                   <Button
                     size="icon"
-                    className="shrink-0 w-9 h-9 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white transition-all shadow-sm disabled:opacity-50 disabled:bg-slate-300 ml-2 mb-0.5"
+                    className="shrink-0 w-9 h-9 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white transition-all shadow-sm disabled:opacity-50 disabled:bg-slate-300 ml-1 mb-0.5"
                     onClick={handleCreate}
                     disabled={!newComment.trim() || createMutation.isPending}
                   >

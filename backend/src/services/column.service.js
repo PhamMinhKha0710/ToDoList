@@ -2,6 +2,7 @@ const columnRepository = require('../repositories/column.repository');
 const Column = require('../entities/Column');
 const ApiError = require('../utils/ApiError');
 const mongoose = require('mongoose');
+const { emitColumnCreated, emitColumnUpdated, emitColumnDeleted, emitColumnsReordered } = require('../sockets/column.socket');
 
 class ColumnService {
   async createColumn(columnData) {
@@ -17,6 +18,9 @@ class ColumnService {
       position: count,
     });
 
+    // Realtime
+    emitColumnCreated(projectId.toString(), newColumn);
+
     return newColumn;
   }
 
@@ -31,7 +35,12 @@ class ColumnService {
     if (!column) {
       throw new ApiError(404, 'Không tìm thấy cột');
     }
-    return columnRepository.updateById(columnId, updateData);
+    const updated = await columnRepository.updateById(columnId, updateData);
+
+    // Realtime
+    emitColumnUpdated(column.projectId.toString(), updated);
+
+    return updated;
   }
 
   async deleteColumn(columnId) {
@@ -51,6 +60,9 @@ class ColumnService {
       { projectId, position: { $gt: deletedPosition } },
       { $inc: { position: -1 } }
     );
+
+    // Realtime
+    emitColumnDeleted(projectId.toString(), columnId);
 
     return null;
   }
@@ -81,7 +93,12 @@ class ColumnService {
     await Column.bulkWrite(bulkOps);
 
     // Trả về columns đã được sắp xếp
-    return Column.find({ projectId }).sort({ position: 1 });
+    const sorted = await Column.find({ projectId }).sort({ position: 1 });
+
+    // Realtime
+    emitColumnsReordered(projectId.toString(), sorted);
+
+    return sorted;
   }
 }
 

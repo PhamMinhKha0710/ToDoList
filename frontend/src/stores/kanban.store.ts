@@ -5,15 +5,19 @@ import type { Kanban } from '@/types/kanban';
 
 
 export const useKanbanStore = create<Kanban>()((set) => ({
+  activeProject: null,
   columns: [],
   tasks: {},
   members: [],
 
+  setActiveProject: (project) => set({ activeProject: project }),
   setColumns: (columns) => set({ columns }),
   setMembers: (members) => set({ members }),
-  
-  addColumn: (column) => set((state) => ({ 
-    columns: [...state.columns, column] 
+
+  addColumn: (column) => set((state) => ({
+    columns: state.columns.some((c) => c._id === column._id)
+      ? state.columns
+      : [...state.columns, column],
   })),
 
   updateColumn: (columnId, data) => set((state) => ({
@@ -36,12 +40,16 @@ export const useKanbanStore = create<Kanban>()((set) => ({
     }
   })),
 
-  addTask: (columnId, task) => set((state) => ({
-    tasks: {
-      ...state.tasks,
-      [columnId]: [...(state.tasks[columnId] || []), task]
-    }
-  })),
+  addTask: (columnId, task) => set((state) => {
+    const currentTasks = state.tasks[columnId] || [];
+    if (currentTasks.some((t) => t._id === task._id)) return state;
+    return {
+      tasks: {
+        ...state.tasks,
+        [columnId]: [...currentTasks, task]
+      }
+    };
+  }),
 
   deleteTask: (columnId, taskId) => set((state) => ({
     tasks: {

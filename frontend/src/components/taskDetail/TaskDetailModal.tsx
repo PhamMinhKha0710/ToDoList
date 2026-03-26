@@ -20,6 +20,7 @@ import {
   User as UserIcon,
   Palette,
   MessageSquare,
+  Activity,
   X,
   Plus,
   Loader2,
@@ -30,7 +31,9 @@ import { DeleteTaskConfirmModal } from "./DeleteTaskConfirmModal";
 import { TaskAttachments } from "./TaskAttachments";
 import { TaskTags } from "./TaskTags";
 import { TaskComments } from "./TaskComments";
+import { TaskActivities } from "./TaskActivities";
 import { useAuthStore } from "@/stores/auth.store";
+import { useTaskSocket } from "@/hooks/use-socket";
 import type { User } from "@/types/user";
 import { type AppAxiosError, getErrorMessage } from "@/types/error";
 import type { Attachment } from "./TaskAttachments";
@@ -84,6 +87,9 @@ export const TaskDetailModal = ({
   const [isEditing, setIsEditing] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
+  // Real-time comments
+  useTaskSocket(task._id);
+
   const [isUploadingFiles, setIsUploadingFiles] = useState(false);
   const [deletedAttachmentIds, setDeletedAttachmentIds] = useState<string[]>(
     [],
@@ -106,8 +112,12 @@ export const TaskDetailModal = ({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const { members: projectMembers } = useKanbanStore();
+  const { members: projectMembers, tasks: storeTasks } = useKanbanStore();
   const { user: currentUser } = useAuthStore();
+
+  // Tìm task hiện tại từ Zustand store (được cập nhật real-time bởi socket)
+  const storeTask = Object.values(storeTasks).flat().find(t => t._id === task._id);
+  const lastSyncedRef = useRef<string | undefined>(task.updatedAt);
 
   const currentMember = projectMembers.find(
     (m) => (m.userId as User)._id === currentUser?._id,
@@ -175,6 +185,35 @@ export const TaskDetailModal = ({
       });
     }
   }, [task, open]);
+
+  // ─── Real-time sync: Đồng bộ editedTask khi store thay đổi từ socket ────────
+  useEffect(() => {
+    if (!storeTask || !open) return;
+    // Bỏ qua nếu updatedAt chưa đổi (tránh re-sync loop)
+    if (storeTask.updatedAt === lastSyncedRef.current) return;
+
+    if (!isEditing) {
+      // Auto-sync khi không đang chỉnh sửa
+      setEditedTask(prev => ({
+        ...prev,
+        title: storeTask.title,
+        description: storeTask.description || '',
+        status: storeTask.status,
+        priority: storeTask.priority,
+        dueDate: storeTask.dueDate,
+        color: storeTask.color,
+        tags: storeTask.tags || [],
+        assignees: (storeTask.assigneeIds || []) as string[],
+      }));
+      lastSyncedRef.current = storeTask.updatedAt;
+    } else {
+      // Cảnh báo khi đang edit mà có thay đổi từ người khác
+      toast.info('Task vừa được cập nhật bởi người khác', {
+        description: 'Hoàn tất chỉnh sửa và mở lại để xem bản mới nhất.',
+      });
+      lastSyncedRef.current = storeTask.updatedAt;
+    }
+  }, [storeTask?.updatedAt, open, isEditing]);
 
   const { deleteTask: storeDeleteTask, updateTask: storeUpdateTask } = useKanbanStore();
  
@@ -572,6 +611,16 @@ export const TaskDetailModal = ({
                   currentUser={currentUser}
                   canInteract={canInteract}
                 />
+              </div>
+            </div>
+
+            {/* Activity Stream */}
+            <div className="space-y-6 pt-6 border-t border-slate-100 pb-10">
+              <h3 className="text-sm font-extrabold uppercase tracking-widest text-slate-400 flex items-center gap-2">
+                <Activity className="w-4 h-4" /> Lịch sử hoạt động
+              </h3>
+              <div className="mt-6">
+                <TaskActivities taskId={task._id} />
               </div>
             </div>
           </div>

@@ -5,7 +5,11 @@ const mongoose = require('mongoose');
 const createTask = async (taskData, files = []) => {
   // Tính position mới = số task hiện tại trong column
   const count = await Task.countDocuments({ columnId: taskData.columnId });
-  const task = await Task.create({ ...taskData, position: count });
+  const rawTask = await Task.create({ ...taskData, position: count });
+
+  // Populate assignees & creator để socket emit có đầy đủ thông tin user
+  const task = await Task.findById(rawTask._id)
+    .populate('creatorId assignees', 'displayName email avatarUrl');
 
   // Tạo attachments nếu có file
   let attachments = [];
@@ -47,7 +51,8 @@ const getTaskById = async (taskId) => {
 };
 
 const updateTask = async (taskId, updateData) => {
-  return await Task.findByIdAndUpdate(taskId, updateData, { new: true });
+  return await Task.findByIdAndUpdate(taskId, updateData, { new: true })
+    .populate('creatorId assignees', 'displayName email avatarUrl');
 };
 
 const deleteTask = async (taskId) => {
