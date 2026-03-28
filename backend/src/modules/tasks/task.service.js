@@ -1,121 +1,113 @@
-const taskRepository = require('./task.repository');
-const Column = require('../../models/Column');
-const Task = require('../../models/Task');
-const ApiError = require('../../utils/ApiError');
-const attachmentRepository = require('../attachments/attachment.repository');
-
-const createTask = async (taskData, files) => {
-  const column = await Column.findById(taskData.columnId);
-  if (!column) {
-    throw new ApiError(404, 'Không tìm thấy cột tương ứng');
+class TaskService {
+  constructor({ taskRepository, Column, Task, ApiError, attachmentRepository }) {
+    this.taskRepository = taskRepository;
+    this.Column = Column;
+    this.Task = Task;
+    this.ApiError = ApiError;
+    this.attachmentRepository = attachmentRepository;
   }
 
-  return await taskRepository.createTask(taskData, files);
-};
+  createTask = async (taskData, files) => {
+    const column = await this.Column.findById(taskData.columnId);
+    if (!column) {
+      throw new this.ApiError(404, 'Không tìm thấy cột tương ứng');
+    }
 
-const getTasksByColumnId = async (columnId) => {
-  return await taskRepository.getTasksByColumnId(columnId);
-};
+    return await this.taskRepository.createTask(taskData, files);
+  };
 
-const getTaskById = async (taskId) => {
-  const task = await taskRepository.getTaskById(taskId);
-  if (!task) {
-    throw new ApiError(404, 'Không tìm thấy task');
-  }
-  return task;
-};
+  getTasksByColumnId = async (columnId) => {
+    return await this.taskRepository.getTasksByColumnId(columnId);
+  };
 
-const updateTask = async (taskId, updateData) => {
-  const task = await taskRepository.updateTask(taskId, updateData);
-  if (!task) {
-    throw new ApiError(404, 'Không tìm thấy task để cập nhật');
-  }
-  return task;
-};
+  getTaskById = async (taskId) => {
+    const task = await this.taskRepository.getTaskById(taskId);
+    if (!task) {
+      throw new this.ApiError(404, 'Không tìm thấy task');
+    }
+    return task;
+  };
 
-const deleteTask = async (taskId) => {
-  const task = await taskRepository.getTaskById(taskId);
-  if (!task) {
-    throw new ApiError(404, 'Không tìm thấy task để xóa');
-  }
+  updateTask = async (taskId, updateData) => {
+    const task = await this.taskRepository.updateTask(taskId, updateData);
+    if (!task) {
+      throw new this.ApiError(404, 'Không tìm thấy task để cập nhật');
+    }
+    return task;
+  };
 
-  const columnId = task.columnId;
-  const deletedPosition = task.position;
+  deleteTask = async (taskId) => {
+    const task = await this.taskRepository.getTaskById(taskId);
+    if (!task) {
+      throw new this.ApiError(404, 'Không tìm thấy task để xóa');
+    }
 
-  // Xóa task
-  await taskRepository.deleteTask(taskId);
+    const columnId = task.columnId;
+    const deletedPosition = task.position;
 
-  // Compact positions của tasks còn lại trong cùng column
-  await Task.updateMany(
-    { columnId, position: { $gt: deletedPosition } },
-    { $inc: { position: -1 } }
-  );
-};
+    await this.taskRepository.deleteTask(taskId);
 
-/**
- * Di chuyển task (drag & drop)
- * Nhận mảng taskIds theo thứ tự mới để bulk-update position
- */
-const moveTask = async (moveData) => {
-  const { taskId, sourceColumnId, destinationColumnId, sourceTaskIds, destinationTaskIds } = moveData;
-
-  // Validate task tồn tại
-  const task = await taskRepository.getTaskById(taskId);
-  if (!task) {
-    throw new ApiError(404, 'Không tìm thấy task');
-  }
-
-  if (sourceColumnId === destinationColumnId) {
-    // Same column: chỉ reorder trong source
-    await taskRepository.reorderTasks(sourceTaskIds, sourceColumnId);
-  } else {
-    // Cross-column: reorder cả hai column và update columnId của task
-    await taskRepository.reorderTasks(
-      sourceTaskIds,
-      sourceColumnId,
-      destinationTaskIds,
-      destinationColumnId,
-      taskId
+    await this.Task.updateMany(
+      { columnId, position: { $gt: deletedPosition } },
+      { $inc: { position: -1 } }
     );
-  }
-};
+  };
 
-const addTagsToTask = async (taskId, tagsArray) => {
-  const task = await taskRepository.getTaskById(taskId);
-  if (!task) {
-    throw new ApiError(404, 'Không tìm thấy task để thêm tag');
-  }
+  moveTask = async (moveData) => {
+    const { taskId, sourceColumnId, destinationColumnId, sourceTaskIds, destinationTaskIds } = moveData;
 
-  if (!tagsArray || tagsArray.length === 0) {
-    return task;
-  }
+    const task = await this.taskRepository.getTaskById(taskId);
+    if (!task) {
+      throw new this.ApiError(404, 'Không tìm thấy task');
+    }
 
-  const existingNames = task.tags.map(t => t.name.toLowerCase());
-  const newTagsToInsert = tagsArray.filter(t => !existingNames.includes(t.name.toLowerCase()));
+    if (sourceColumnId === destinationColumnId) {
+      await this.taskRepository.reorderTasks(sourceTaskIds, sourceColumnId);
+    } else {
+      await this.taskRepository.reorderTasks(
+        sourceTaskIds,
+        sourceColumnId,
+        destinationTaskIds,
+        destinationColumnId,
+        taskId
+      );
+    }
+  };
 
-  if (newTagsToInsert.length === 0) {
-    return task;
-  }
+  addTagsToTask = async (taskId, tagsArray) => {
+    const task = await this.taskRepository.getTaskById(taskId);
+    if (!task) {
+      throw new this.ApiError(404, 'Không tìm thấy task để thêm tag');
+    }
 
-  return await taskRepository.addTagsToTask(taskId, newTagsToInsert);
-};
+    if (!tagsArray || tagsArray.length === 0) {
+      return task;
+    }
 
-const removeTagFromTask = async (taskId, tagName) => {
-  const task = await taskRepository.getTaskById(taskId);
-  if (!task) {
-    throw new ApiError(404, 'Không tìm thấy task để xóa tag');
-  }
+    const existingNames = task.tags.map(t => t.name.toLowerCase());
+    const newTagsToInsert = tagsArray.filter(t => !existingNames.includes(t.name.toLowerCase()));
 
-  return await taskRepository.removeTagFromTask(taskId, tagName);
-};
+    if (newTagsToInsert.length === 0) {
+      return task;
+    }
 
-module.exports = {
-  createTask,
-  getTasksByColumnId,
-  getTaskById,
-  updateTask,
-  deleteTask,
-  moveTask,
-  addTagsToTask,
-  removeTagFromTask,
-};
+    return await this.taskRepository.addTagsToTask(taskId, newTagsToInsert);
+  };
+
+  removeTagFromTask = async (taskId, tagName) => {
+    const task = await this.taskRepository.getTaskById(taskId);
+    if (!task) {
+      throw new this.ApiError(404, 'Không tìm thấy task để xóa tag');
+    }
+
+    return await this.taskRepository.removeTagFromTask(taskId, tagName);
+  };
+}
+
+module.exports = new TaskService({
+  taskRepository: require('./task.repository'),
+  Column: require('../../entities/Column'),
+  Task: require('../../entities/Task'),
+  ApiError: require('../../utils/ApiError'),
+  attachmentRepository: require('../attachments/attachment.repository'),
+});

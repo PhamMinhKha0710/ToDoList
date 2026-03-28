@@ -1,12 +1,12 @@
-const projectRepository = require('./project.repository');
-const User = require('../../models/User');
-const ApiError = require('../../utils/ApiError');
-
 class ProjectService {
+  constructor({ projectRepository, User, ApiError }) {
+    this.projectRepository = projectRepository;
+    this.User = User;
+    this.ApiError = ApiError;
+  }
+
   async createProject(userId, projectData) {
     const members = projectData.members || [];
-    // Thêm người tạo vào list members với role 'owner'
-    // Lưu ý: Đảm bảo không bị trùng ID nếu frontend có lỡ gửi lên (hiếm)
     const existingOwnerIndex = members.findIndex(m => m.userId.toString() === userId.toString());
     if (existingOwnerIndex === -1) {
       members.push({ userId, role: 'owner', status: 'active' });
@@ -19,57 +19,55 @@ class ProjectService {
       ...projectData,
       members,
     };
-    return projectRepository.create(newProjectData);
+    return this.projectRepository.create(newProjectData);
   }
 
   async getUserProjects(userId) {
-    return projectRepository.findByUserId(userId);
+    return this.projectRepository.findByUserId(userId);
   }
 
   async getProjectById(projectId) {
-    const project = await projectRepository.findById(projectId);
+    const project = await this.projectRepository.findById(projectId);
     if (!project) {
-      throw new ApiError(404, 'Không tìm thấy dự án');
+      throw new this.ApiError(404, 'Không tìm thấy dự án');
     }
     return project;
   }
 
   async updateProject(projectId, updateData) {
     const project = await this.getProjectById(projectId);
-    return projectRepository.updateById(projectId, updateData);
+    return this.projectRepository.updateById(projectId, updateData);
   }
 
   async deleteProject(projectId) {
     const project = await this.getProjectById(projectId);
-    await projectRepository.deleteById(projectId);
-    return null; // Return nothing on delete
+    await this.projectRepository.deleteById(projectId);
+    return null;
   }
 
   async addMember(projectId, email, role = 'member') {
     const project = await this.getProjectById(projectId);
 
-    // Tìm user theo email
-    const userToAdd = await User.findOne({ email });
+    const userToAdd = await this.User.findOne({ email });
     if (!userToAdd) {
-      throw new ApiError(404, 'Không tìm thấy người dùng với email này');
+      throw new this.ApiError(404, 'Không tìm thấy người dùng với email này');
     }
 
-    // Kiểm tra xem user này đã là thành viên chưa
     const isMember = project.members.some(
       (m) => m.userId._id.toString() === userToAdd._id.toString()
     );
 
     if (isMember) {
-      throw new ApiError(400, 'Người dùng này đã là thành viên của dự án');
+      throw new this.ApiError(400, 'Người dùng này đã là thành viên của dự án');
     }
 
     const memberData = {
       userId: userToAdd._id,
       role,
-      status: 'pending', // Thành viên mới được thêm vào ở trạng thái pending
+      status: 'pending',
     };
 
-    return projectRepository.addMember(projectId, memberData);
+    return this.projectRepository.addMember(projectId, memberData);
   }
 
   async removeMember(projectId, userIdToRemove) {
@@ -80,14 +78,14 @@ class ProjectService {
     );
 
     if (!memberToRemove) {
-      throw new ApiError(404, 'Thành viên không tồn tại trong dự án');
+      throw new this.ApiError(404, 'Thành viên không tồn tại trong dự án');
     }
 
     if (memberToRemove.role === 'owner') {
-      throw new ApiError(400, 'Không thể xóa owner khỏi dự án. Vui lòng chuyển quyền hoặc xóa dự án.');
+      throw new this.ApiError(400, 'Không thể xóa owner khỏi dự án. Vui lòng chuyển quyền hoặc xóa dự án.');
     }
 
-    return projectRepository.removeMember(projectId, userIdToRemove);
+    return this.projectRepository.removeMember(projectId, userIdToRemove);
   }
 
   async updateMemberRole(projectId, userIdToUpdate, newRole) {
@@ -98,41 +96,37 @@ class ProjectService {
     );
 
     if (!memberToUpdate) {
-      throw new ApiError(404, 'Thành viên không tồn tại trong dự án');
+      throw new this.ApiError(404, 'Thành viên không tồn tại trong dự án');
     }
 
-    // Nếu hạ quyền owner xuống bất kỳ role nào khác, phải đảm bảo còn ít nhất 1 owner
     if (memberToUpdate.role === 'owner' && newRole !== 'owner') {
       const ownerCount = project.members.filter((m) => m.role === 'owner').length;
       if (ownerCount <= 1) {
-        throw new ApiError(400, 'Dự án phải có ít nhất 1 Owner. Không thể hạ quyền Owner duy nhất.');
+        throw new this.ApiError(400, 'Dự án phải có ít nhất 1 Owner. Không thể hạ quyền Owner duy nhất.');
       }
     }
 
-    return projectRepository.updateMemberRole(projectId, userIdToUpdate, newRole);
+    return this.projectRepository.updateMemberRole(projectId, userIdToUpdate, newRole);
   }
 
   async getInvitationDetails(projectId, userId) {
     const project = await this.getProjectById(projectId);
-    
-    // Check if user is in members array and has status pending
+
     const member = project.members.find(
       (m) => m.userId._id.toString() === userId.toString() || m.userId.toString() === userId.toString()
     );
 
     if (!member) {
-      throw new ApiError(403, 'Bạn không được mời tham gia dự án này');
+      throw new this.ApiError(403, 'Bạn không được mời tham gia dự án này');
     }
 
     if (member.status === 'active') {
-      throw new ApiError(400, 'Bạn đã là thành viên chính thức của dự án này');
+      throw new this.ApiError(400, 'Bạn đã là thành viên chính thức của dự án này');
     }
 
-    // Find owner
     const owner = project.members.find(m => m.role === 'owner')?.userId;
     const activeMembersCount = project.members.filter(m => m.status === 'active').length;
 
-    // Return basic project details
     return {
       _id: project._id,
       name: project.name,
@@ -157,13 +151,13 @@ class ProjectService {
     );
 
     if (memberIndex === -1) {
-      throw new ApiError(403, 'Bạn không được mời tham gia dự án này');
+      throw new this.ApiError(403, 'Bạn không được mời tham gia dự án này');
     }
 
     const member = project.members[memberIndex];
 
     if (member.status === 'active') {
-      throw new ApiError(400, 'Bạn đã là thành viên chính thức của dự án này');
+      throw new this.ApiError(400, 'Bạn đã là thành viên chính thức của dự án này');
     }
 
     if (action === 'accept') {
@@ -171,11 +165,15 @@ class ProjectService {
       await project.save();
       return project;
     } else if (action === 'decline') {
-      return projectRepository.removeMember(projectId, userId);
+      return this.projectRepository.removeMember(projectId, userId);
     } else {
-      throw new ApiError(400, 'Hành động không hợp lệ');
+      throw new this.ApiError(400, 'Hành động không hợp lệ');
     }
   }
 }
 
-module.exports = new ProjectService();
+module.exports = new ProjectService({
+  projectRepository: require('./project.repository'),
+  User: require('../../entities/User'),
+  ApiError: require('../../utils/ApiError'),
+});

@@ -1,348 +1,309 @@
-const taskRepository = require("../repositories/task.repository");
-const Column = require("../entities/Column");
-const Task = require("../entities/Task");
-const ApiError = require("../utils/ApiError");
-const attachmentRepository = require("../repositories/attachment.repository");
-const notificationService = require("./notification.service");
-const activityService = require("./activity.service");
-const {
-  emitTaskCreated,
-  emitTaskUpdated,
-  emitTaskDeleted,
-  emitTaskMoved,
-} = require("../sockets/task.socket");
-
-const createTask = async (taskData, files) => {
-  const column = await Column.findById(taskData.columnId);
-  if (!column) {
-    throw new ApiError(404, "Không tìm thấy cột tương ứng");
+class TaskService {
+  constructor({
+    taskRepository,
+    Column,
+    Task,
+    ApiError,
+    attachmentRepository,
+    notificationService,
+    activityService,
+    taskSocket,
+  }) {
+    this.taskRepository = taskRepository;
+    this.Column = Column;
+    this.Task = Task;
+    this.ApiError = ApiError;
+    this.attachmentRepository = attachmentRepository;
+    this.notificationService = notificationService;
+    this.activityService = activityService;
+    this.taskSocket = taskSocket;
   }
 
-  const task = await taskRepository.createTask(taskData, files);
-
-  // Realtime: broadcast tới tất cả client trong project room
-  emitTaskCreated(column.projectId.toString(), task);
-
-  // Log Activity
-  await activityService.createActivityLog({
-    projectId: column.projectId,
-    userId: taskData.creatorId,
-    action: 'TASK_CREATED',
-    entityType: 'task',
-    entityId: task._id,
-    detail: { title: task.title }
-  });
-
-  // Thông báo gán task
-  if (task.assignees && task.assignees.length > 0) {
-    for (const assigneeId of task.assignees) {
-      if (assigneeId.toString() !== task.creatorId.toString()) {
-        await notificationService.createNotification({
-          recipientId: assigneeId,
-          type: "task_assigned",
-          title: "Công việc mới",
-          message: `Bạn được giao task "${task.title}"`,
-          metadata: { taskId: task._id, projectId: column.projectId },
-        });
-      }
+  createTask = async (taskData, files) => {
+    const column = await this.Column.findById(taskData.columnId);
+    if (!column) {
+      throw new this.ApiError(404, "Không tìm thấy cột tương ứng");
     }
-  }
 
-  return task;
-};
+    const task = await this.taskRepository.createTask(taskData, files);
 
-const getTasksByColumnId = async (columnId) => {
-  return await taskRepository.getTasksByColumnId(columnId);
-};
+    this.taskSocket.emitTaskCreated(column.projectId.toString(), task);
 
-const getTaskById = async (taskId) => {
-  let task = await taskRepository.getTaskById(taskId);
-  if (!task) {
-    const PersonalTask = require('../entities/PersonalTask');
-    task = await PersonalTask.findById(taskId);
-    if (task) {
-      const taskObj = task.toObject();
-      return { ...taskObj, isPersonal: true };
-    }
-    throw new ApiError(404, 'Không tìm thấy task');
-  }
-  return { ...task.toObject(), isPersonal: false };
-};
-
-const updateTask = async (taskId, updateData, userId) => {
-  const oldTask = await Task.findById(taskId).lean();
-  const task = await taskRepository.updateTask(taskId, updateData);
-  if (!task) {
-    throw new ApiError(404, "Không tìm thấy task để cập nhật");
-  }
-
-  // Realtime
-  const column = await Column.findById(task.columnId)
-    .select("projectId")
-    .lean();
-  if (column) {
-    const projectId = column.projectId.toString();
-    emitTaskUpdated(projectId, task);
-
-    // Log Activity
-    await activityService.createActivityLog({
-      projectId,
-      userId,
-      action: 'TASK_UPDATED',
+    await this.activityService.createActivityLog({
+      projectId: column.projectId,
+      userId: taskData.creatorId,
+      action: 'TASK_CREATED',
       entityType: 'task',
       entityId: task._id,
-      detail: updateData
+      detail: { title: task.title }
     });
 
-    // Tính toán những assignee MỚI được thêm vào
-    const oldAssigneesStr = (oldTask.assignees || []).map(id => id.toString());
-    const isAssigneesUpdated = updateData.assignees !== undefined;
-    let newAssignedIds = [];
-    
-    if (isAssigneesUpdated) {
-      const currentAssigneesStr = (updateData.assignees || []).map(id => typeof id === 'object' ? (id._id || id).toString() : id.toString());
-      newAssignedIds = currentAssigneesStr.filter(id => !oldAssigneesStr.includes(id));
-      
-      // Gửi thông báo "Bạn vừa được phân công" riêng cho người mới
-      for (const assigneeId of newAssignedIds) {
-        if (userId && assigneeId === userId.toString()) continue;
-        await notificationService.createNotification({
-          recipientId: assigneeId,
-          type: "task_assigned",
-          title: "Phân công công việc",
-          message: `Bạn vừa được phân công vào công việc "${task.title}"`,
-          metadata: { taskId: task._id, projectId },
-        });
-      }
-    }
-
-    // Thông báo cập nhật cho creators và assignees (trừ người thực hiện)
-    const isMajorUpdate =
-      (updateData.status && updateData.status !== oldTask.status) ||
-      (updateData.priority && updateData.priority !== oldTask.priority) ||
-      updateData.title ||
-      updateData.description || 
-      (isAssigneesUpdated && oldAssigneesStr.length !== updateData.assignees.length);
-
-    console.log("isMajorUpdate : ", !!isMajorUpdate);
-
-    if (isMajorUpdate || newAssignedIds.length > 0) {
-      const usersToNotify = new Set();
-      if (task.assignees) {
-        task.assignees.forEach(assignee => {
-          const id = assignee._id || assignee;
-          const strId = id.toString();
-          // Lọc ra, không gửi "task_update" cho ng vừa nhận "task_assigned"
-          if (!newAssignedIds.includes(strId)) {
-            usersToNotify.add(strId);
-          }
-        });
-      }
-      if (task.creatorId) {
-        const cId = task.creatorId._id || task.creatorId;
-        const strId = cId.toString();
-        if (!newAssignedIds.includes(strId)) {
-          usersToNotify.add(strId);
-        }
-      }
-      
-      if (userId) usersToNotify.delete(userId.toString());
-
-      for (const recipientId of usersToNotify) {
-        await notificationService.createNotification({
-          recipientId,
-          type: "task_update",
-          title: "Cập nhật công việc",
-          message: `Công việc "${task.title}" vừa được cập nhật`,
-          metadata: { taskId: task._id, projectId },
-        });
-      }
-    }
-  }
-
-  return task;
-};
-
-const deleteTask = async (taskId, userId) => {
-  const task = await taskRepository.getTaskById(taskId);
-  if (!task) {
-    throw new ApiError(404, "Không tìm thấy task để xóa");
-  }
-
-  const columnId = task.columnId;
-  const deletedPosition = task.position;
-
-  // Xóa task
-  await taskRepository.deleteTask(taskId);
-
-  // Compact positions của tasks còn lại trong cùng column
-  await Task.updateMany(
-    { columnId, position: { $gt: deletedPosition } },
-    { $inc: { position: -1 } },
-  );
-
-  // Realtime
-  const column = await Column.findById(columnId).select("projectId").lean();
-  if (column) {
-    emitTaskDeleted(column.projectId.toString(), taskId, columnId);
-    await activityService.createActivityLog({
-      projectId: column.projectId,
-      userId,
-      action: 'TASK_DELETED',
-      entityType: 'task',
-      entityId: taskId,
-      detail: { taskTitle: task.title, columnId }
-    });
-  }
-};
-
-/**
- * Di chuyển task (drag & drop)
- * Nhận mảng taskIds theo thứ tự mới để bulk-update position
- */
-const moveTask = async (moveData, userId) => {
-  const {
-    taskId,
-    sourceColumnId,
-    destinationColumnId,
-    sourceTaskIds,
-    destinationTaskIds,
-  } = moveData;
-
-  // Validate task tồn tại
-  const task = await taskRepository.getTaskById(taskId);
-  if (!task) {
-    throw new ApiError(404, "Không tìm thấy task");
-  }
-
-  if (sourceColumnId === destinationColumnId) {
-    // Same column: chỉ reorder trong source
-    await taskRepository.reorderTasks(sourceTaskIds, sourceColumnId);
-  } else {
-    // Cross-column: reorder cả hai column và update columnId của task
-    await taskRepository.reorderTasks(
-      sourceTaskIds,
-      sourceColumnId,
-      destinationTaskIds,
-      destinationColumnId,
-      taskId,
-    );
-  }
-
-  // Realtime: broadcast move event tới project room
-  const column = await Column.findById(sourceColumnId)
-    .select("projectId")
-    .lean();
-  if (column) {
-    emitTaskMoved(column.projectId.toString(), {
-      taskId,
-      sourceColumnId,
-      destinationColumnId,
-      sourceTaskIds,
-      destinationTaskIds,
-    });
-    await activityService.createActivityLog({
-      projectId: column.projectId,
-      userId,
-      action: 'TASK_MOVED',
-      entityType: 'task',
-      entityId: taskId,
-      detail: { sourceColumnId, destinationColumnId }
-    });
-
-    if (sourceColumnId !== destinationColumnId) {
-      const usersToNotify = new Set();
-      if (task.assignees) {
-        task.assignees.forEach(assignee => {
-          const id = assignee._id || assignee;
-          usersToNotify.add(id.toString());
-        });
-      }
-      if (task.creatorId) {
-        const cId = task.creatorId._id || task.creatorId;
-        usersToNotify.add(cId.toString());
-      }
-      
-      if (userId) usersToNotify.delete(userId.toString());
-
-      if (usersToNotify.size > 0) {
-        const destCol = await Column.findById(destinationColumnId).select('title').lean();
-        for (const recipientId of usersToNotify) {
-          await notificationService.createNotification({
-            recipientId,
-            type: "task_update",
-            title: "Di chuyển công việc",
-            message: `Công việc "${task.title}" vừa được chuyển sang cột "${destCol?.title || 'khác'}"`,
-            metadata: { taskId: task._id, projectId: column.projectId.toString() },
+    if (task.assignees && task.assignees.length > 0) {
+      for (const assigneeId of task.assignees) {
+        if (assigneeId.toString() !== task.creatorId.toString()) {
+          await this.notificationService.createNotification({
+            recipientId: assigneeId,
+            type: "task_assigned",
+            title: "Công việc mới",
+            message: `Bạn được giao task "${task.title}"`,
+            metadata: { taskId: task._id, projectId: column.projectId },
           });
         }
       }
     }
-  }
-};
 
-const addTagsToTask = async (taskId, tagsArray) => {
-  const task = await taskRepository.getTaskById(taskId);
-  if (!task) {
-    throw new ApiError(404, "Không tìm thấy task để thêm tag");
-  }
-
-  if (!tagsArray || tagsArray.length === 0) {
     return task;
-  }
+  };
 
-  const existingNames = task.tags.map((t) => t.name.toLowerCase());
-  const newTagsToInsert = tagsArray.filter(
-    (t) => !existingNames.includes(t.name.toLowerCase()),
-  );
+  getTasksByColumnId = async (columnId) => {
+    return await this.taskRepository.getTasksByColumnId(columnId);
+  };
 
-  if (newTagsToInsert.length === 0) {
+  getTaskById = async (taskId) => {
+    const task = await this.taskRepository.getTaskById(taskId);
+    if (!task) {
+      throw new this.ApiError(404, "Không tìm thấy task");
+    }
     return task;
-  }
+  };
 
-  return await taskRepository.addTagsToTask(taskId, newTagsToInsert);
-};
+  updateTask = async (taskId, updateData, userId) => {
+    const oldTask = await this.Task.findById(taskId).lean();
+    const task = await this.taskRepository.updateTask(taskId, updateData);
+    if (!task) {
+      throw new this.ApiError(404, "Không tìm thấy task để cập nhật");
+    }
 
-const removeTagFromTask = async (taskId, tagName) => {
-  const task = await taskRepository.getTaskById(taskId);
-  if (!task) {
-    throw new ApiError(404, "Không tìm thấy task để xóa tag");
-  }
+    const column = await this.Column.findById(task.columnId)
+      .select("projectId")
+      .lean();
+    if (column) {
+      const projectId = column.projectId.toString();
+      this.taskSocket.emitTaskUpdated(projectId, task);
 
-  return await taskRepository.removeTagFromTask(taskId, tagName);
-};
+      await this.activityService.createActivityLog({
+        projectId,
+        userId,
+        action: 'TASK_UPDATED',
+        entityType: 'task',
+        entityId: task._id,
+        detail: updateData
+      });
 
-const getAllTasksForUser = async (userId) => {
-  const personalTaskService = require('./personalTask.service');
+      const oldAssigneesStr = (oldTask.assignees || []).map(id => id.toString());
+      const isAssigneesUpdated = updateData.assignees !== undefined;
+      let newAssignedIds = [];
 
-  // Lấy project tasks
-  const projectTasks = await taskRepository.getAllTasksForUser(userId);
+      if (isAssigneesUpdated) {
+        const currentAssigneesStr = (updateData.assignees || []).map(id => typeof id === 'object' ? (id._id || id).toString() : id.toString());
+        newAssignedIds = currentAssigneesStr.filter(id => !oldAssigneesStr.includes(id));
 
-  // Lấy personal tasks
-  const personalTasks = await personalTaskService.getPersonalTasks(userId);
+        for (const assigneeId of newAssignedIds) {
+          if (userId && assigneeId === userId.toString()) continue;
+          await this.notificationService.createNotification({
+            recipientId: assigneeId,
+            type: "task_assigned",
+            title: "Phân công công việc",
+            message: `Bạn vừa được phân công vào công việc "${task.title}"`,
+            metadata: { taskId: task._id, projectId },
+          });
+        }
+      }
 
-  // Gắn nhãn hoặc format lại nếu cần
-  const formattedPersonalTasks = personalTasks.map(t => ({
-    ...t.toObject(),
-    isPersonal: true,
-    // Đảm bảo có dueDate để FullCalendar nhận diện (hoặc dùng startDate)
-    dueDate: t.endDate || t.startDate
-  }));
+      const isMajorUpdate =
+        (updateData.status && updateData.status !== oldTask.status) ||
+        (updateData.priority && updateData.priority !== oldTask.priority) ||
+        updateData.title ||
+        updateData.description ||
+        (isAssigneesUpdated && oldAssigneesStr.length !== updateData.assignees.length);
 
-  return [
-    ...projectTasks.map(t => ({ ...t.toObject(), isPersonal: false })),
-    ...formattedPersonalTasks
-  ];
-};
+      if (isMajorUpdate || newAssignedIds.length > 0) {
+        const usersToNotify = new Set();
+        if (task.assignees) {
+          task.assignees.forEach(assignee => {
+            const id = assignee._id || assignee;
+            const strId = id.toString();
+            if (!newAssignedIds.includes(strId)) {
+              usersToNotify.add(strId);
+            }
+          });
+        }
+        if (task.creatorId) {
+          const cId = task.creatorId._id || task.creatorId;
+          const strId = cId.toString();
+          if (!newAssignedIds.includes(strId)) {
+            usersToNotify.add(strId);
+          }
+        }
 
-module.exports = {
-  createTask,
-  getTasksByColumnId,
-  getTaskById,
-  updateTask,
-  deleteTask,
-  moveTask,
-  addTagsToTask,
-  removeTagFromTask,
-  getAllTasksForUser,
-};
+        if (userId) usersToNotify.delete(userId.toString());
+
+        for (const recipientId of usersToNotify) {
+          await this.notificationService.createNotification({
+            recipientId,
+            type: "task_update",
+            title: "Cập nhật công việc",
+            message: `Công việc "${task.title}" vừa được cập nhật`,
+            metadata: { taskId: task._id, projectId },
+          });
+        }
+      }
+    }
+
+    return task;
+  };
+
+  deleteTask = async (taskId, userId) => {
+    const task = await this.taskRepository.getTaskById(taskId);
+    if (!task) {
+      throw new this.ApiError(404, "Không tìm thấy task để xóa");
+    }
+
+    const columnId = task.columnId;
+    const deletedPosition = task.position;
+
+    await this.taskRepository.deleteTask(taskId);
+
+    await this.Task.updateMany(
+      { columnId, position: { $gt: deletedPosition } },
+      { $inc: { position: -1 } },
+    );
+
+    const column = await this.Column.findById(columnId).select("projectId").lean();
+    if (column) {
+      this.taskSocket.emitTaskDeleted(column.projectId.toString(), taskId, columnId);
+      await this.activityService.createActivityLog({
+        projectId: column.projectId,
+        userId,
+        action: 'TASK_DELETED',
+        entityType: 'task',
+        entityId: taskId,
+        detail: { taskTitle: task.title, columnId }
+      });
+    }
+  };
+
+  moveTask = async (moveData, userId) => {
+    const {
+      taskId,
+      sourceColumnId,
+      destinationColumnId,
+      sourceTaskIds,
+      destinationTaskIds,
+    } = moveData;
+
+    const task = await this.taskRepository.getTaskById(taskId);
+    if (!task) {
+      throw new this.ApiError(404, "Không tìm thấy task");
+    }
+
+    if (sourceColumnId === destinationColumnId) {
+      await this.taskRepository.reorderTasks(sourceTaskIds, sourceColumnId);
+    } else {
+      await this.taskRepository.reorderTasks(
+        sourceTaskIds,
+        sourceColumnId,
+        destinationTaskIds,
+        destinationColumnId,
+        taskId,
+      );
+    }
+
+    const column = await this.Column.findById(sourceColumnId)
+      .select("projectId")
+      .lean();
+    if (column) {
+      this.taskSocket.emitTaskMoved(column.projectId.toString(), {
+        taskId,
+        sourceColumnId,
+        destinationColumnId,
+        sourceTaskIds,
+        destinationTaskIds,
+      });
+      await this.activityService.createActivityLog({
+        projectId: column.projectId,
+        userId,
+        action: 'TASK_MOVED',
+        entityType: 'task',
+        entityId: taskId,
+        detail: { sourceColumnId, destinationColumnId }
+      });
+
+      if (sourceColumnId !== destinationColumnId) {
+        const usersToNotify = new Set();
+        if (task.assignees) {
+          task.assignees.forEach(assignee => {
+            const id = assignee._id || assignee;
+            usersToNotify.add(id.toString());
+          });
+        }
+        if (task.creatorId) {
+          const cId = task.creatorId._id || task.creatorId;
+          usersToNotify.add(cId.toString());
+        }
+
+        if (userId) usersToNotify.delete(userId.toString());
+
+        if (usersToNotify.size > 0) {
+          const destCol = await this.Column.findById(destinationColumnId).select('title').lean();
+          for (const recipientId of usersToNotify) {
+            await this.notificationService.createNotification({
+              recipientId,
+              type: "task_update",
+              title: "Di chuyển công việc",
+              message: `Công việc "${task.title}" vừa được chuyển sang cột "${destCol?.title || 'khác'}"`,
+              metadata: { taskId: task._id, projectId: column.projectId.toString() },
+            });
+          }
+        }
+      }
+    }
+  };
+
+  addTagsToTask = async (taskId, tagsArray) => {
+    const task = await this.taskRepository.getTaskById(taskId);
+    if (!task) {
+      throw new this.ApiError(404, "Không tìm thấy task để thêm tag");
+    }
+
+    if (!tagsArray || tagsArray.length === 0) {
+      return task;
+    }
+
+    const existingNames = task.tags.map((t) => t.name.toLowerCase());
+    const newTagsToInsert = tagsArray.filter(
+      (t) => !existingNames.includes(t.name.toLowerCase()),
+    );
+
+    if (newTagsToInsert.length === 0) {
+      return task;
+    }
+
+    return await this.taskRepository.addTagsToTask(taskId, newTagsToInsert);
+  };
+
+  removeTagFromTask = async (taskId, tagName) => {
+    const task = await this.taskRepository.getTaskById(taskId);
+    if (!task) {
+      throw new this.ApiError(404, "Không tìm thấy task để xóa tag");
+    }
+
+    return await this.taskRepository.removeTagFromTask(taskId, tagName);
+  };
+}
+
+module.exports = new TaskService({
+  taskRepository: require('../repositories/task.repository'),
+  Column: require('../entities/Column'),
+  Task: require('../entities/Task'),
+  ApiError: require('../utils/ApiError'),
+  attachmentRepository: require('../repositories/attachment.repository'),
+  notificationService: require('./notification.service'),
+  activityService: require('./activity.service'),
+  taskSocket: {
+    emitTaskCreated: require('../sockets/task.socket').emitTaskCreated,
+    emitTaskUpdated: require('../sockets/task.socket').emitTaskUpdated,
+    emitTaskDeleted: require('../sockets/task.socket').emitTaskDeleted,
+    emitTaskMoved: require('../sockets/task.socket').emitTaskMoved,
+  },
+});

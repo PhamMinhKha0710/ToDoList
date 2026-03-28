@@ -1,33 +1,35 @@
-const Project = require('../../models/Project');
-
 class ProjectRepository {
+  constructor({ Project }) {
+    this.Project = Project;
+  }
+
   async create(projectData) {
-    const project = new Project(projectData);
+    const project = new this.Project(projectData);
     await project.save();
     return project;
   }
 
   async findById(projectId) {
-    return Project.findById(projectId).populate('members.userId', 'email displayName avatarUrl role');
+    return this.Project.findById(projectId).populate('members.userId', 'email displayName avatarUrl role');
   }
 
   async findByUserId(userId) {
-    return Project.find({ 'members.userId': userId })
+    return this.Project.find({ 'members.userId': userId })
       .populate('members.userId', 'email displayName avatarUrl')
       .sort({ updatedAt: -1 });
   }
 
   async updateById(projectId, updateData) {
-    return Project.findByIdAndUpdate(projectId, updateData, { new: true })
+    return this.Project.findByIdAndUpdate(projectId, updateData, { new: true })
       .populate('members.userId', 'email displayName avatarUrl role');
   }
 
   async deleteById(projectId) {
-    return Project.findByIdAndDelete(projectId);
+    return this.Project.findByIdAndDelete(projectId);
   }
 
   async addMember(projectId, memberData) {
-    return Project.findByIdAndUpdate(
+    return this.Project.findByIdAndUpdate(
       projectId,
       { $push: { members: memberData } },
       { new: true }
@@ -35,7 +37,7 @@ class ProjectRepository {
   }
 
   async removeMember(projectId, userId) {
-    return Project.findByIdAndUpdate(
+    return this.Project.findByIdAndUpdate(
       projectId,
       { $pull: { members: { userId } } },
       { new: true }
@@ -43,7 +45,7 @@ class ProjectRepository {
   }
 
   async updateMemberRole(projectId, userId, role) {
-    return Project.findOneAndUpdate(
+    return this.Project.findOneAndUpdate(
       { _id: projectId, 'members.userId': userId },
       { $set: { 'members.$.role': role } },
       { new: true }
@@ -51,4 +53,6 @@ class ProjectRepository {
   }
 }
 
-module.exports = new ProjectRepository();
+module.exports = new ProjectRepository({
+  Project: require('../../entities/Project'),
+});
