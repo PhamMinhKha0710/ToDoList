@@ -1,38 +1,105 @@
-const Comment = require('../entities/Comment');
-const ApiError = require('../utils/ApiError');
-const Task = require('../entities/Task');
-const Column = require('../entities/Column');
-const projectService = require('./project.service');
+const Comment = require("../entities/Comment");
+const ApiError = require("../utils/ApiError");
+const Task = require("../entities/Task");
+const Column = require("../entities/Column");
+const projectService = require("./project.service");
+const {
+  emitCommentCreated,
+  emitCommentDeleted,
+  emitCommentUpdated,
+} = require("../sockets/comment.socket");
+const notificationService = require("./notification.service");
 
 const createComment = async (commentData) => {
   const comment = await Comment.create(commentData);
   // Populate author details immediately so frontend can render securely without another fetch
-  return await Comment.findById(comment._id).populate('authorId', 'displayName email avatarUrl');
+  const populated = await Comment.findById(comment._id).populate(
+    "authorId",
+    "displayName email avatarUrl",
+  );
+
+  const taskIdStr = commentData.taskId.toString();
+
+  // Realtime
+  emitCommentCreated(taskIdStr, populated);
+
+  // Thông báo cho những người liên quan (assignees + creator)
+  const task = await Task.findById(commentData.taskId).lean();
+  if (task) {
+    const recipients = new Set();
+    if (task.creatorId.toString() !== commentData.authorId.toString()) {
+      recipients.add(task.creatorId.toString());
+    }
+    task.assignees.forEach(id => {
+      if (id.toString() !== commentData.authorId.toString()) {
+        recipients.add(id.toString());
+      }
+    });
+
+    // Notify mentioned users first 
+    if (commentData.mentions && Array.isArray(commentData.mentions)) {
+      for (const mentionId of commentData.mentions) {
+        if (mentionId.toString() !== commentData.authorId.toString()) {
+          await notificationService.createNotification({
+            recipientId: mentionId,
+            type: 'mention',
+            title: 'Nhắc đến',
+            message: `${populated.authorId.displayName} đã nhắc đến bạn trong task "${task.title}"`,
+            metadata: { taskId: task._id, commentId: comment._id, projectId: task.columnId ? true : false } 
+          }, taskIdStr); // Check delivery via Task Room
+          recipients.delete(mentionId.toString()); // Remove from general comment noti
+        }
+      }
+    }
+
+    for (const recipientId of recipients) {
+      await notificationService.createNotification({
+        recipientId,
+        type: 'new_comment',
+        title: 'Bình luận mới',
+        message: `${populated.authorId.displayName} đã bình luận trong task "${task.title}"`,
+        metadata: { taskId: task._id, commentId: comment._id }
+      }, taskIdStr); // Smart delivery: Kiểm tra xem user có đang ở trong Task Room không
+    }
+  }
+
+  return populated;
 };
 
 const getCommentsByTaskId = async (taskId) => {
   return await Comment.find({ taskId })
-    .populate('authorId', 'displayName email avatarUrl')
+    .populate("authorId", "displayName email avatarUrl")
     .sort({ createdAt: 1 }); // Sort chronologically (oldest first)
 };
 
 const updateComment = async (commentId, authorId, content) => {
   const comment = await Comment.findById(commentId);
-  if (!comment) throw new ApiError(404, 'Không tìm thấy bình luận');
+  if (!comment) throw new ApiError(404, "Không tìm thấy bình luận");
 
   if (comment.authorId.toString() !== authorId.toString()) {
-    throw new ApiError(403, 'Bạn chỉ có thể chỉnh sửa bình luận của chính mình');
+    throw new ApiError(
+      403,
+      "Bạn chỉ có thể chỉnh sửa bình luận của chính mình",
+    );
   }
 
   comment.content = content;
   await comment.save();
-  
-  return await Comment.findById(commentId).populate('authorId', 'displayName email avatarUrl');
+
+  const updated = await Comment.findById(commentId).populate(
+    "authorId",
+    "displayName email avatarUrl",
+  );
+
+  // Realtime
+  emitCommentUpdated(comment.taskId.toString(), updated);
+
+  return updated;
 };
 
 const deleteComment = async (commentId, userId, userRole) => {
   const comment = await Comment.findById(commentId);
-  if (!comment) throw new ApiError(404, 'Không tìm thấy bình luận');
+  if (!comment) throw new ApiError(404, "Không tìm thấy bình luận");
 
   const isAuthor = comment.authorId.toString() === userId.toString();
   let isManager = false;
@@ -45,11 +112,13 @@ const deleteComment = async (commentId, userId, userRole) => {
       const column = await Column.findById(task.columnId);
       if (column) {
         const project = await projectService.getProjectById(column.projectId);
-        const member = project.members.find(m => {
-          const mUserId = m.userId._id ? m.userId._id.toString() : m.userId.toString();
+        const member = project.members.find((m) => {
+          const mUserId = m.userId._id
+            ? m.userId._id.toString()
+            : m.userId.toString();
           return mUserId === userId.toString();
         });
-        if (member && (member.role === 'admin' || member.role === 'owner')) {
+        if (member && (member.role === "admin" || member.role === "owner")) {
           isManager = true;
         }
       }
@@ -61,10 +130,16 @@ const deleteComment = async (commentId, userId, userRole) => {
   }
 
   if (!isAuthor && !isManager) {
-    throw new ApiError(403, 'Bạn không có quyền xóa bình luận này');
+    throw new ApiError(403, "Bạn không có quyền xóa bình luận này");
   }
 
+  const taskId = comment.taskId.toString();
+  const idComment = comment._id.toString();
+
   await comment.deleteOne();
+
+  // Realtime
+  emitCommentDeleted(taskId, idComment);
 };
 
 module.exports = {

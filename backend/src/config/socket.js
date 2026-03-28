@@ -1,5 +1,7 @@
 const { Server } = require('socket.io');
-const { CLIENT_URL } = require('./env');
+const jwt = require('jsonwebtoken');
+const { CLIENT_URL, JWT_ACCESS_SECRET } = require('./env');
+const logger = require('../utils/logger');
 
 let io;
 
@@ -16,6 +18,23 @@ const initSocket = (httpServer) => {
       credentials: true,
     },
   });
+
+  // ─── JWT Auth Middleware ───────────────────────────────────────────────────
+  io.use((socket, next) => {
+    const token = socket.handshake.auth?.token;
+    if (!token) {
+      return next(new Error('Unauthorized: Token not provided'));
+    }
+    try {
+      const decoded = jwt.verify(token, JWT_ACCESS_SECRET);
+      socket.user = decoded; // { id, email, ... }
+      next();
+    } catch (err) {
+      logger.warn(`Socket auth failed: ${err.message}`);
+      next(new Error('Unauthorized: Invalid token'));
+    }
+  });
+
   return io;
 };
 

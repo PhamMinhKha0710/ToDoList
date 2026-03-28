@@ -73,7 +73,7 @@ class TaskController {
     const updateData = toUpdateTaskDTO(req.body);
     const existingTask = await taskService.getTaskById(req.params.taskId);
     
-    const task = await taskService.updateTask(req.params.taskId, updateData);
+    const task = await taskService.updateTask(req.params.taskId, updateData, req.user._id);
 
     // -- Thông báo Email Bất đồng bộ cho assignees mới --
     if (updateData.assignees !== undefined) {
@@ -119,7 +119,7 @@ class TaskController {
    */
   moveTask = catchAsync(async (req, res) => {
     const moveData = toMoveTaskDTO(req.body);
-    await taskService.moveTask(moveData);
+    await taskService.moveTask(moveData, req.user._id);
     new ApiResponse(200, 'Di chuyển tác vụ thành công').send(res);
   });
 
@@ -127,7 +127,7 @@ class TaskController {
    * DELETE /api/tasks/:taskId
    */
   deleteTask = catchAsync(async (req, res) => {
-    await taskService.deleteTask(req.params.taskId);
+    await taskService.deleteTask(req.params.taskId, req.user._id);
     new ApiResponse(200, 'Xóa tác vụ thành công').send(res);
   });
 

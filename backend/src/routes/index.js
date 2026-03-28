@@ -10,6 +10,7 @@ const attachmentRoutes = require('./attachment.routes');
 const personalTaskRoutes = require('./personalTask.routes');
 // const adminRoutes = require('./admin.routes');
 const uploadRoutes = require('./upload.routes');
+const activityRoutes = require('./activity.routes');
 
 const router = Router();
 
@@ -25,5 +26,6 @@ router.use('/personal-tasks', personalTaskRoutes);
 // router.use('/admin', adminRoutes);
 
 router.use('/upload', uploadRoutes);
+router.use('/activities', activityRoutes);
 
 module.exports = router;

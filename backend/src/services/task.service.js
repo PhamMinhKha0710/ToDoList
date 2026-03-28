@@ -1,16 +1,54 @@
-const taskRepository = require('../repositories/task.repository');
-const Column = require('../entities/Column');
-const Task = require('../entities/Task');
-const ApiError = require('../utils/ApiError');
-const attachmentRepository = require('../repositories/attachment.repository');
+const taskRepository = require("../repositories/task.repository");
+const Column = require("../entities/Column");
+const Task = require("../entities/Task");
+const ApiError = require("../utils/ApiError");
+const attachmentRepository = require("../repositories/attachment.repository");
+const notificationService = require("./notification.service");
+const activityService = require("./activity.service");
+const {
+  emitTaskCreated,
+  emitTaskUpdated,
+  emitTaskDeleted,
+  emitTaskMoved,
+} = require("../sockets/task.socket");
 
 const createTask = async (taskData, files) => {
   const column = await Column.findById(taskData.columnId);
   if (!column) {
-    throw new ApiError(404, 'Không tìm thấy cột tương ứng');
+    throw new ApiError(404, "Không tìm thấy cột tương ứng");
   }
 
-  return await taskRepository.createTask(taskData, files);
+  const task = await taskRepository.createTask(taskData, files);
+
+  // Realtime: broadcast tới tất cả client trong project room
+  emitTaskCreated(column.projectId.toString(), task);
+
+  // Log Activity
+  await activityService.createActivityLog({
+    projectId: column.projectId,
+    userId: taskData.creatorId,
+    action: 'TASK_CREATED',
+    entityType: 'task',
+    entityId: task._id,
+    detail: { title: task.title }
+  });
+
+  // Thông báo gán task
+  if (task.assignees && task.assignees.length > 0) {
+    for (const assigneeId of task.assignees) {
+      if (assigneeId.toString() !== task.creatorId.toString()) {
+        await notificationService.createNotification({
+          recipientId: assigneeId,
+          type: "task_assigned",
+          title: "Công việc mới",
+          message: `Bạn được giao task "${task.title}"`,
+          metadata: { taskId: task._id, projectId: column.projectId },
+        });
+      }
+    }
+  }
+
+  return task;
 };
 
 const getTasksByColumnId = async (columnId) => {
@@ -31,29 +69,104 @@ const getTaskById = async (taskId) => {
   return { ...task.toObject(), isPersonal: false };
 };
 
-const updateTask = async (taskId, updateData) => {
-  let task = await taskRepository.updateTask(taskId, updateData);
+const updateTask = async (taskId, updateData, userId) => {
+  const oldTask = await Task.findById(taskId).lean();
+  const task = await taskRepository.updateTask(taskId, updateData);
   if (!task) {
-    const PersonalTask = require('../entities/PersonalTask');
-    task = await PersonalTask.findByIdAndUpdate(taskId, updateData, { new: true });
-    if (task) {
-      return { ...task.toObject(), isPersonal: true };
-    }
-    throw new ApiError(404, 'Không tìm thấy task để cập nhật');
+    throw new ApiError(404, "Không tìm thấy task để cập nhật");
   }
-  return { ...task.toObject(), isPersonal: false };
+
+  // Realtime
+  const column = await Column.findById(task.columnId)
+    .select("projectId")
+    .lean();
+  if (column) {
+    const projectId = column.projectId.toString();
+    emitTaskUpdated(projectId, task);
+
+    // Log Activity
+    await activityService.createActivityLog({
+      projectId,
+      userId,
+      action: 'TASK_UPDATED',
+      entityType: 'task',
+      entityId: task._id,
+      detail: updateData
+    });
+
+    // Tính toán những assignee MỚI được thêm vào
+    const oldAssigneesStr = (oldTask.assignees || []).map(id => id.toString());
+    const isAssigneesUpdated = updateData.assignees !== undefined;
+    let newAssignedIds = [];
+    
+    if (isAssigneesUpdated) {
+      const currentAssigneesStr = (updateData.assignees || []).map(id => typeof id === 'object' ? (id._id || id).toString() : id.toString());
+      newAssignedIds = currentAssigneesStr.filter(id => !oldAssigneesStr.includes(id));
+      
+      // Gửi thông báo "Bạn vừa được phân công" riêng cho người mới
+      for (const assigneeId of newAssignedIds) {
+        if (userId && assigneeId === userId.toString()) continue;
+        await notificationService.createNotification({
+          recipientId: assigneeId,
+          type: "task_assigned",
+          title: "Phân công công việc",
+          message: `Bạn vừa được phân công vào công việc "${task.title}"`,
+          metadata: { taskId: task._id, projectId },
+        });
+      }
+    }
+
+    // Thông báo cập nhật cho creators và assignees (trừ người thực hiện)
+    const isMajorUpdate =
+      (updateData.status && updateData.status !== oldTask.status) ||
+      (updateData.priority && updateData.priority !== oldTask.priority) ||
+      updateData.title ||
+      updateData.description || 
+      (isAssigneesUpdated && oldAssigneesStr.length !== updateData.assignees.length);
+
+    console.log("isMajorUpdate : ", !!isMajorUpdate);
+
+    if (isMajorUpdate || newAssignedIds.length > 0) {
+      const usersToNotify = new Set();
+      if (task.assignees) {
+        task.assignees.forEach(assignee => {
+          const id = assignee._id || assignee;
+          const strId = id.toString();
+          // Lọc ra, không gửi "task_update" cho ng vừa nhận "task_assigned"
+          if (!newAssignedIds.includes(strId)) {
+            usersToNotify.add(strId);
+          }
+        });
+      }
+      if (task.creatorId) {
+        const cId = task.creatorId._id || task.creatorId;
+        const strId = cId.toString();
+        if (!newAssignedIds.includes(strId)) {
+          usersToNotify.add(strId);
+        }
+      }
+      
+      if (userId) usersToNotify.delete(userId.toString());
+
+      for (const recipientId of usersToNotify) {
+        await notificationService.createNotification({
+          recipientId,
+          type: "task_update",
+          title: "Cập nhật công việc",
+          message: `Công việc "${task.title}" vừa được cập nhật`,
+          metadata: { taskId: task._id, projectId },
+        });
+      }
+    }
+  }
+
+  return task;
 };
 
-const deleteTask = async (taskId) => {
-  const task = await Task.findById(taskId);
+const deleteTask = async (taskId, userId) => {
+  const task = await taskRepository.getTaskById(taskId);
   if (!task) {
-    const PersonalTask = require('../entities/PersonalTask');
-    const personalTask = await PersonalTask.findById(taskId);
-    if (personalTask) {
-      await PersonalTask.findByIdAndDelete(taskId);
-      return;
-    }
-    throw new ApiError(404, 'Không tìm thấy task để xóa');
+    throw new ApiError(404, "Không tìm thấy task để xóa");
   }
 
   const columnId = task.columnId;
@@ -65,21 +178,41 @@ const deleteTask = async (taskId) => {
   // Compact positions của tasks còn lại trong cùng column
   await Task.updateMany(
     { columnId, position: { $gt: deletedPosition } },
-    { $inc: { position: -1 } }
+    { $inc: { position: -1 } },
   );
+
+  // Realtime
+  const column = await Column.findById(columnId).select("projectId").lean();
+  if (column) {
+    emitTaskDeleted(column.projectId.toString(), taskId, columnId);
+    await activityService.createActivityLog({
+      projectId: column.projectId,
+      userId,
+      action: 'TASK_DELETED',
+      entityType: 'task',
+      entityId: taskId,
+      detail: { taskTitle: task.title, columnId }
+    });
+  }
 };
 
 /**
  * Di chuyển task (drag & drop)
  * Nhận mảng taskIds theo thứ tự mới để bulk-update position
  */
-const moveTask = async (moveData) => {
-  const { taskId, sourceColumnId, destinationColumnId, sourceTaskIds, destinationTaskIds } = moveData;
+const moveTask = async (moveData, userId) => {
+  const {
+    taskId,
+    sourceColumnId,
+    destinationColumnId,
+    sourceTaskIds,
+    destinationTaskIds,
+  } = moveData;
 
   // Validate task tồn tại
   const task = await taskRepository.getTaskById(taskId);
   if (!task) {
-    throw new ApiError(404, 'Không tìm thấy task');
+    throw new ApiError(404, "Không tìm thấy task");
   }
 
   if (sourceColumnId === destinationColumnId) {
@@ -92,23 +225,76 @@ const moveTask = async (moveData) => {
       sourceColumnId,
       destinationTaskIds,
       destinationColumnId,
-      taskId
+      taskId,
     );
+  }
+
+  // Realtime: broadcast move event tới project room
+  const column = await Column.findById(sourceColumnId)
+    .select("projectId")
+    .lean();
+  if (column) {
+    emitTaskMoved(column.projectId.toString(), {
+      taskId,
+      sourceColumnId,
+      destinationColumnId,
+      sourceTaskIds,
+      destinationTaskIds,
+    });
+    await activityService.createActivityLog({
+      projectId: column.projectId,
+      userId,
+      action: 'TASK_MOVED',
+      entityType: 'task',
+      entityId: taskId,
+      detail: { sourceColumnId, destinationColumnId }
+    });
+
+    if (sourceColumnId !== destinationColumnId) {
+      const usersToNotify = new Set();
+      if (task.assignees) {
+        task.assignees.forEach(assignee => {
+          const id = assignee._id || assignee;
+          usersToNotify.add(id.toString());
+        });
+      }
+      if (task.creatorId) {
+        const cId = task.creatorId._id || task.creatorId;
+        usersToNotify.add(cId.toString());
+      }
+      
+      if (userId) usersToNotify.delete(userId.toString());
+
+      if (usersToNotify.size > 0) {
+        const destCol = await Column.findById(destinationColumnId).select('title').lean();
+        for (const recipientId of usersToNotify) {
+          await notificationService.createNotification({
+            recipientId,
+            type: "task_update",
+            title: "Di chuyển công việc",
+            message: `Công việc "${task.title}" vừa được chuyển sang cột "${destCol?.title || 'khác'}"`,
+            metadata: { taskId: task._id, projectId: column.projectId.toString() },
+          });
+        }
+      }
+    }
   }
 };
 
 const addTagsToTask = async (taskId, tagsArray) => {
   const task = await taskRepository.getTaskById(taskId);
   if (!task) {
-    throw new ApiError(404, 'Không tìm thấy task để thêm tag');
+    throw new ApiError(404, "Không tìm thấy task để thêm tag");
   }
 
   if (!tagsArray || tagsArray.length === 0) {
     return task;
   }
 
-  const existingNames = task.tags.map(t => t.name.toLowerCase());
-  const newTagsToInsert = tagsArray.filter(t => !existingNames.includes(t.name.toLowerCase()));
+  const existingNames = task.tags.map((t) => t.name.toLowerCase());
+  const newTagsToInsert = tagsArray.filter(
+    (t) => !existingNames.includes(t.name.toLowerCase()),
+  );
 
   if (newTagsToInsert.length === 0) {
     return task;
@@ -120,7 +306,7 @@ const addTagsToTask = async (taskId, tagsArray) => {
 const removeTagFromTask = async (taskId, tagName) => {
   const task = await taskRepository.getTaskById(taskId);
   if (!task) {
-    throw new ApiError(404, 'Không tìm thấy task để xóa tag');
+    throw new ApiError(404, "Không tìm thấy task để xóa tag");
   }
 
   return await taskRepository.removeTagFromTask(taskId, tagName);

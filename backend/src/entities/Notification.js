@@ -7,7 +7,7 @@ const notificationSchema = new Schema(
       ref: 'User',
       required: true,
     },
-    // Loại: 'project_invite' | 'task_assigned' | 'new_comment'
+    // Loại: 'project_invite' | 'task_assigned' | 'new_comment' | 'task_update' | 'member_joined' | 'member_declined'
     type: {
       type: String,
       required: true,

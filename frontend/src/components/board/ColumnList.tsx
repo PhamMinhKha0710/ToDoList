@@ -8,7 +8,6 @@ import { AddTaskModal } from "./AddTaskModal";
 import { TaskCard } from "./TaskCard";
 import { TaskDetailModal } from "../taskDetail/TaskDetailModal";
 import { useAuthStore } from "@/stores/auth.store";
-import type { User } from "@/types/user";
 import type { Task } from "@/types/task";
 import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
 
@@ -29,9 +28,10 @@ export const ColumnList = ({ columnId }: ColumnListProps) => {
   const columnTasks = storeTasks[columnId] || [];
 
 
-  const currentMember = projectMembers.find(
-    (m) => (m.userId as User)._id === currentUser?._id,
-  );
+  const currentMember = projectMembers.find((m) => {
+    const mUserId = typeof m.userId === "string" ? m.userId : m.userId?._id;
+    return mUserId === currentUser?._id;
+  });
   const isViewer = currentMember?.role === "viewer";
 
   const { data: queryTasks, isLoading } = useQuery({

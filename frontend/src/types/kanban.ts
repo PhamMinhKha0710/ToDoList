@@ -1,14 +1,16 @@
 import type { Column } from "./column";
 import type { Task } from "./task";
-import type { ProjectMember } from "./project";
+import type { Project, ProjectMember } from "./project";
 
 // Interface cho State của Store
 export interface Kanban {
+  activeProject: Project | null;
   columns: Column[];
   tasks: Record<string, Task[]>; // Key là columnId, Value là mảng các task của column đó
   members: ProjectMember[];
   
   // Actions
+  setActiveProject: (project: Project | null) => void;
   setColumns: (columns: Column[]) => void;
   addColumn: (column: Column) => void;
   updateColumn: (columnId: string, data: Partial<Column>) => void;
