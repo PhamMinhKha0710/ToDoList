@@ -147,6 +147,14 @@ class TaskController {
     const task = await taskService.removeTagFromTask(req.params.taskId, req.params.tagName);
     new ApiResponse(200, 'Xóa tag thành công', { task: toTaskResponseDTO(task) }).send(res);
   });
+
+  /**
+   * GET /api/tasks
+   */
+  getAllTasksForUser = catchAsync(async (req, res) => {
+    const tasks = await taskService.getAllTasksForUser(req.user._id);
+    new ApiResponse(200, 'Lấy danh sách tác vụ thành công', { tasks: tasks.map(toTaskResponseDTO) }).send(res);
+  });
 }
 
 module.exports = new TaskController();

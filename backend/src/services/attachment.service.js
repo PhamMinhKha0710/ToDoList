@@ -6,10 +6,12 @@ const ApiError = require('../utils/ApiError');
 const { CLIENT_URL } = require('../config/env');
 
 const uploadAttachment = async (taskId, file) => {
-  // 1. Verify task exists
-  const taskExists = await Task.exists({ _id: taskId });
+  // 1. Verify task exists (check both Task and PersonalTask)
+  const Task = require('../entities/Task');
+  const PersonalTask = require('../entities/PersonalTask');
+  const taskExists = await Task.exists({ _id: taskId }) || await PersonalTask.exists({ _id: taskId });
+  
   if (!taskExists) {
-    // If task not found, we should delete the uploaded file to avoid orphaned files
     if (file && file.path) {
       fs.unlinkSync(file.path);
     }
@@ -34,8 +36,10 @@ const uploadAttachment = async (taskId, file) => {
 };
 
 const getTaskAttachments = async (taskId) => {
-  // Verify task exists (optional but good practice)
-  const taskExists = await Task.exists({ _id: taskId });
+  // Verify task exists
+  const Task = require('../entities/Task');
+  const PersonalTask = require('../entities/PersonalTask');
+  const taskExists = await Task.exists({ _id: taskId }) || await PersonalTask.exists({ _id: taskId });
   if (!taskExists) {
     throw new ApiError(404, 'Không tìm thấy Task');
   }

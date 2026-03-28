@@ -30,6 +30,14 @@ class ColumnService {
     return columns.map(c => c.toObject ? c.toObject() : c);
   }
 
+  async getColumnById(columnId) {
+    const column = await columnRepository.findById(columnId);
+    if (!column) {
+      throw new ApiError(404, 'Không tìm thấy cột');
+    }
+    return column;
+  }
+
   async updateColumn(columnId, updateData) {
     const column = await columnRepository.findById(columnId);
     if (!column) {

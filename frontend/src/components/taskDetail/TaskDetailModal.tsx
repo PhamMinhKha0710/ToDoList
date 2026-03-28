@@ -48,6 +48,8 @@ interface TaskDetailModalProps {
 // Kiểu dữ liệu cho state chỉnh sửa trong Modal (assignees là mảng ID string)
 interface TaskFormState extends Partial<Omit<Task, "assignees">> {
   assignees?: string[];
+  startDate?: string;
+  endDate?: string;
 }
 
 const PRESET_COLORS = [
@@ -147,6 +149,8 @@ export const TaskDetailModal = ({
         status: task.status,
         priority: task.priority,
         dueDate: task.dueDate,
+        startDate: task.startDate,
+        endDate: task.endDate,
         tags: task.tags || [],
         // Lưu mảng ID (string[]), đúng theo type UpdateTaskPayload
         assignees: (task.assigneeIds || []) as string[],
@@ -376,6 +380,8 @@ export const TaskDetailModal = ({
       priority: task.priority,
       color: task.color,
       dueDate: task.dueDate,
+      startDate: task.startDate,
+      endDate: task.endDate,
       tags: task.tags || [],
       assignees: (task.assigneeIds || []) as string[],
     });
@@ -690,6 +696,62 @@ export const TaskDetailModal = ({
                     }`}
                   />
                   {priorityLabels[currentPriority] || "Thường"}
+                </div>
+              )}
+            </div>
+
+            {/* Date Range (Start/End) */}
+            <div className="space-y-2.5">
+              <h4 className="text-[11px] font-extrabold uppercase tracking-widest text-slate-400 flex items-center gap-1.5">
+                <Clock className="w-3.5 h-3.5" /> Khoảng thời gian
+              </h4>
+              {isEditing ? (
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white border border-slate-300 focus-within:border-indigo-400 focus-within:ring-4 focus-within:ring-indigo-50 shadow-sm w-full relative transition-all">
+                    <input
+                      type="date"
+                      disabled={!canEditMeta}
+                      value={
+                        editedTask.startDate
+                          ? new Date(editedTask.startDate).toISOString().split("T")[0]
+                          : ""
+                      }
+                      onChange={(e) => {
+                        handleSave("startDate", e.target.value ? new Date(e.target.value).toISOString() : null);
+                      }}
+                      className="w-full text-[13px] font-bold text-slate-700 bg-transparent border-none p-0 focus:ring-0 focus:outline-none cursor-pointer"
+                    />
+                  </div>
+                  <div className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white border border-slate-300 focus-within:border-indigo-400 focus-within:ring-4 focus-within:ring-indigo-50 shadow-sm w-full relative transition-all">
+                    <input
+                      type="date"
+                      disabled={!canEditMeta}
+                      value={
+                        editedTask.endDate
+                          ? new Date(editedTask.endDate).toISOString().split("T")[0]
+                          : ""
+                      }
+                      onChange={(e) => {
+                        handleSave("endDate", e.target.value ? new Date(e.target.value).toISOString() : null);
+                      }}
+                      className="w-full text-[13px] font-bold text-slate-700 bg-transparent border-none p-0 focus:ring-0 focus:outline-none cursor-pointer"
+                    />
+                  </div>
+                </div>
+              ) : (
+                <div className="flex flex-col gap-1.5 px-3.5 py-2.5 rounded-xl bg-white border border-slate-200 shadow-sm w-full">
+                  <div className="flex items-center justify-between text-[13px]">
+                    <span className="text-slate-400">Bắt đầu:</span>
+                    <span className="font-bold text-slate-700">
+                      {editedTask.startDate ? new Date(editedTask.startDate).toLocaleDateString("vi-VN") : "---"}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between text-[13px]">
+                    <span className="text-slate-400">Kết thúc:</span>
+                    <span className="font-bold text-slate-700">
+                      {editedTask.endDate ? new Date(editedTask.endDate).toLocaleDateString("vi-VN") : "---"}
+                    </span>
+                  </div>
                 </div>
               )}
             </div>

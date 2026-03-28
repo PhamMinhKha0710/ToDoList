@@ -24,6 +24,14 @@ class ColumnController {
   });
 
   /**
+   * GET /api/columns/:columnId
+   */
+  getColumnById = catchAsync(async (req, res) => {
+    const column = await columnService.getColumnById(req.params.columnId);
+    new ApiResponse(200, 'Lấy thông tin cột thành công', { column: toColumnDTO(column) }).send(res);
+  });
+
+  /**
    * PUT /api/columns/:columnId
    */
   updateColumn = catchAsync(async (req, res) => {

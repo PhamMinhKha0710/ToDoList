@@ -29,4 +29,8 @@ export interface Task {
   position: number;
   createdAt: string;
   updatedAt: string;
+  // Unified fields for calendar
+  isPersonal?: boolean;
+  startDate?: string;
+  endDate?: string;
 }

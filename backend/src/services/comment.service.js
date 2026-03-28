@@ -106,6 +106,7 @@ const deleteComment = async (commentId, userId, userRole) => {
 
   if (!isAuthor) {
     // If not author, check if they are project Admin or Owner
+    const Task = require('../entities/Task');
     const task = await Task.findById(comment.taskId);
     if (task) {
       const column = await Column.findById(task.columnId);
@@ -121,6 +122,10 @@ const deleteComment = async (commentId, userId, userRole) => {
           isManager = true;
         }
       }
+    } else {
+       // if task is not in Task collection, it might be PersonalTask. 
+       // For PersonalTask, only the author of the comment (who must be the task owner) can delete.
+       // (Handled by isAuthor check above)
     }
   }
 

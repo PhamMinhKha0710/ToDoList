@@ -18,6 +18,7 @@ const ProfilePage = lazy(() => import("@/page/ProfilePage"));
 const AdminUsersPage = lazy(() => import("@/page/AdminUsersPage"));
 const AdminProjectsPage = lazy(() => import("@/page/AdminProjectsPage"));
 const InvitationPage = lazy(() => import("@/page/InvitationPage"));
+const TaskDetailPage = lazy(() => import("@/page/TaskDetailPage"));
 
 export const router = createBrowserRouter([
   // ─── Guest routes ──────────────────────────────────────────────────
@@ -35,6 +36,7 @@ export const router = createBrowserRouter([
       { path: "/projects/:id/invite", element: <InvitationPage /> },
       { path: "/projects/:id", element: <ProjectDetailPage /> },
       { path: ROUTES.CALENDAR, element: <CalendarPage /> },
+      { path: "/tasks/:id", element: <TaskDetailPage /> },
       { path: ROUTES.MY_TASKS, element: <PersonalTasksPage /> },
       { path: ROUTES.PROFILE, element: <ProfilePage /> },
     ],

@@ -24,6 +24,8 @@ export const createTaskSchema = z.object({
   assignees: z.array(z.string()).optional(),
   priority: z.nativeEnum(TaskPriority).optional(),
   dueDate: z.string().nullable().optional(),
+  startDate: z.string().nullable().optional(),
+  endDate: z.string().nullable().optional(),
   color: z.string().optional(),
   status: z.nativeEnum(TaskStatus).optional(),
   tags: z.array(
