@@ -1,79 +1,73 @@
-const fs = require('fs');
-const path = require('path');
-const attachmentRepository = require('../repositories/attachment.repository');
-const Task = require('../entities/Task');
-const ApiError = require('../utils/ApiError');
-const { CLIENT_URL } = require('../config/env');
+class AttachmentService {
+  constructor({ fs, path, attachmentRepository, Task, ApiError, CLIENT_URL }) {
+    this.fs = fs;
+    this.path = path;
+    this.attachmentRepository = attachmentRepository;
+    this.Task = Task;
+    this.ApiError = ApiError;
+    this.CLIENT_URL = CLIENT_URL;
+  }
 
-const uploadAttachment = async (taskId, file) => {
-  // 1. Verify task exists (check both Task and PersonalTask)
-  const Task = require('../entities/Task');
-  const PersonalTask = require('../entities/PersonalTask');
-  const taskExists = await Task.exists({ _id: taskId }) || await PersonalTask.exists({ _id: taskId });
-  
-  if (!taskExists) {
-    if (file && file.path) {
-      fs.unlinkSync(file.path);
+  uploadAttachment = async (taskId, file) => {
+    const taskExists = await this.Task.exists({ _id: taskId });
+    if (!taskExists) {
+      if (file && file.path) {
+        this.fs.unlinkSync(file.path);
+      }
+      throw new this.ApiError(404, 'Không tìm thấy Task để đính kèm file');
     }
-    throw new ApiError(404, 'Không tìm thấy Task để đính kèm file');
-  }
 
-  if (!file) {
-    throw new ApiError(400, 'Không tìm thấy file tải lên');
-  }
+    if (!file) {
+      throw new this.ApiError(400, 'Không tìm thấy file tải lên');
+    }
 
-  // 2. Build file URL
-  const fileUrl = `/uploads/${file.filename}`;
+    const fileUrl = `/uploads/${file.filename}`;
 
-  // 3. Save to DB
-  const attachmentData = {
-    taskId,
-    fileName: file.originalname,
-    fileUrl: fileUrl,
+    const attachmentData = {
+      taskId,
+      fileName: file.originalname,
+      fileUrl: fileUrl,
+    };
+
+    return await this.attachmentRepository.createAttachment(attachmentData);
   };
 
-  return await attachmentRepository.createAttachment(attachmentData);
-};
-
-const getTaskAttachments = async (taskId) => {
-  // Verify task exists
-  const Task = require('../entities/Task');
-  const PersonalTask = require('../entities/PersonalTask');
-  const taskExists = await Task.exists({ _id: taskId }) || await PersonalTask.exists({ _id: taskId });
-  if (!taskExists) {
-    throw new ApiError(404, 'Không tìm thấy Task');
-  }
-
-  return await attachmentRepository.getAttachmentsByTaskId(taskId);
-};
-
-const deleteAttachment = async (attachmentId) => {
-  // 1. Find the attachment record
-  const attachment = await attachmentRepository.getAttachmentById(attachmentId);
-  if (!attachment) {
-    throw new ApiError(404, 'Không tìm thấy file đính kèm');
-  }
-
-  // 2. Delete the physical file from local storage
-  try {
-    const filename = attachment.fileUrl.split('/uploads/')[1];
-    if (filename) {
-      const filePath = path.join(__dirname, '../../public/uploads', filename);
-      if (fs.existsSync(filePath)) {
-        fs.unlinkSync(filePath);
-      }
+  getTaskAttachments = async (taskId) => {
+    const taskExists = await this.Task.exists({ _id: taskId });
+    if (!taskExists) {
+      throw new this.ApiError(404, 'Không tìm thấy Task');
     }
-  } catch (error) {
-    console.error('Lỗi khi xóa file vật lý:', error);
-    // Ignore physical deletion error, proceed to delete DB record
-  }
 
-  // 3. Delete from DB
-  await attachmentRepository.deleteAttachment(attachmentId);
-};
+    return await this.attachmentRepository.getAttachmentsByTaskId(taskId);
+  };
 
-module.exports = {
-  uploadAttachment,
-  getTaskAttachments,
-  deleteAttachment,
-};
+  deleteAttachment = async (attachmentId) => {
+    const attachment = await this.attachmentRepository.getAttachmentById(attachmentId);
+    if (!attachment) {
+      throw new this.ApiError(404, 'Không tìm thấy file đính kèm');
+    }
+
+    try {
+      const filename = attachment.fileUrl.split('/uploads/')[1];
+      if (filename) {
+        const filePath = this.path.join(__dirname, '../../public/uploads', filename);
+        if (this.fs.existsSync(filePath)) {
+          this.fs.unlinkSync(filePath);
+        }
+      }
+    } catch (error) {
+      console.error('Lỗi khi xóa file vật lý:', error);
+    }
+
+    await this.attachmentRepository.deleteAttachment(attachmentId);
+  };
+}
+
+module.exports = new AttachmentService({
+  fs: require('fs'),
+  path: require('path'),
+  attachmentRepository: require('../repositories/attachment.repository'),
+  Task: require('../entities/Task'),
+  ApiError: require('../utils/ApiError'),
+  CLIENT_URL: require('../config/env').CLIENT_URL,
+});

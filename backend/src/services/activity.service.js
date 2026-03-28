@@ -1,14 +1,13 @@
-const ActivityLog = require('../entities/ActivityLog');
-const { emitActivityCreated } = require('../sockets/activity.socket');
-
 class ActivityService {
-  /**
-   * Tạo log hoạt động mới
-   */
+  constructor({ ActivityLog, emitActivityCreated }) {
+    this.ActivityLog = ActivityLog;
+    this.emitActivityCreated = emitActivityCreated;
+  }
+
   async createActivityLog({ projectId, userId, action, entityType, entityId, detail }) {
     if (!projectId) return null;
-    
-    const activity = await ActivityLog.create({
+
+    const activity = await this.ActivityLog.create({
       projectId,
       userId,
       action,
@@ -16,32 +15,24 @@ class ActivityService {
       entityId,
       detail: detail ? JSON.stringify(detail) : null,
     });
-    
-    // Populate user details for frontend rendering
-    const populated = await ActivityLog.findById(activity._id).populate('userId', 'displayName email avatarUrl');
 
-    // Realtime socket emit to the project room
-    emitActivityCreated(projectId, populated);
+    const populated = await this.ActivityLog.findById(activity._id).populate('userId', 'displayName email avatarUrl');
+
+    this.emitActivityCreated(projectId, populated);
 
     return populated;
   }
 
-  /**
-   * Lấy lịch sử log của một dự án
-   */
   async getActivitiesByProject(projectId, limit = 50, offset = 0) {
-    return await ActivityLog.find({ projectId })
+    return await this.ActivityLog.find({ projectId })
       .populate('userId', 'displayName email avatarUrl')
       .sort({ createdAt: -1 })
       .skip(offset)
       .limit(limit);
   }
-  
-  /**
-   * Lấy lịch sử log của một task cụ thể
-   */
+
   async getActivitiesByTask(taskId, limit = 50, offset = 0) {
-    return await ActivityLog.find({ entityType: 'task', entityId: taskId })
+    return await this.ActivityLog.find({ entityType: 'task', entityId: taskId })
       .populate('userId', 'displayName email avatarUrl')
       .sort({ createdAt: -1 })
       .skip(offset)
@@ -49,4 +40,7 @@ class ActivityService {
   }
 }
 
-module.exports = new ActivityService();
+module.exports = new ActivityService({
+  ActivityLog: require('../entities/ActivityLog'),
+  emitActivityCreated: require('../sockets/activity.socket').emitActivityCreated,
+});

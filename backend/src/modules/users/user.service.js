@@ -1,19 +1,16 @@
-const User = require('../../models/User');
-
 class UserService {
-  /**
-   * Tìm kiếm users theo email hoặc displayName
-   * @param {string} keyword Từ khóa tìm kiếm
-   * @param {string} currentUserId ID của người đang search để loại trừ
-   */
+  constructor({ User }) {
+    this.User = User;
+  }
+
   async searchUsers(keyword, currentUserId) {
     if (!keyword || keyword.trim() === '') {
       return [];
     }
 
-    const regex = new RegExp(keyword, 'i'); // 'i' for case-insensitive
+    const regex = new RegExp(keyword, 'i');
 
-    const users = await User.find({
+    const users = await this.User.find({
       $and: [
         { _id: { $ne: currentUserId } },
         {
@@ -32,4 +29,6 @@ class UserService {
   }
 }
 
-module.exports = new UserService();
+module.exports = new UserService({
+  User: require('../../entities/User'),
+});
