@@ -52,14 +52,21 @@ const isProjectOwner = catchAsync(async (req, res, next) => {
 
 // ✅ Owner hoặc Admin: tạo/xóa column, thêm/xóa member
 const isProjectManagerOrAbove = catchAsync(async (req, res, next) => {
+  console.log('=== MIDDLEWARE isProjectManagerOrAbove ===');
+  console.log('User ID:', req.user._id);
+  console.log('Project ID:', req.params.projectId);
   const projectId = req.params.projectId;
   const project = await projectService.getProjectById(projectId);
+  console.log('Project found:', project ? project._id : 'No project');
 
   const role = getUserRole(project, req.user._id);
+  console.log('User role in project:', role);
   if (role !== 'owner' && role !== 'admin') {
+    console.log('Access denied: user is not owner or admin');
     throw new ApiError(403, 'Chỉ Owner hoặc Admin mới có quyền thực hiện hành động này');
   }
 
+  console.log('Access granted for role:', role);
   req.project = project;
   req.userRole = role;
   next();

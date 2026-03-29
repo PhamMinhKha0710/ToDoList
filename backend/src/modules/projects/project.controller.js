@@ -71,17 +71,54 @@ const deleteProject = catchAsync(async (req, res) => {
 
 const mailService = require("../../services/mail.service");
 const { CLIENT_URL } = require("../../config/env");
+const notificationService = require("../../services/notification.service");
+const User = require("../../entities/User");
+const { getIO } = require("../../config/socket");
 
 /**
  * POST /api/projects/:projectId/members
  */
 const addMember = catchAsync(async (req, res) => {
+  console.log('=== ADD MEMBER START ===');
+  console.log('Request body:', req.body);
+  console.log('Request params:', req.params);
+  console.log('Authenticated user:', req.user ? req.user._id : 'No user');
+  console.log('addMember called with email:', req.body.email, 'role:', req.body.role);
   const role = req.body.role || "member"; // 'member' là default nếu không truyền
   const project = await projectService.addMember(
     req.params.projectId,
     req.body.email,
     role,
   );
+  console.log('Member added to project:', project._id);
+
+  // Tìm user được mời để tạo notification
+  const email = req.body.email.trim().toLowerCase();
+  const invitedUser = await User.findOne({ email: new RegExp(`^${email}$`, 'i') });
+  console.log('Invited user found:', invitedUser ? invitedUser._id : 'Not found', 'for email:', email);
+  if (invitedUser) {
+    // Tạo notification cho user được mời
+    try {
+      const notification = await notificationService.createNotification({
+        recipientId: invitedUser._id,
+        type: 'project_invite',
+        title: 'Lời mời tham gia dự án',
+        message: `${req.user.displayName || req.user.email} đã mời bạn tham gia dự án "${project.name}"`,
+        metadata: {
+          projectId: project._id,
+          inviterId: req.user._id,
+          role: role,
+        },
+      });
+      console.log('Notification created:', notification._id);
+
+      // Notification service đã tự động emit real-time notification
+    } catch (error) {
+      console.error('Error creating notification:', error);
+    }
+  } else {
+    console.log('User not found for email:', email, '- notification not created');
+  }
 
   // Gửi email thông báo bất đồng bộ (không await để block response)
   const projectUrl = `${CLIENT_URL}/projects/${project._id}/invite`;

@@ -43,6 +43,23 @@ class TaskRepository {
     return tasksWithAttachments;
   };
 
+  getAllTasks = async () => {
+    const tasks = await this.Task.find({})
+      .sort({ createdAt: -1 })
+      .populate('creatorId assignees', 'displayName email avatar avatarUrl');
+
+    const tasksWithAttachments = await Promise.all(
+      tasks.map(async (task) => {
+        const taskObj = task.toObject();
+        const attachments = await this.Attachment.find({ taskId: task._id });
+        taskObj.attachments = attachments;
+        return taskObj;
+      })
+    );
+
+    return tasksWithAttachments;
+  };
+
   getTaskById = async (taskId) => {
     return await this.Task.findById(taskId).populate('creatorId assignees', 'displayName email avatar');
   };

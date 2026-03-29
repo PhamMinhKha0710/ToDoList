@@ -20,6 +20,10 @@ class TaskService {
     return await this.taskRepository.getTasksByColumnId(columnId);
   };
 
+  getAllTasks = async () => {
+    return await this.taskRepository.getAllTasks();
+  };
+
   getTaskById = async (taskId) => {
     const task = await this.taskRepository.getTaskById(taskId);
     if (!task) {

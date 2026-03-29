@@ -1,12 +1,19 @@
-const express = require("express");
-const userController = require("./user.controller");
-const { authenticate } = require("../../middlewares/auth.middleware");
+const { Router } = require('express');
+const controller = require('./user.controller');
+const { authenticate } = require('../../middlewares/auth.middleware');
+const { requireRole } = require('../../middlewares/role.middleware');
+const { validate } = require('../../middlewares/validate.middleware');
+const { updateUserStatusSchema } = require('./user.validator');
 
-const router = express.Router();
+const router = Router();
 
-// Tất cả các route của user đều yêu cầu đăng nhập
-router.use(authenticate);
+// GET /api/users/search?q=...
+router.get('/search', authenticate, controller.searchUsers);
 
-router.get("/search", userController.searchUsers);
+// GET /api/v1/admin/users
+router.get('/', authenticate, requireRole('admin'), controller.getAllUsers);
+
+// PATCH /api/v1/admin/users/:id/active
+router.patch('/:id/active', authenticate, requireRole('admin'), validate(updateUserStatusSchema), controller.setActive);
 
 module.exports = router;

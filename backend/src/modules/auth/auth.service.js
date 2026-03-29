@@ -24,15 +24,19 @@ class AuthService {
 
     const passwordHash = await this.bcrypt.hash(password, 10);
     const user = await this.User.create({ email, passwordHash, displayName });
-    return this.userResponseDTO(user);
+    return this.userResponseDTO.toUserResponse(user);
   };
 
   login = async ({ email, password }) => {
     const user = await this.User.findOne({ email });
     if (!user) throw new this.ApiError(401, "Email hoặc mật khẩu không đúng");
 
-    const isMatch = await this.bcrypt.compare(password, user.passwordHash);
-    if (!isMatch) throw new this.ApiError(401, "Email hoặc mật khẩu không đúng");
+  if (user.isActive === false) {
+    throw new ApiError(403, 'Tài khoản đã bị khóa');
+  }
+
+  const isMatch = await bcrypt.compare(password, user.passwordHash);
+  if (!isMatch) throw new ApiError(401, 'Email hoặc mật khẩu không đúng');
 
     const payload = {
       _id: user._id.toString(),
@@ -43,7 +47,7 @@ class AuthService {
     const accessToken = this.tokenService.generateAccessToken(payload);
     const refreshToken = this.tokenService.generateRefreshToken({ _id: user._id.toString() });
 
-    return { accessToken, refreshToken, user: this.userResponseDTO(user) };
+    return { accessToken, refreshToken, user: this.userResponseDTO.toUserResponse(user) };
   };
 
   refreshAccessToken = async (refreshToken) => {

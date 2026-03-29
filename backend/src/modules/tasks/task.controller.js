@@ -6,9 +6,9 @@ const { toUpdateTaskDTO } = require('./dtos/updateTask.dto');
 const { toMoveTaskDTO } = require('./dtos/moveTask.dto');
 const { toTaskResponseDTO } = require('./dtos/taskResponse.dto');
 const { toAddTagsDTO } = require('./dtos/tag.dto');
-const User = require('../../models/User');
-const Column = require('../../models/Column');
-const Project = require('../../models/Project');
+const User = require('../../entities/User');
+const Column = require('../../entities/Column');
+const Project = require('../../entities/Project');
 const mailService = require('../../services/mail.service');
 const { CLIENT_URL } = require('../../config/env');
 
@@ -56,6 +56,14 @@ const createTask = catchAsync(async (req, res) => {
 const getTasksByColumnId = catchAsync(async (req, res) => {
   const tasks = await taskService.getTasksByColumnId(req.params.columnId);
   new ApiResponse(200, 'Lấy danh sách tác vụ thành công', { tasks: tasks.map(toTaskResponseDTO) }).send(res);
+});
+
+/**
+ * GET /api/tasks
+ */
+const getAllTasks = catchAsync(async (req, res) => {
+  const tasks = await taskService.getAllTasks();
+  new ApiResponse(200, 'Lấy danh sách tất cả tác vụ thành công', { tasks: tasks.map(toTaskResponseDTO) }).send(res);
 });
 
 /**
@@ -150,6 +158,7 @@ const removeTag = catchAsync(async (req, res) => {
 
 module.exports = {
   createTask,
+  getAllTasks,
   getTasksByColumnId,
   getTaskById,
   updateTask,
