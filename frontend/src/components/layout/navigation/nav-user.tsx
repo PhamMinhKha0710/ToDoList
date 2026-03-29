@@ -23,6 +23,7 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { useAuthStore } from "@/stores/auth.store";
+import { disconnectSocket } from "@/services/socket.service";
 import { useNavigate } from "react-router-dom";
 import { ROUTES } from "@/constants/routes";
 
@@ -40,6 +41,7 @@ export function NavUser({
   const navigate = useNavigate();
 
   const handleLogout = () => {
+    disconnectSocket();
     logout();
     navigate(ROUTES.LOGIN);
   };

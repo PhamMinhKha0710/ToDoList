@@ -20,4 +20,13 @@ const setActive = catchAsync(async (req, res) => {
   new ApiResponse(200, 'Cập nhật trạng thái user thành công', user).send(res);
 });
 
-module.exports = { getAllUsers, setActive };
+const searchUsers = catchAsync(async (req, res) => {
+  const { q } = req.query;
+  if (!q) {
+    throw new ApiError(400, 'Query parameter q is required');
+  }
+  const users = await userService.searchUsers(q, req.user._id);
+  new ApiResponse(200, 'Tìm kiếm users thành công', { users }).send(res);
+});
+
+module.exports = { getAllUsers, setActive, searchUsers };

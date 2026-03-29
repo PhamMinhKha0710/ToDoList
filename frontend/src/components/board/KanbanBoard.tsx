@@ -13,6 +13,7 @@ import type { Task } from "@/types/task";
 import { TaskCard } from "./TaskCard";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { useSocket } from "@/services/socket.service";
 import {
   DndContext,
   closestCorners,
@@ -20,6 +21,7 @@ import {
   useSensor,
   useSensors,
   DragOverlay,
+
 } from "@dnd-kit/core";
 import type {
   DragOverEvent,
@@ -50,7 +52,11 @@ export const KanbanBoard = ({ projectId }: KanbanBoardProps) => {
     moveTask,
     reorderColumns,
     members: projectMembers,
+    activeProject,
   } = useKanbanStore();
+
+  useSocket();
+
 
   const { user: currentUser } = useAuthStore();
   const currentMember = projectMembers.find((m) => {

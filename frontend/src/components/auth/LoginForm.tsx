@@ -8,6 +8,7 @@ import { Loader2 } from 'lucide-react'
 import { loginSchema, type LoginInput } from '@/schemas/auth.schema'
 import { authService } from '@/services/auth.service'
 import { useAuthStore } from '@/stores/auth.store'
+import { connectSocket } from '@/services/socket.service'
 import { ROUTES } from '@/constants/routes'
 
 import { Button } from '@/components/ui/button'
@@ -43,6 +44,7 @@ export const LoginForm = ({
 
       // Lưu trữ user info & setup socket real-time.
       login(user, accessToken)
+      connectSocket(accessToken)
 
       toast.success('Đăng nhập thành công')
       if (user.role === 'admin') {

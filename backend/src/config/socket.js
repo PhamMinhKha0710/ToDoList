@@ -35,6 +35,18 @@ const initSocket = (httpServer) => {
     }
   });
 
+  // ─── Connection Handler ────────────────────────────────────────────────────
+  io.on('connection', (socket) => {
+    logger.info(`User ${socket.user._id} connected with socket ${socket.id}`);
+    
+    // Join user-specific room for notifications
+    socket.join(socket.user._id.toString());
+    
+    socket.on('disconnect', () => {
+      logger.info(`User ${socket.user._id} disconnected`);
+    });
+  });
+
   return io;
 };
 

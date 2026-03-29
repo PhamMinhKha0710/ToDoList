@@ -1,10 +1,7 @@
 import { create } from 'zustand';
-
 import type { Kanban } from '@/types/kanban';
 
-
-
-export const useKanbanStore = create<Kanban>()((set) => ({
+export const useKanbanStore = create<Kanban>()((set, get) => ({
   activeProject: null,
   columns: [],
   tasks: {},
@@ -85,7 +82,7 @@ export const useKanbanStore = create<Kanban>()((set) => ({
     };
   }),
 
-  moveTask: (fromColumnId, toColumnId, taskId, toIndex) => set((state) => {
+  moveTask: (fromColumnId, toColumnId, taskId, toIndex?) => set((state) => {
     const task = (state.tasks[fromColumnId] || []).find(t => t._id === taskId);
     if (!task) return state;
     const updatedTask = { ...task, columnId: toColumnId };
@@ -105,4 +102,39 @@ export const useKanbanStore = create<Kanban>()((set) => ({
   }),
 
   reorderColumns: (newColumns) => set({ columns: newColumns }),
+
+  // NEW: Socket real-time handlers
+  handleTaskMoved: (moveData: {
+    taskId: string;
+    sourceColumnId: string;
+    destinationColumnId: string;
+    sourceTaskIds: string[];
+    destinationTaskIds: string[];
+  }) => {
+    const state = get();
+    const { taskId, sourceColumnId, destinationColumnId, sourceTaskIds, destinationTaskIds } = moveData;
+    
+    // Reorder source column tasks by new order
+    const sourceTasks = state.tasks[sourceColumnId] || [];
+    const newSourceTasks = sourceTaskIds
+      .map(id => sourceTasks.find((t: any) => t._id === id))
+      .filter(Boolean) as any[];
+    
+    // Reorder destination column tasks by new order  
+    const destTasks = state.tasks[destinationColumnId] || [];
+    const newDestTasks = destinationTaskIds
+      .map(id => destTasks.find((t: any) => t._id === id))
+      .filter(Boolean) as any[];
+    
+    set({
+      tasks: {
+        ...state.tasks,
+        [sourceColumnId]: newSourceTasks,
+        [destinationColumnId]: newDestTasks,
+      }
+    });
+  },
+
+  handleColumnsReordered: (columns: any[]) => set({ columns }),
 }));
+

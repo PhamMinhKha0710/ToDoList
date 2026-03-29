@@ -7,6 +7,9 @@ const { updateUserStatusSchema } = require('./user.validator');
 
 const router = Router();
 
+// GET /api/users/search?q=...
+router.get('/search', authenticate, controller.searchUsers);
+
 // GET /api/v1/admin/users
 router.get('/', authenticate, requireRole('admin'), controller.getAllUsers);
 
