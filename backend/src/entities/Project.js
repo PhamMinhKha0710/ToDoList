@@ -9,8 +9,13 @@ const memberSchema = new Schema(
     },
     role: {
       type: String,
-      enum: ['owner', 'member'],
+      enum: ['owner', 'admin', 'member', 'viewer'],
       default: 'member',
+    },
+    status: {
+      type: String,
+      enum: ['pending', 'active'],
+      default: 'pending',
     },
   },
   { _id: false }
@@ -23,6 +28,15 @@ const projectSchema = new Schema(
       required: true,
       trim: true,
     },
+    imageUrl: {
+      type: String,
+      trim: true,
+    },
+    color: {
+      type: String,
+      trim: true,
+      default: '#3b82f6', // Default blue color
+    },
     description: {
       type: String,
     },
@@ -30,12 +44,6 @@ const projectSchema = new Schema(
       type: [memberSchema],
       default: [],
     },
-    columnOrder: [
-      {
-        type: Schema.Types.ObjectId,
-        ref: 'Column',
-      },
-    ],
   },
   { timestamps: true }
 );

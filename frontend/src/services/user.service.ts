@@ -10,6 +10,12 @@ export const userService = {
 
   setUserActiveStatus: async (id: string, isActive: boolean): Promise<ApiResponse<User>> => {
     const response = await api.patch(`/admin/users/${id}/active`, { isActive });
+  },
+  
+  searchUsers: async (keyword: string): Promise<ApiResponse<{ users: User[] }>> => {
+    const response = await api.get('/users/search', {
+      params: { q: keyword },
+    });
     return response.data;
   },
 };

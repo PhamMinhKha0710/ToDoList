@@ -14,7 +14,7 @@ export const ProtectedRoute = () => {
       <AppSidebar />
       <SidebarInset>
         <SiteHeader />
-        <div className="flex flex-1 flex-col gap-4 p-4">
+        <div className="flex flex-1 flex-col overflow-hidden overflow-x-hidden">
           <Outlet />
         </div>
       </SidebarInset>

@@ -51,7 +51,7 @@ export const LoginForm = ({
         navigate(ROUTES.PROJECTS)
       }
     } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Đăng nhập thất bại. Xin kiểm tra lại.')
+      // Global toast handled in axios.ts
     } finally {
       setIsLoading(false)
     }

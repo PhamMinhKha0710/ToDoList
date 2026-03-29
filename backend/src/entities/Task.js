@@ -23,11 +23,15 @@ const taskSchema = new Schema(
       ref: 'Column',
       required: true,
     },
-    assigneeId: {
+    creatorId: {
       type: Schema.Types.ObjectId,
       ref: 'User',
-      default: null,
+      required: true,
     },
+    assignees: [{
+      type: Schema.Types.ObjectId,
+      ref: 'User',
+    }],
     title: {
       type: String,
       required: true,
@@ -49,12 +53,22 @@ const taskSchema = new Schema(
     dueDate: {
       type: Date,
     },
+    startDate: {
+      type: Date,
+    },
+    endDate: {
+      type: Date,
+    },
     color: {
       type: String,
     },
     tags: {
       type: [tagSchema],
       default: [],
+    },
+    position: {
+      type: Number,
+      default: 0,
     },
   },
   { timestamps: true }
