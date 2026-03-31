@@ -31,6 +31,10 @@ class AuthService {
     const user = await this.User.findOne({ email });
     if (!user) throw new this.ApiError(401, "Email hoặc mật khẩu không đúng");
 
+    if (user.isActive === false) {
+      throw new this.ApiError(403, 'Tài khoản đã bị khóa');
+    }
+
     const isMatch = await this.bcrypt.compare(password, user.passwordHash);
     if (!isMatch) throw new this.ApiError(401, "Email hoặc mật khẩu không đúng");
 

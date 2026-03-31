@@ -30,7 +30,7 @@ module.exports = (io, socket) => {
 
   // Client rời room khi thoát khỏi project
   socket.on("leave:project", (projectId) => {
-    console.log(`[Socket] User ${socket.user.id} leaving project: ${projectId}`);
+    console.log(`[Socket] User ${userId} leaving project: ${projectId}`);
     socket.leave(projectId);
     logger.info(`Socket ${socket.id} left project room: ${projectId}`);
 
@@ -41,12 +41,12 @@ module.exports = (io, socket) => {
   });
 
   socket.on('join:task', (taskId) => {
-    console.log(`[Socket] User ${socket.user.id} joining task: ${taskId}`);
+    console.log(`[Socket] User ${userId} joining task: ${taskId}`);
     socket.join(taskId);
   });
 
   socket.on('leave:task', (taskId) => {
-    console.log(`[Socket] User ${socket.user.id} leaving task: ${taskId}`);
+    console.log(`[Socket] User ${userId} leaving task: ${taskId}`);
     socket.leave(taskId);
   });
 

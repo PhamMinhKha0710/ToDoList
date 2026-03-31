@@ -6,6 +6,7 @@ const { getIO } = require('../config/socket');
  * @param {object} comment - Comment document (đã populated)
  */
 const emitCommentCreated = (taskId, comment) => {
+  console.log(`[Socket Emit] comment:created to task ${taskId}, commentId: ${comment._id}`);
   getIO().to(taskId).emit('comment:created', comment);
 };
 
@@ -15,6 +16,7 @@ const emitCommentCreated = (taskId, comment) => {
  * @param {string} commentId
  */
 const emitCommentDeleted = (taskId, commentId) => {
+  console.log(`[Socket Emit] comment:deleted to task ${taskId}, commentId: ${commentId}`);
   getIO().to(taskId).emit('comment:deleted', { commentId, taskId });
 };
 
@@ -24,6 +26,7 @@ const emitCommentDeleted = (taskId, commentId) => {
  * @param {object} comment - Comment document sau update (đã populated)
  */
 const emitCommentUpdated = (taskId, comment) => {
+  console.log(`[Socket Emit] comment:updated to task ${taskId}, commentId: ${comment._id}`);
   getIO().to(taskId).emit('comment:updated', comment);
 };
 

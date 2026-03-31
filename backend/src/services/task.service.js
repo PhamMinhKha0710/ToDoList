@@ -290,6 +290,10 @@ class TaskService {
 
     return await this.taskRepository.removeTagFromTask(taskId, tagName);
   };
+
+  getAllTasksForUser = async (userId) => {
+    return await this.taskRepository.getAllTasksForUser(userId);
+  };
 }
 
 module.exports = new TaskService({

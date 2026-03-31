@@ -6,6 +6,7 @@ const { getIO } = require('../config/socket');
  * @param {object} column
  */
 const emitColumnCreated = (projectId, column) => {
+  console.log(`[Socket Emit] column:created to project ${projectId}, columnId: ${column._id}`);
   getIO().to(projectId).emit('column:created', column);
 };
 
@@ -15,6 +16,7 @@ const emitColumnCreated = (projectId, column) => {
  * @param {object} column
  */
 const emitColumnUpdated = (projectId, column) => {
+  console.log(`[Socket Emit] column:updated to project ${projectId}, columnId: ${column._id}`);
   getIO().to(projectId).emit('column:updated', column);
 };
 
@@ -24,6 +26,7 @@ const emitColumnUpdated = (projectId, column) => {
  * @param {string} columnId
  */
 const emitColumnDeleted = (projectId, columnId) => {
+  console.log(`[Socket Emit] column:deleted to project ${projectId}, columnId: ${columnId}`);
   getIO().to(projectId).emit('column:deleted', { columnId });
 };
 
@@ -33,6 +36,7 @@ const emitColumnDeleted = (projectId, columnId) => {
  * @param {object[]} columns - Mảng column objects theo thứ tự mới
  */
 const emitColumnsReordered = (projectId, columns) => {
+  console.log(`[Socket Emit] column:reordered to project ${projectId}`);
   getIO().to(projectId).emit('column:reordered', columns);
 };
 

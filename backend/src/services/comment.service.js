@@ -30,6 +30,9 @@ class CommentService {
 
     const task = await this.Task.findById(commentData.taskId).lean();
     if (task) {
+      const column = await this.Column.findById(task.columnId).select('projectId').lean();
+      const projectId = column?.projectId?.toString() || null;
+
       const recipients = new Set();
       if (task.creatorId.toString() !== commentData.authorId.toString()) {
         recipients.add(task.creatorId.toString());
@@ -48,7 +51,7 @@ class CommentService {
               type: 'mention',
               title: 'Nhắc đến',
               message: `${populated.authorId.displayName} đã nhắc đến bạn trong task "${task.title}"`,
-              metadata: { taskId: task._id, commentId: comment._id, projectId: task.columnId ? true : false }
+              metadata: { taskId: task._id, commentId: comment._id, projectId }
             }, taskIdStr);
             recipients.delete(mentionId.toString());
           }
@@ -61,7 +64,7 @@ class CommentService {
           type: 'new_comment',
           title: 'Bình luận mới',
           message: `${populated.authorId.displayName} đã bình luận trong task "${task.title}"`,
-          metadata: { taskId: task._id, commentId: comment._id }
+          metadata: { taskId: task._id, commentId: comment._id, projectId }
         }, taskIdStr);
       }
     }
