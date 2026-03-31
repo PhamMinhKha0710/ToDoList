@@ -1,8 +1,8 @@
 /**
- * Comment DTO — Chuẩn hóa dữ liệu trả về của Comment
+ * Comment Model — Chuẩn hóa dữ liệu trả về của Comment
  * @param {Object} comment
  */
-const toCommentDTO = (comment) => {
+const toCommentModel = (comment) => {
   if (!comment) return null;
 
   return {
@@ -16,4 +16,4 @@ const toCommentDTO = (comment) => {
   };
 };
 
-module.exports = { toCommentDTO };
+module.exports = { toCommentModel };

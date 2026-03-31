@@ -1,7 +1,7 @@
 const notificationService = require('../services/notification.service');
 const catchAsync = require('../utils/catchAsync');
 const ApiResponse = require('../utils/ApiResponse');
-const { toNotificationDTO } = require('../models/notifications/notification.model.js');
+const { toNotificationModel } = require('../models/notifications/notification.model.js');
 
 class NotificationController {
   getNotifications = catchAsync(async (req, res) => {
@@ -11,7 +11,7 @@ class NotificationController {
       parseInt(limit),
       parseInt(offset)
     );
-    new ApiResponse(200, 'Lấy danh sách thông báo thành công', { notifications: notifications.map(toNotificationDTO) }).send(res);
+    new ApiResponse(200, 'Lấy danh sách thông báo thành công', { notifications: notifications.map(toNotificationModel) }).send(res);
   });
 
   getUnreadCount = catchAsync(async (req, res) => {
@@ -21,7 +21,7 @@ class NotificationController {
 
   markAsRead = catchAsync(async (req, res) => {
     const notification = await notificationService.markAsRead(req.params.id);
-    new ApiResponse(200, 'Đã đánh dấu là đã đọc', { notification: toNotificationDTO(notification) }).send(res);
+    new ApiResponse(200, 'Đã đánh dấu là đã đọc', { notification: toNotificationModel(notification) }).send(res);
   });
 
 

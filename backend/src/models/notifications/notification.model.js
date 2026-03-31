@@ -1,8 +1,8 @@
 /**
- * Notification DTO — Chuẩn hóa dữ liệu trả về của Notification
+ * Notification Model — Chuẩn hóa dữ liệu trả về của Notification
  * @param {Object} notification
  */
-const toNotificationDTO = (notification) => {
+const toNotificationModel = (notification) => {
   if (!notification) return null;
 
   return {
@@ -17,4 +17,4 @@ const toNotificationDTO = (notification) => {
   };
 };
 
-module.exports = { toNotificationDTO };
+module.exports = { toNotificationModel };

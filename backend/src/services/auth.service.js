@@ -2,13 +2,13 @@ const bcrypt = require("bcryptjs");
 const crypto = require("crypto");
 
 class AuthService {
-  constructor({ bcrypt, crypto, User, tokenService, mailService, userResponseDTO, ApiError }) {
+  constructor({ bcrypt, crypto, User, tokenService, mailService, userResponseModel, ApiError }) {
     this.bcrypt = bcrypt;
     this.crypto = crypto;
     this.User = User;
     this.tokenService = tokenService;
     this.mailService = mailService;
-    this.userResponseDTO = userResponseDTO;
+    this.userResponseModel = userResponseModel;
     this.ApiError = ApiError;
     this.REFRESH_COOKIE_OPTIONS = {
       httpOnly: true,
@@ -24,7 +24,7 @@ class AuthService {
 
     const passwordHash = await this.bcrypt.hash(password, 10);
     const user = await this.User.create({ email, passwordHash, displayName });
-    return this.userResponseDTO(user);
+    return this.userResponseModel(user);
   };
 
   login = async ({ email, password }) => {
@@ -47,7 +47,7 @@ class AuthService {
     const accessToken = this.tokenService.generateAccessToken(payload);
     const refreshToken = this.tokenService.generateRefreshToken({ _id: user._id.toString() });
 
-    return { accessToken, refreshToken, user: this.userResponseDTO(user) };
+    return { accessToken, refreshToken, user: this.userResponseModel(user) };
   };
 
   refreshAccessToken = async (refreshToken) => {
@@ -105,6 +105,6 @@ module.exports = new AuthService({
   mailService: {
     sendOtpEmail: mailService.sendOtpEmail,
   },
-  userResponseDTO: require("../models/users/userResponse.model"),
+  userResponseModel: require("../models/users/userResponse.model"),
   ApiError: require("../utils/ApiError"),
 });

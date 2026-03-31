@@ -1,5 +1,5 @@
 /**
- * userResponse DTO
+ * userResponse Model
  * Loại bỏ các field nhạy cảm trước khi trả về client
  * @param {Object} user - Mongoose User document hoặc plain object
  * @returns {Object} safe user object

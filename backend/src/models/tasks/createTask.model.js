@@ -1,7 +1,7 @@
 /**
  * Chuẩn hóa dữ liệu tạo Task từ request body
  */
-const toCreateTaskDTO = (body) => {
+const toCreateTaskModel = (body) => {
   const data = {
     columnId: body.columnId,
     title: body.title,
@@ -35,4 +35,4 @@ const toCreateTaskDTO = (body) => {
   return data;
 };
 
-module.exports = { toCreateTaskDTO };
+module.exports = { toCreateTaskModel };

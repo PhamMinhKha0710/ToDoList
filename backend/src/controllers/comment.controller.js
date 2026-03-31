@@ -1,7 +1,7 @@
 const commentService = require('../services/comment.service');
 const catchAsync = require('../utils/catchAsync');
 const ApiResponse = require('../utils/ApiResponse');
-const { toCommentDTO } = require('../models/commemnts/commentResponse.model.js');
+const { toCommentModel } = require('../models/commemnts/commentResponse.model.js');
 
 class CommentController {
   /**
@@ -9,7 +9,7 @@ class CommentController {
    */
   getCommentsByTaskId = catchAsync(async (req, res) => {
     const comments = await commentService.getCommentsByTaskId(req.params.taskId);
-    new ApiResponse(200, 'Lấy danh sách bình luận thành công', { comments: comments.map(toCommentDTO) }).send(res);
+    new ApiResponse(200, 'Lấy danh sách bình luận thành công', { comments: comments.map(toCommentModel) }).send(res);
   });
 
   /**
@@ -21,7 +21,7 @@ class CommentController {
       authorId: req.user._id,
     };
     const comment = await commentService.createComment(commentData);
-    new ApiResponse(201, 'Tạo bình luận thành công', { comment: toCommentDTO(comment) }).send(res);
+    new ApiResponse(201, 'Tạo bình luận thành công', { comment: toCommentModel(comment) }).send(res);
   });
 
   /**
@@ -30,7 +30,7 @@ class CommentController {
   updateComment = catchAsync(async (req, res) => {
     const { content } = req.body;
     const comment = await commentService.updateComment(req.params.commentId, req.user._id, content);
-    new ApiResponse(200, 'Cập nhật bình luận thành công', { comment: toCommentDTO(comment) }).send(res);
+    new ApiResponse(200, 'Cập nhật bình luận thành công', { comment: toCommentModel(comment) }).send(res);
   });
 
 
