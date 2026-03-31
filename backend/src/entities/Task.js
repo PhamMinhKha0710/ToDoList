@@ -53,6 +53,12 @@ const taskSchema = new Schema(
     dueDate: {
       type: Date,
     },
+    startDate: {
+      type: Date,
+    },
+    endDate: {
+      type: Date,
+    },
     color: {
       type: String,
     },

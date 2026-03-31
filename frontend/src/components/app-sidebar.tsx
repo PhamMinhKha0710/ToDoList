@@ -8,6 +8,7 @@ import {
   Settings,
   Shield,
   Users,
+  PieChart,
 } from "lucide-react";
 
 import { NavUser } from "@/components/layout/navigation/nav-user";
@@ -34,6 +35,7 @@ const mainNav = [
 ];
 
 const adminNav = [
+  { title: "Bảng điều khiển", url: ROUTES.ADMIN, icon: PieChart },
   { title: "Người dùng", url: ROUTES.ADMIN_USERS, icon: Users },
   { title: "Dự án (Admin)", url: ROUTES.ADMIN_PROJECTS, icon: Shield },
 ];

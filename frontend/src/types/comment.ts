@@ -14,6 +14,7 @@ export interface CreateCommentPayload {
   taskId: string;
   content: string;
   parentId?: string | null;
+  mentions?: string[];
 }
 
 export interface UpdateCommentPayload {

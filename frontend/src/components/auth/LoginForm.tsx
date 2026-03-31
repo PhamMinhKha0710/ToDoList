@@ -45,7 +45,11 @@ export const LoginForm = ({
       login(user, accessToken)
 
       toast.success('Đăng nhập thành công')
-      navigate(ROUTES.PROJECTS)
+      if (user.role === 'admin') {
+        navigate(ROUTES.ADMIN)
+      } else {
+        navigate(ROUTES.PROJECTS)
+      }
     } catch (error: any) {
       // Global toast handled in axios.ts
     } finally {

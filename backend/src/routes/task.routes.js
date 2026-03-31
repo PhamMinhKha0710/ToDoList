@@ -25,6 +25,7 @@ router.route('/column/:columnId')
   .get(taskController.getTasksByColumnId);
 
 router.route('/')
+  .get(taskController.getAllTasksForUser)
   // canWriteTask: chặn Viewer không được tạo task
   .post(upload.array('files'), parseFormData, validate(taskValidator.createTaskSchema), canWriteTask, taskController.createTask);
 
