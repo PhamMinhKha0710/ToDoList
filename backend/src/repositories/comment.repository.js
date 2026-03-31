@@ -1,26 +1,31 @@
-const Comment = require('../entities/Comment');
-
 class CommentRepository {
+  constructor({ Comment }) {
+    this.Comment = Comment;
+  }
+
   async create(commentData) {
-    const comment = new Comment(commentData);
+    const comment = new this.Comment(commentData);
     return await comment.save();
   }
 
   async findById(id) {
-    return await Comment.findById(id);
+    return await this.Comment.findById(id);
   }
 
   async findByTaskId(taskId) {
-    return await Comment.find({ taskId }).sort({ createdAt: 1 });
+    return await this.Comment.find({ taskId }).sort({ createdAt: 1 });
   }
 
   async updateById(id, data) {
-    return await Comment.findByIdAndUpdate(id, data, { new: true });
+    return await this.Comment.findByIdAndUpdate(id, data, { new: true });
   }
 
   async deleteById(id) {
-    return await Comment.findByIdAndDelete(id);
+    return await this.Comment.findByIdAndDelete(id);
   }
 }
 
-module.exports = new CommentRepository();
+module.exports = new CommentRepository({
+  Comment: require('../entities/Comment'),
+});
+

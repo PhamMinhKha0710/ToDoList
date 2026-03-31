@@ -1,26 +1,31 @@
-const PersonalTask = require('../entities/PersonalTask');
-
 class PersonalTaskRepository {
+  constructor({ PersonalTask }) {
+    this.PersonalTask = PersonalTask;
+  }
+
   async create(taskData) {
-    const task = new PersonalTask(taskData);
+    const task = new this.PersonalTask(taskData);
     return await task.save();
   }
 
   async findByUserId(userId) {
-    return await PersonalTask.find({ userId }).sort({ createdAt: -1 });
+    return await this.PersonalTask.find({ userId }).sort({ createdAt: -1 });
   }
 
   async findById(taskId) {
-    return await PersonalTask.findById(taskId);
+    return await this.PersonalTask.findById(taskId);
   }
 
   async updateById(taskId, updateData) {
-    return await PersonalTask.findByIdAndUpdate(taskId, updateData, { new: true });
+    return await this.PersonalTask.findByIdAndUpdate(taskId, updateData, { new: true });
   }
 
   async deleteById(taskId) {
-    return await PersonalTask.findByIdAndDelete(taskId);
+    return await this.PersonalTask.findByIdAndDelete(taskId);
   }
 }
 
-module.exports = new PersonalTaskRepository();
+module.exports = new PersonalTaskRepository({
+  PersonalTask: require('../entities/PersonalTask'),
+});
+
