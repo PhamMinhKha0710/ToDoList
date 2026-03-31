@@ -1,7 +1,7 @@
 /**
  * Chuẩn hóa dữ liệu cập nhật Task từ request body
  */
-const toUpdateTaskDTO = (body) => {
+const toUpdateTaskModel = (body) => {
   const data = {};
 
   if (body.title !== undefined) data.title = body.title;
@@ -30,4 +30,4 @@ const toUpdateTaskDTO = (body) => {
   return data;
 };
 
-module.exports = { toUpdateTaskDTO };
+module.exports = { toUpdateTaskModel };

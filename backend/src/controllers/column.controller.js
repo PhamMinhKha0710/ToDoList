@@ -1,18 +1,18 @@
 const columnService = require('../services/column.service');
 const catchAsync = require('../utils/catchAsync');
 const ApiResponse = require('../utils/ApiResponse');
-const { toColumnDTO } = require('../models/columns/column.model');
-const { toCreateColumnDTO } = require('../models/columns/createColumn.model');
-const { toUpdateColumnDTO } = require('../models/columns/updateColumn.model');
+const { toColumnModel } = require('../models/columns/column.model');
+const { toCreateColumnModel } = require('../models/columns/createColumn.model');
+const { toUpdateColumnModel } = require('../models/columns/updateColumn.model');
 
 class ColumnController {
   /**
    * POST /api/columns
    */
   createColumn = catchAsync(async (req, res) => {
-    const columnData = toCreateColumnDTO(req.body);
+    const columnData = toCreateColumnModel(req.body);
     const column = await columnService.createColumn(columnData);
-    new ApiResponse(201, 'Tạo cột thành công', { column: toColumnDTO(column) }).send(res);
+    new ApiResponse(201, 'Tạo cột thành công', { column: toColumnModel(column) }).send(res);
   });
 
   /**
@@ -20,7 +20,15 @@ class ColumnController {
    */
   getProjectColumns = catchAsync(async (req, res) => {
     const columns = await columnService.getColumnsByProjectId(req.params.projectId);
-    new ApiResponse(200, 'Lấy danh sách cột thành công', { columns: columns.map(toColumnDTO) }).send(res);
+    new ApiResponse(200, 'Lấy danh sách cột thành công', { columns: columns.map(toColumnModel) }).send(res);
+  });
+
+  /**
+   * GET /api/columns/:columnId
+   */
+  getColumnById = catchAsync(async (req, res) => {
+    const column = await columnService.getColumnById(req.params.columnId);
+    new ApiResponse(200, 'Lấy thông tin cột thành công', { column: toColumnModel(column) }).send(res);
   });
 
   /**
@@ -35,9 +43,9 @@ class ColumnController {
    * PUT /api/columns/:columnId
    */
   updateColumn = catchAsync(async (req, res) => {
-    const updateData = toUpdateColumnDTO(req.body);
+    const updateData = toUpdateColumnModel(req.body);
     const column = await columnService.updateColumn(req.params.columnId, updateData);
-    new ApiResponse(200, 'Cập nhật cột thành công', { column: toColumnDTO(column) }).send(res);
+    new ApiResponse(200, 'Cập nhật cột thành công', { column: toColumnModel(column) }).send(res);
   });
 
   /**
@@ -54,7 +62,7 @@ class ColumnController {
   reorderColumns = catchAsync(async (req, res) => {
     const { orderedColumnIds } = req.body;
     const columns = await columnService.reorderColumns(req.params.projectId, orderedColumnIds);
-    new ApiResponse(200, 'Sắp xếp lại cột thành công', { columns: columns.map(toColumnDTO) }).send(res);
+    new ApiResponse(200, 'Sắp xếp lại cột thành công', { columns: columns.map(toColumnModel) }).send(res);
   });
 }
 

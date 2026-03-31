@@ -1,7 +1,7 @@
 /**
  * Chuẩn định dạng đối tượng Task trước khi trả về cho Client
  */
-const toTaskResponseDTO = (task) => {
+const toTaskResponseModel = (task) => {
   if (!task) return null;
 
   const isPersonal = task.isPersonal !== undefined ? task.isPersonal : (!!task.userId && !task.columnId);
@@ -34,4 +34,4 @@ const toTaskResponseDTO = (task) => {
   };
 };
 
-module.exports = { toTaskResponseDTO };
+module.exports = { toTaskResponseModel };

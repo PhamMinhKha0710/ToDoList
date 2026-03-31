@@ -1,6 +1,6 @@
 class CommentService {
   constructor({
-    Comment,
+    commentRepository,
     ApiError,
     Task,
     Column,
@@ -8,7 +8,7 @@ class CommentService {
     commentSocket,
     notificationService,
   }) {
-    this.Comment = Comment;
+    this.commentRepository = commentRepository;
     this.ApiError = ApiError;
     this.Task = Task;
     this.Column = Column;
@@ -18,11 +18,9 @@ class CommentService {
   }
 
   createComment = async (commentData) => {
-    const comment = await this.Comment.create(commentData);
-    const populated = await this.Comment.findById(comment._id).populate(
-      "authorId",
-      "displayName email avatarUrl",
-    );
+    const comment = await this.commentRepository.create(commentData);
+    const populated = await this.commentRepository.findById(comment._id);
+    await populated.populate("authorId", "displayName email avatarUrl");
 
     const taskIdStr = commentData.taskId.toString();
 
@@ -73,13 +71,16 @@ class CommentService {
   };
 
   getCommentsByTaskId = async (taskId) => {
-    return await this.Comment.find({ taskId })
-      .populate("authorId", "displayName email avatarUrl")
-      .sort({ createdAt: 1 });
+    const comments = await this.commentRepository.findByTaskId(taskId);
+    // Since findByTaskId returns a list, we need to populate each one or use a more advanced repository method.
+    // Given the project's style, we can populate directly on the result if it's a query or just ensure repository returns populated data.
+    // For now, I'll keep it simple and populate here.
+    return await this.commentRepository.findByTaskId(taskId)
+      .then(docs => Promise.all(docs.map(doc => doc.populate("authorId", "displayName email avatarUrl"))));
   };
 
   updateComment = async (commentId, authorId, content) => {
-    const comment = await this.Comment.findById(commentId);
+    const comment = await this.commentRepository.findById(commentId);
     if (!comment) throw new this.ApiError(404, "Không tìm thấy bình luận");
 
     if (comment.authorId.toString() !== authorId.toString()) {
@@ -89,13 +90,8 @@ class CommentService {
       );
     }
 
-    comment.content = content;
-    await comment.save();
-
-    const updated = await this.Comment.findById(commentId).populate(
-      "authorId",
-      "displayName email avatarUrl",
-    );
+    const updated = await this.commentRepository.updateById(commentId, { content });
+    await updated.populate("authorId", "displayName email avatarUrl");
 
     this.commentSocket.emitCommentUpdated(comment.taskId.toString(), updated);
 
@@ -103,7 +99,7 @@ class CommentService {
   };
 
   deleteComment = async (commentId, userId, userRole) => {
-    const comment = await this.Comment.findById(commentId);
+    const comment = await this.commentRepository.findById(commentId);
     if (!comment) throw new this.ApiError(404, "Không tìm thấy bình luận");
 
     const isAuthor = comment.authorId.toString() === userId.toString();
@@ -126,10 +122,16 @@ class CommentService {
           }
         }
       }
-    } else {
-       // if task is not in Task collection, it might be PersonalTask. 
-       // For PersonalTask, only the author of the comment (who must be the task owner) can delete.
-       // (Handled by isAuthor check above)
+
+      for (const recipientId of recipients) {
+        await this.notificationService.createNotification({
+          recipientId,
+          type: 'new_comment',
+          title: 'Bình luận mới',
+          message: `${populated.authorId.displayName} đã bình luận trong task "${task.title}"`,
+          metadata: { taskId: task._id, commentId: comment._id, projectId }
+        }, taskIdStr);
+      }
     }
 
     if (!isAuthor && !isManager) {
@@ -139,14 +141,14 @@ class CommentService {
     const taskId = comment.taskId.toString();
     const idComment = comment._id.toString();
 
-    await comment.deleteOne();
+    await this.commentRepository.deleteById(commentId);
 
     this.commentSocket.emitCommentDeleted(taskId, idComment);
   };
 }
 
 module.exports = new CommentService({
-  Comment: require('../entities/Comment'),
+  commentRepository: require('../repositories/comment.repository'),
   ApiError: require('../utils/ApiError'),
   Task: require('../entities/Task'),
   Column: require('../entities/Column'),
@@ -158,3 +160,4 @@ module.exports = new CommentService({
   },
   notificationService: require('./notification.service'),
 });
+

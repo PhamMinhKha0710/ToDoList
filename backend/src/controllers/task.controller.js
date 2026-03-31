@@ -1,11 +1,11 @@
 const taskService = require('../services/task.service');
 const catchAsync = require('../utils/catchAsync');
 const ApiResponse = require('../utils/ApiResponse');
-const { toCreateTaskDTO } = require('../models/tasks/createTask.model');
-const { toUpdateTaskDTO } = require('../models/tasks/updateTask.model');
-const { toMoveTaskDTO } = require('../models/tasks/moveTask.model');
-const { toTaskResponseDTO } = require('../models/tasks/taskResponse.model');
-const { toAddTagsDTO } = require('../models/tasks/tag.model');
+const { toCreateTaskModel } = require('../models/tasks/createTask.model');
+const { toUpdateTaskModel } = require('../models/tasks/updateTask.model');
+const { toMoveTaskModel } = require('../models/tasks/moveTask.model');
+const { toTaskResponseModel } = require('../models/tasks/taskResponse.model');
+const { toAddTagsModel } = require('../models/tasks/tag.model');
 const User = require('../entities/User');
 const Column = require('../entities/Column');
 const Project = require('../entities/Project');
@@ -17,7 +17,7 @@ class TaskController {
    * POST /api/tasks
    */
   createTask = catchAsync(async (req, res) => {
-    const taskData = toCreateTaskDTO(req.body);
+    const taskData = toCreateTaskModel(req.body);
     taskData.creatorId = req.user._id; // Inject creator from authenticated user
     const task = await taskService.createTask(taskData, req.files);
     
@@ -47,7 +47,7 @@ class TaskController {
       })();
     }
 
-    new ApiResponse(201, 'Tạo tác vụ thành công', { task: toTaskResponseDTO(task) }).send(res);
+    new ApiResponse(201, 'Tạo tác vụ thành công', { task: toTaskResponseModel(task) }).send(res);
   });
 
   /**
@@ -55,7 +55,7 @@ class TaskController {
    */
   getTasksByColumnId = catchAsync(async (req, res) => {
     const tasks = await taskService.getTasksByColumnId(req.params.columnId);
-    new ApiResponse(200, 'Lấy danh sách tác vụ thành công', { tasks: tasks.map(toTaskResponseDTO) }).send(res);
+    new ApiResponse(200, 'Lấy danh sách tác vụ thành công', { tasks: tasks.map(toTaskResponseModel) }).send(res);
   });
 
   /**
@@ -63,14 +63,14 @@ class TaskController {
    */
   getTaskById = catchAsync(async (req, res) => {
     const task = await taskService.getTaskById(req.params.taskId);
-    new ApiResponse(200, 'Lấy chi tiết tác vụ thành công', { task: toTaskResponseDTO(task) }).send(res);
+    new ApiResponse(200, 'Lấy chi tiết tác vụ thành công', { task: toTaskResponseModel(task) }).send(res);
   });
 
   /**
    * PUT /api/tasks/:taskId
    */
   updateTask = catchAsync(async (req, res) => {
-    const updateData = toUpdateTaskDTO(req.body);
+    const updateData = toUpdateTaskModel(req.body);
     const existingTask = await taskService.getTaskById(req.params.taskId);
     
     const task = await taskService.updateTask(req.params.taskId, updateData, req.user._id);
@@ -111,14 +111,14 @@ class TaskController {
       })();
     }
 
-    new ApiResponse(200, 'Cập nhật tác vụ thành công', { task: toTaskResponseDTO(task) }).send(res);
+    new ApiResponse(200, 'Cập nhật tác vụ thành công', { task: toTaskResponseModel(task) }).send(res);
   });
 
   /**
    * POST /api/tasks/move
    */
   moveTask = catchAsync(async (req, res) => {
-    const moveData = toMoveTaskDTO(req.body);
+    const moveData = toMoveTaskModel(req.body);
     await taskService.moveTask(moveData, req.user._id);
     new ApiResponse(200, 'Di chuyển tác vụ thành công').send(res);
   });
@@ -135,9 +135,9 @@ class TaskController {
    * POST /api/tasks/:taskId/tags  
    */
   addTags = catchAsync(async (req, res) => {
-    const tagsData = toAddTagsDTO(req.body);
+    const tagsData = toAddTagsModel(req.body);
     const task = await taskService.addTagsToTask(req.params.taskId, tagsData);
-    new ApiResponse(200, 'Thêm tag thành công', { task: toTaskResponseDTO(task) }).send(res);
+    new ApiResponse(200, 'Thêm tag thành công', { task: toTaskResponseModel(task) }).send(res);
   });
 
   /**
@@ -145,7 +145,15 @@ class TaskController {
    */
   removeTag = catchAsync(async (req, res) => {
     const task = await taskService.removeTagFromTask(req.params.taskId, req.params.tagName);
-    new ApiResponse(200, 'Xóa tag thành công', { task: toTaskResponseDTO(task) }).send(res);
+    new ApiResponse(200, 'Xóa tag thành công', { task: toTaskResponseModel(task) }).send(res);
+  });
+
+  /**
+   * GET /api/tasks
+   */
+  getAllTasksForUser = catchAsync(async (req, res) => {
+    const tasks = await taskService.getAllTasksForUser(req.user._id);
+    new ApiResponse(200, 'Lấy danh sách tác vụ thành công', { tasks: tasks.map(toTaskResponseModel) }).send(res);
   });
 
   /**

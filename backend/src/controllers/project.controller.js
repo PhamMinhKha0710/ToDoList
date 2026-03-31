@@ -1,7 +1,7 @@
 const projectService = require("../services/project.service");
 const catchAsync = require("../utils/catchAsync");
 const ApiResponse = require("../utils/ApiResponse");
-const ProjectResponseDTO = require("../models/projects/projectResponse.model");
+const ProjectResponseModel = require("../models/projects/projectResponse.model");
 const uploadService = require("../services/upload.service");
 const mailService = require("../services/mail.service");
 const { CLIENT_URL } = require("../config/env");
@@ -17,8 +17,8 @@ class ProjectController {
     }
 
     const project = await projectService.createProject(req.user._id, projectData);
-    const projectDTO = ProjectResponseDTO.fromEntity(project);
-    new ApiResponse(201, "Tạo dự án thành công", { project: projectDTO }).send(res);
+    const projectModel = ProjectResponseModel.fromEntity(project);
+    new ApiResponse(201, "Tạo dự án thành công", { project: projectModel }).send(res);
   });
 
   /**
@@ -26,9 +26,9 @@ class ProjectController {
    */
   getUserProjects = catchAsync(async (req, res) => {
     const projects = await projectService.getUserProjects(req.user._id);
-    const projectsDTO = ProjectResponseDTO.fromEntities(projects);
+    const projectsModel = ProjectResponseModel.fromEntities(projects);
     new ApiResponse(200, "Lấy danh sách dự án thành công", {
-      projects: projectsDTO,
+      projects: projectsModel,
     }).send(res);
   });
 
@@ -37,9 +37,9 @@ class ProjectController {
    */
   getProjectById = catchAsync(async (req, res) => {
     const project = await projectService.getProjectById(req.params.projectId);
-    const projectDTO = ProjectResponseDTO.fromEntity(project);
+    const projectModel = ProjectResponseModel.fromEntity(project);
     new ApiResponse(200, "Lấy thông tin dự án thành công", {
-      project: projectDTO,
+      project: projectModel,
     }).send(res);
   });
 
@@ -56,9 +56,9 @@ class ProjectController {
       req.params.projectId,
       projectData,
     );
-    const projectDTO = ProjectResponseDTO.fromEntity(project);
+    const projectModel = ProjectResponseModel.fromEntity(project);
     new ApiResponse(200, "Cập nhật dự án thành công", {
-      project: projectDTO,
+      project: projectModel,
     }).send(res);
   });
 
@@ -93,9 +93,9 @@ class ProjectController {
       )
       .catch((err) => console.error("Error sending invitation email:", err));
 
-    const projectDTO = ProjectResponseDTO.fromEntity(project);
+    const projectModel = ProjectResponseModel.fromEntity(project);
     new ApiResponse(200, "Thêm thành viên thành công", {
-      project: projectDTO,
+      project: projectModel,
     }).send(res);
   });
 
@@ -107,9 +107,9 @@ class ProjectController {
       req.params.projectId,
       req.params.memberId,
     );
-    const projectDTO = ProjectResponseDTO.fromEntity(project);
+    const projectModel = ProjectResponseModel.fromEntity(project);
     new ApiResponse(200, "Xóa thành viên thành công", {
-      project: projectDTO,
+      project: projectModel,
     }).send(res);
   });
 
@@ -123,9 +123,9 @@ class ProjectController {
       req.params.memberId,
       role,
     );
-    const projectDTO = ProjectResponseDTO.fromEntity(project);
+    const projectModel = ProjectResponseModel.fromEntity(project);
     new ApiResponse(200, "Cập nhật phân quyền thành công", {
-      project: projectDTO,
+      project: projectModel,
     }).send(res);
   });
 

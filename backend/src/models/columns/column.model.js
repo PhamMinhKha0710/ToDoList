@@ -1,8 +1,8 @@
 /**
- * Column DTO — Chuẩn hóa dữ liệu trả về của Column
+ * Column Model — Chuẩn hóa dữ liệu trả về của Column
  * @param {Object} column
  */
-const toColumnDTO = (column) => {
+const toColumnModel = (column) => {
   if (!column) return null;
   
   return {
@@ -17,4 +17,4 @@ const toColumnDTO = (column) => {
   };
 };
 
-module.exports = { toColumnDTO };
+module.exports = { toColumnModel };
