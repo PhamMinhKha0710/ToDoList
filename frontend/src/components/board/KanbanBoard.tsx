@@ -13,7 +13,7 @@ import type { Task } from "@/types/task";
 import { TaskCard } from "./TaskCard";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { useSocket } from "@/services/socket.service";
+import { useProjectSocket } from "@/hooks/use-socket";
 import {
   DndContext,
   closestCorners,
@@ -55,7 +55,7 @@ export const KanbanBoard = ({ projectId }: KanbanBoardProps) => {
     activeProject,
   } = useKanbanStore();
 
-  useSocket();
+  useProjectSocket(projectId);
 
 
   const { user: currentUser } = useAuthStore();

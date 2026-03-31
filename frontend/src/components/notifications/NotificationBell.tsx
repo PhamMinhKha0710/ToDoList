@@ -10,12 +10,9 @@ import { Badge } from "@/components/ui/badge";
 import { useNotificationStore } from "@/stores/notification.store";
 import { NotificationList } from "./NotificationList";
 import { notificationService } from "@/services/notification.service";
-import { getSocket } from "@/services/socket.service";
-import { useAuthStore } from "@/stores/auth.store";
 
 export const NotificationBell = () => {
-  const { unreadCount, fetchUnreadCount, notifications, setNotifications, addNotification, setUnreadCount } = useNotificationStore();
-  const { user } = useAuthStore();
+  const { unreadCount, fetchUnreadCount, notifications, setNotifications, setUnreadCount } = useNotificationStore();
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -23,21 +20,6 @@ export const NotificationBell = () => {
     fetchUnreadCount();
   }, [fetchUnreadCount]);
 
-  useEffect(() => {
-    const socket = getSocket();
-    if (socket && user) {
-      const handleNewNotification = (notification: any) => {
-        console.log('New notification received:', notification);
-        addNotification(notification);
-      };
-
-      socket.on('notification:new', handleNewNotification);
-
-      return () => {
-        socket.off('notification:new', handleNewNotification);
-      };
-    }
-  }, [user, addNotification]);
 
   const handleOpenChange = async (open: boolean) => {
     setIsOpen(open);

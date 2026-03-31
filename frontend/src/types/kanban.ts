@@ -38,4 +38,15 @@ export interface Kanban {
   setMembers: (members: ProjectMember[]) => void;
   /** Reorder columns optimistically (for drag-drop) */
   reorderColumns: (newColumns: Column[]) => void;
+
+  /** Real-time sync for task movement */
+  handleTaskMoved: (moveData: {
+    taskId: string;
+    sourceColumnId: string;
+    destinationColumnId: string;
+    sourceTaskIds: string[];
+    destinationTaskIds: string[];
+  }) => void;
+  /** Real-time sync for column reordering */
+  handleColumnsReordered: (columns: Column[]) => void;
 }

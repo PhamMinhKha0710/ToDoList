@@ -57,7 +57,10 @@ export const useTaskSocket = (taskId: string | undefined) => {
       queryClient.setQueryData(['comments', taskId], (old: Comment[] | undefined) => {
         if (!old) return [newComment];
         // Đề phòng trường hợp nhận được event cho chính comment mình vừa tạo (đã có trong cache)
-        if (old.some(c => c._id === newComment._id)) return old;
+        if (old.some(c => c._id === newComment._id)) {
+          console.log('[useTaskSocket] Comment already exists in cache, skipping sync');
+          return old;
+        }
         return [...old, newComment];
       });
     };
@@ -112,7 +115,6 @@ export const useProjectSocket = (
     addColumn,
     updateTask,
     deleteTask,
-    moveTask,
     setColumns,
     updateColumn,
     deleteColumn,
@@ -134,6 +136,8 @@ export const useProjectSocket = (
     // ─── Join project room ngay lập tức hoặc khi connect ──────────────────────
     if (socket.connected) {
       joinRoom();
+    } else {
+      console.log('[useProjectSocket] Socket not connected, waiting for connect event');
     }
     
     socket.on('connect', joinRoom);
@@ -145,6 +149,7 @@ export const useProjectSocket = (
     };
 
     const onTaskUpdated = (task: Task) => {
+      console.log('[Socket] Task updated:', task);
       updateTask(task.columnId, task._id, task);
     };
 
@@ -153,11 +158,15 @@ export const useProjectSocket = (
     };
 
     const onTaskMoved = (data: TaskMovedPayload) => {
-      moveTask(data.sourceColumnId, data.destinationColumnId, data.taskId);
+      console.log('[Socket] Task moved event received:', data);
+      // Sử dụng handleTaskMoved để sync full order của cả 2 column
+      const state = useKanbanStore.getState();
+      state.handleTaskMoved(data);
     };
 
     // ─── Column events ────────────────────────────────────────────────────────
     const onColumnCreated = (column: Column) => {
+      console.log('[Socket] Column created:', column);
        addColumn(column);
     };
 

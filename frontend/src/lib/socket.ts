@@ -25,14 +25,23 @@ export const connectSocket = (accessToken: string): Socket => {
 
   socket.on('connect', () => {
     console.log('[Socket] Connected successfully, ID:', socket?.id);
+    console.log('[Socket] Transport:', socket?.io.engine.transport.name);
   });
 
   socket.on('disconnect', (reason) => {
     console.log('[Socket] Disconnected, reason:', reason);
+    if (reason === 'io server disconnect') {
+      // the disconnection was initiated by the server, you need to reconnect manually
+      socket?.connect();
+    }
   });
 
   socket.on('connect_error', (err) => {
-    console.error('[Socket] Connection error:', err.message);
+    console.error('[Socket] Connection error details:', {
+      message: err.message,
+      description: (err as any).description,
+      context: (err as any).context
+    });
   });
 
   return socket;
