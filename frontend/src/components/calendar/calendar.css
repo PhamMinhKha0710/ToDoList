@@ -10,6 +10,17 @@
 
 .fc {
   font-family: inherit;
+  --fc-border-color: #f1f5f9;
+  --fc-daygrid-event-harness-margin: 2px;
+}
+
+.fc .fc-view-harness {
+    background-color: white;
+}
+
+.fc th, .fc td {
+    border-style: solid !important;
+    border-width: 1px !important;
 }
 
 .fc .fc-toolbar-title {
@@ -58,11 +69,15 @@
   text-transform: uppercase;
   letter-spacing: 0.05em;
   color: #94a3b8; /* slate-400 */
-  border-color: #f1f5f9;
+  border-color: #f1f5f9 !important;
 }
 
 .fc td {
-  border-color: #f1f5f9;
+  border-color: #f1f5f9 !important;
+}
+
+.fc .fc-daygrid-day-frame {
+    min-height: 100px;
 }
 
 .fc .fc-day-today {

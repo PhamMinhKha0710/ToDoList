@@ -1,6 +1,7 @@
 "use client"
 
 import { SidebarIcon } from "lucide-react"
+import { useLocation } from "react-router-dom"
 
 import { SearchForm } from "@/components/search-form"
 import { NotificationBell } from "@/components/notifications/NotificationBell"
@@ -23,6 +24,11 @@ import { useKanbanStore } from "@/stores/kanban.store"
 export function SiteHeader() {
   const { toggleSidebar } = useSidebar()
   const { activeProject } = useKanbanStore()
+  const location = useLocation()
+  
+  const isCalendar = location.pathname === "/calendar"
+  const isProfile = location.pathname === "/profile"
+  const isMyTasks = location.pathname === "/my-tasks"
 
   return (
     <header className="flex sticky top-0 z-50 w-full items-center border-b bg-background">
@@ -50,7 +56,9 @@ export function SiteHeader() {
                 </BreadcrumbItem>
                 <BreadcrumbSeparator />
                 <BreadcrumbItem>
-                  <BreadcrumbPage>Dashboard</BreadcrumbPage>
+                  <BreadcrumbPage>
+                    {isCalendar ? "Lịch" : isProfile ? "Hồ sơ" : isMyTasks ? "Công việc cá nhân" : "Tổng quan"}
+                  </BreadcrumbPage>
                 </BreadcrumbItem>
               </BreadcrumbList>
             </Breadcrumb>

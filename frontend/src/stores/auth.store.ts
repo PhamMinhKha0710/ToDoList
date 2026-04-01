@@ -36,8 +36,8 @@ export const useAuthStore = create<AuthState>()(
     }),
     {
       name: "auth-store",
-      // Chỉ persist user, KHÔNG persist accessToken hoặc isSocketInitialized
-      partialize: (state) => ({ user: state.user }),
+      // Persist user and accessToken
+      partialize: (state) => ({ user: state.user, accessToken: state.accessToken }),
     },
   ),
 );
