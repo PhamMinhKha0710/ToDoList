@@ -709,11 +709,11 @@ export const TaskDetailModal = ({
                 <div className="grid grid-cols-2 gap-2">
                   <div className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white border border-slate-300 focus-within:border-indigo-400 focus-within:ring-4 focus-within:ring-indigo-50 shadow-sm w-full relative transition-all">
                     <input
-                      type="date"
+                      type="datetime-local"
                       disabled={!canEditMeta}
                       value={
                         editedTask.startDate
-                          ? new Date(editedTask.startDate).toISOString().split("T")[0]
+                          ? new Date(new Date(editedTask.startDate).getTime() - new Date(editedTask.startDate).getTimezoneOffset() * 60000).toISOString().slice(0, 16)
                           : ""
                       }
                       onChange={(e) => {
@@ -724,11 +724,11 @@ export const TaskDetailModal = ({
                   </div>
                   <div className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white border border-slate-300 focus-within:border-indigo-400 focus-within:ring-4 focus-within:ring-indigo-50 shadow-sm w-full relative transition-all">
                     <input
-                      type="date"
+                      type="datetime-local"
                       disabled={!canEditMeta}
                       value={
                         editedTask.endDate
-                          ? new Date(editedTask.endDate).toISOString().split("T")[0]
+                          ? new Date(new Date(editedTask.endDate).getTime() - new Date(editedTask.endDate).getTimezoneOffset() * 60000).toISOString().slice(0, 16)
                           : ""
                       }
                       onChange={(e) => {
@@ -743,13 +743,13 @@ export const TaskDetailModal = ({
                   <div className="flex items-center justify-between text-[13px]">
                     <span className="text-slate-400">Bắt đầu:</span>
                     <span className="font-bold text-slate-700">
-                      {editedTask.startDate ? new Date(editedTask.startDate).toLocaleDateString("vi-VN") : "---"}
+                      {editedTask.startDate ? new Date(editedTask.startDate).toLocaleString("vi-VN", { dateStyle: 'short', timeStyle: 'short' }) : "---"}
                     </span>
                   </div>
                   <div className="flex items-center justify-between text-[13px]">
                     <span className="text-slate-400">Kết thúc:</span>
                     <span className="font-bold text-slate-700">
-                      {editedTask.endDate ? new Date(editedTask.endDate).toLocaleDateString("vi-VN") : "---"}
+                      {editedTask.endDate ? new Date(editedTask.endDate).toLocaleString("vi-VN", { dateStyle: 'short', timeStyle: 'short' }) : "---"}
                     </span>
                   </div>
                 </div>
@@ -764,13 +764,11 @@ export const TaskDetailModal = ({
               {isEditing ? (
                 <div className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white border border-slate-300 focus-within:border-indigo-400 focus-within:ring-4 focus-within:ring-indigo-50 shadow-sm w-full relative transition-all">
                   <input
-                    type="date"
+                    type="datetime-local"
                     disabled={!canEditMeta}
                     value={
                       editedTask.dueDate
-                        ? new Date(editedTask.dueDate)
-                            .toISOString()
-                            .split("T")[0]
+                        ? new Date(new Date(editedTask.dueDate).getTime() - new Date(editedTask.dueDate).getTimezoneOffset() * 60000).toISOString().slice(0, 16)
                         : ""
                     }
                     onChange={(e) => {

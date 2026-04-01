@@ -36,9 +36,9 @@ class ColumnService {
   }
 
   async getColumnById(columnId) {
-    const column = await columnRepository.findById(columnId);
+    const column = await this.columnRepository.findById(columnId);
     if (!column) {
-      throw new ApiError(404, 'Không tìm thấy cột');
+      throw new this.ApiError(404, 'Không tìm thấy cột');
     }
     return column;
   }

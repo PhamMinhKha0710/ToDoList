@@ -155,14 +155,6 @@ class TaskController {
     const tasks = await taskService.getAllTasksForUser(req.user._id);
     new ApiResponse(200, 'Lấy danh sách tác vụ thành công', { tasks: tasks.map(toTaskResponseModel) }).send(res);
   });
-
-  /**
-   * GET /api/tasks
-   */
-  getAllTasksForUser = catchAsync(async (req, res) => {
-    const tasks = await taskService.getAllTasksForUser(req.user._id);
-    new ApiResponse(200, 'Lấy danh sách tác vụ thành công', { tasks: tasks.map(toTaskResponseDTO) }).send(res);
-  });
 }
 
 module.exports = new TaskController();

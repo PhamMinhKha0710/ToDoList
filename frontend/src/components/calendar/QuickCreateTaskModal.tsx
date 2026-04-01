@@ -45,23 +45,24 @@ export const QuickCreateTaskModal = ({
   const [endDate, setEndDate] = useState("");
 
   useEffect(() => {
-    if (initialDate) {
-      setDueDate(initialDate);
-      setStartDate(initialDate);
-      setEndDate(initialDate);
+    if (initialDate && open) {
+      const dateTime = `${initialDate}T09:00`;
+      setDueDate(dateTime);
+      setStartDate(dateTime);
+      setEndDate(dateTime);
     }
   }, [initialDate, open]);
 
   const { data: projectsData, isLoading: isLoadingProjects } = useQuery({
     queryKey: ["projects"],
     queryFn: () => projectService.getProjects(),
-    enabled: open && taskType === "project",
+    enabled: open,
   });
 
   const { data: columnsData, isLoading: isLoadingColumns } = useQuery({
     queryKey: ["project-columns", selectedProjectId],
     queryFn: () => columnService.getProjectColumns(selectedProjectId),
-    enabled: !!selectedProjectId && taskType === "project",
+    enabled: !!selectedProjectId && selectedProjectId !== "none",
   });
 
   useEffect(() => {
@@ -234,7 +235,7 @@ export const QuickCreateTaskModal = ({
                   <Label htmlFor="startDate">Ngày bắt đầu</Label>
                   <Input
                     id="startDate"
-                    type="date"
+                    type="datetime-local"
                     value={startDate}
                     onChange={(e) => setStartDate(e.target.value)}
                   />
@@ -243,7 +244,7 @@ export const QuickCreateTaskModal = ({
                   <Label htmlFor="endDate">Ngày kết thúc</Label>
                   <Input
                     id="endDate"
-                    type="date"
+                    type="datetime-local"
                     value={endDate}
                     onChange={(e) => setEndDate(e.target.value)}
                   />
@@ -254,7 +255,7 @@ export const QuickCreateTaskModal = ({
                 <Label htmlFor="dueDate">Hạn chót</Label>
                 <Input
                   id="dueDate"
-                  type="date"
+                  type="datetime-local"
                   value={dueDate}
                   onChange={(e) => setDueDate(e.target.value)}
                 />
@@ -326,7 +327,7 @@ export const QuickCreateTaskModal = ({
                   <Label htmlFor="startDate-p">Ngày bắt đầu</Label>
                   <Input
                     id="startDate-p"
-                    type="date"
+                    type="datetime-local"
                     value={startDate}
                     onChange={(e) => setStartDate(e.target.value)}
                   />
@@ -335,7 +336,7 @@ export const QuickCreateTaskModal = ({
                   <Label htmlFor="endDate-p">Ngày kết thúc</Label>
                   <Input
                     id="endDate-p"
-                    type="date"
+                    type="datetime-local"
                     value={endDate}
                     onChange={(e) => setEndDate(e.target.value)}
                   />

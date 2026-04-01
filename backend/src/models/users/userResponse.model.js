@@ -13,4 +13,4 @@ const toUserResponse = (user) => {
   return obj;
 };
 
-module.exports = { toUserResponse };
+module.exports = toUserResponse;
