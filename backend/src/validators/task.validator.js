@@ -22,6 +22,8 @@ const createTaskSchema = Joi.object({
   status: Joi.string().valid('todo', 'in_progress', 'done').optional(),
   priority: Joi.string().valid('urgent', 'high', 'normal', 'low').optional(),
   dueDate: Joi.date().iso().allow(null).optional(),
+  startDate: Joi.date().iso().allow(null).optional(),
+  endDate: Joi.date().iso().allow(null).optional(),
   color: Joi.string().trim().optional(),
   tags: Joi.array().items(tagSchema).optional(),
 });
@@ -33,6 +35,8 @@ const updateTaskSchema = Joi.object({
   status: Joi.string().valid('todo', 'in_progress', 'done').optional(),
   priority: Joi.string().valid('urgent', 'high', 'normal', 'low').optional(),
   dueDate: Joi.date().iso().allow(null).optional(),
+  startDate: Joi.date().iso().allow(null).optional(),
+  endDate: Joi.date().iso().allow(null).optional(),
   color: Joi.string().trim().optional(),
   tags: Joi.array().items(tagSchema).optional(),
 });

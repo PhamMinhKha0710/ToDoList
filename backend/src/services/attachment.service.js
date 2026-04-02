@@ -1,15 +1,23 @@
 class AttachmentService {
-  constructor({ fs, path, attachmentRepository, Task, ApiError, CLIENT_URL }) {
+  constructor({ fs, path, attachmentRepository, Task, PersonalTask, ApiError, CLIENT_URL }) {
     this.fs = fs;
     this.path = path;
     this.attachmentRepository = attachmentRepository;
     this.Task = Task;
+    this.PersonalTask = PersonalTask;
     this.ApiError = ApiError;
     this.CLIENT_URL = CLIENT_URL;
   }
 
+  _taskExists = async (taskId) => {
+    const projectTaskExists = await this.Task.exists({ _id: taskId });
+    if (projectTaskExists) return true;
+    const personalTaskExists = await this.PersonalTask.exists({ _id: taskId });
+    return !!personalTaskExists;
+  };
+
   uploadAttachment = async (taskId, file) => {
-    const taskExists = await this.Task.exists({ _id: taskId });
+    const taskExists = await this._taskExists(taskId);
     if (!taskExists) {
       if (file && file.path) {
         this.fs.unlinkSync(file.path);
@@ -33,7 +41,7 @@ class AttachmentService {
   };
 
   getTaskAttachments = async (taskId) => {
-    const taskExists = await this.Task.exists({ _id: taskId });
+    const taskExists = await this._taskExists(taskId);
     if (!taskExists) {
       throw new this.ApiError(404, 'Không tìm thấy Task');
     }
@@ -68,6 +76,7 @@ module.exports = new AttachmentService({
   path: require('path'),
   attachmentRepository: require('../repositories/attachment.repository'),
   Task: require('../entities/Task'),
+  PersonalTask: require('../entities/PersonalTask'),
   ApiError: require('../utils/ApiError'),
   CLIENT_URL: require('../config/env').CLIENT_URL,
 });

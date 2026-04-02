@@ -30,6 +30,16 @@ interface QuickCreateTaskModalProps {
   initialDate?: string;
 }
 
+const COLOR_PRESETS = [
+  "#3b82f6", // blue
+  "#8b5cf6", // purple
+  "#ec4899", // pink
+  "#ef4444", // red
+  "#f59e0b", // orange
+  "#10b981", // green
+  "#64748b", // slate
+];
+
 export const QuickCreateTaskModal = ({
   open,
   onOpenChange,
@@ -43,6 +53,7 @@ export const QuickCreateTaskModal = ({
   const [dueDate, setDueDate] = useState("");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
+  const [color, setColor] = useState("#3b82f6");
 
   useEffect(() => {
     if (initialDate && open) {
@@ -106,6 +117,7 @@ export const QuickCreateTaskModal = ({
     setSelectedProjectId("");
     setSelectedColumnId("");
     setTitle("");
+    setColor("#3b82f6");
   };
 
   const handleCreate = async () => {
@@ -114,7 +126,7 @@ export const QuickCreateTaskModal = ({
       return;
     }
 
-    if (taskType === "project" || (selectedProjectId && selectedProjectId !== "none")) {
+    if (taskType === "project") {
       const columnIdToUse = selectedColumnId;
       if (!selectedProjectId || selectedProjectId === "none" || !columnIdToUse) {
         toast.error("Vui lòng chọn dự án và cột");
@@ -133,12 +145,14 @@ export const QuickCreateTaskModal = ({
       if (endDate) {
         formData.append("endDate", new Date(endDate).toISOString());
       }
+      formData.append("color", color);
       createProjectTaskMutation.mutate(formData);
     } else {
       const payload = {
         title,
         startDate: startDate ? new Date(startDate).toISOString() : undefined,
         endDate: endDate ? new Date(endDate).toISOString() : undefined,
+        color: color,
       };
       createPersonalTaskMutation.mutate(payload);
     }
@@ -230,6 +244,29 @@ export const QuickCreateTaskModal = ({
                 />
               </div>
 
+              <div className="grid gap-2">
+                <Label>Màu sắc</Label>
+                <div className="flex flex-wrap gap-2">
+                  {COLOR_PRESETS.map((c) => (
+                    <button
+                      key={c}
+                      type="button"
+                      className={`w-7 h-7 rounded-full border-2 transition-all hover:scale-110 active:scale-95 ${
+                        color === c ? "border-slate-900 ring-2 ring-slate-100 scale-110" : "border-slate-100 hover:border-slate-300"
+                      }`}
+                      style={{ backgroundColor: c }}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        console.log("Setting color to:", c);
+                        setColor(c);
+                      }}
+                      title={c}
+                    />
+                  ))}
+                </div>
+              </div>
+
               <div className="grid grid-cols-2 gap-4">
                 <div className="grid gap-2">
                   <Label htmlFor="startDate">Ngày bắt đầu</Label>
@@ -264,55 +301,6 @@ export const QuickCreateTaskModal = ({
           ) : (
             <>
               <div className="grid gap-2">
-                <Label htmlFor="project-p">Dự án (Tùy chọn)</Label>
-                <Select
-                  value={selectedProjectId}
-                  onValueChange={(val) => {
-                    setSelectedProjectId(val);
-                    setSelectedColumnId("");
-                  }}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder={isLoadingProjects ? "Đang tải dự án..." : "Chọn dự án"} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">Không có dự án</SelectItem>
-                    {projects.map((project) => (
-                      <SelectItem key={project._id} value={project._id}>
-                        {project.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {selectedProjectId && selectedProjectId !== "none" && (
-                <div className="grid gap-2">
-                  <Label htmlFor="column-p">Cột <span className="text-destructive">*</span></Label>
-                  <Select
-                    value={selectedColumnId}
-                    onValueChange={setSelectedColumnId}
-                    disabled={isLoadingColumns}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder={isLoadingColumns ? "Đang tải cột..." : "Chọn cột"} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {columns.length > 0 ? (
-                        columns.map((column) => (
-                          <SelectItem key={column._id} value={column._id}>
-                            {column.title}
-                          </SelectItem>
-                        ))
-                      ) : (
-                        <SelectItem value="none" disabled>Không có cột nào</SelectItem>
-                      )}
-                    </SelectContent>
-                  </Select>
-                </div>
-              )}
-
-              <div className="grid gap-2">
                 <Label htmlFor="title-p">Tiêu đề <span className="text-destructive">*</span></Label>
                 <Input
                   id="title-p"
@@ -320,6 +308,29 @@ export const QuickCreateTaskModal = ({
                   onChange={(e) => setTitle(e.target.value)}
                   placeholder="Nhập tiêu đề công việc..."
                 />
+              </div>
+
+              <div className="grid gap-2">
+                <Label>Màu sắc</Label>
+                <div className="flex flex-wrap gap-2">
+                  {COLOR_PRESETS.map((c) => (
+                    <button
+                      key={c}
+                      type="button"
+                      className={`w-7 h-7 rounded-full border-2 transition-all hover:scale-110 active:scale-95 ${
+                        color === c ? "border-slate-900 ring-2 ring-slate-100 scale-110" : "border-slate-100 hover:border-slate-300"
+                      }`}
+                      style={{ backgroundColor: c }}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        console.log("Setting personal color to:", c);
+                        setColor(c);
+                      }}
+                      title={c}
+                    />
+                  ))}
+                </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
