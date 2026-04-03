@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
-import { userService } from '@/services/user.service';
+import { adminService } from '@/services/admin/admin.service';
 import type { User } from '@/types/user';
 
 const AdminUsersPage = () => {
@@ -10,7 +10,7 @@ const AdminUsersPage = () => {
   const loadUsers = async () => {
     setIsLoading(true);
     try {
-      const res = await userService.getAdminUsers();
+      const res = await adminService.getAdminUsers();
       setUsers(res.data);
     } catch (error: any) {
       toast.error(error.response?.data?.message || 'Lấy danh sách user thất bại');
@@ -26,7 +26,7 @@ const AdminUsersPage = () => {
   const toggleStatus = async (user: User) => {
     const status = !user.isActive;
     try {
-      await userService.setUserActiveStatus(user._id, status);
+      await adminService.setUserActiveStatus(user._id, status);
       toast.success(`User ${user.email} đã ${status ? 'mở khóa' : 'khóa'} thành công`);
       setUsers((prev) => prev.map((u) => (u._id === user._id ? { ...u, isActive: status } : u)));
     } catch (error: any) {

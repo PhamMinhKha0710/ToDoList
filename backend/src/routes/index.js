@@ -10,7 +10,7 @@ const commentRoutes = require('./comment.routes');
 const attachmentRoutes = require('./attachment.routes');
 const notificationRoutes = require('./notification.routes');
 const personalTaskRoutes = require('./personalTask.routes');
-const adminRoutes = require('./admin.routes');
+const adminRoutes = require('./admin/admin.routes');
 
 const router = Router();
 
