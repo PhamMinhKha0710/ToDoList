@@ -1,11 +1,15 @@
 const { Router } = require('express');
 const controller = require('../controllers/auth.controller');
 const { validate } = require('../middlewares/validate.middleware');
+const { otpLimiter } = require('../middlewares/rateLimiter.middleware');
+const passport = require('../config/passport');
 const {
   registerSchema,
   loginSchema,
   forgotPasswordSchema,
   resetPasswordSchema,
+  requestOtpSchema,
+  verifyOtpSchema,
 } = require('../validators/auth.validator');
 
 const router = Router();
@@ -27,5 +31,21 @@ router.post('/forgot-password', validate(forgotPasswordSchema), controller.forgo
 
 // POST /api/v1/auth/reset-password
 router.post('/reset-password', validate(resetPasswordSchema), controller.resetPassword);
+
+// POST /api/v1/auth/request-otp
+router.post('/request-otp', otpLimiter, validate(requestOtpSchema), controller.requestOtp);
+
+// POST /api/auth/verify-otp
+router.post('/verify-otp', validate(verifyOtpSchema), controller.verifyOtp);
+
+// GET /api/auth/google  — chuyển hướng sang trang chọn tài khoản Google
+router.get('/google', passport.authenticate('google', { scope: ['profile', 'email'], session: false }));
+
+// GET /api/auth/google/callback  — Google redirect về đây sau khi người dùng chọn TK
+router.get(
+  '/google/callback',
+  passport.authenticate('google', { failureRedirect: `${process.env.CLIENT_URL}/login?error=google_failed`, session: false }),
+  controller.googleCallback
+);
 
 module.exports = router;
