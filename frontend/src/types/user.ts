@@ -6,4 +6,5 @@ export interface User {
   avatarUrl?: string;
   role: "user" | "admin";
   is2FAEnabled?: boolean;
+  isActive: boolean;
 }

@@ -27,7 +27,15 @@ const changePasswordSchema = Joi.object({
   }),
 });
 
+const updateUserStatusSchema = Joi.object({
+  isActive: Joi.boolean().required().messages({
+    'any.required': 'isActive là bắt buộc',
+    'boolean.base': 'isActive phải là true hoặc false',
+  }),
+});
+
 module.exports = {
   updateProfileSchema,
   changePasswordSchema,
+  updateUserStatusSchema,
 };

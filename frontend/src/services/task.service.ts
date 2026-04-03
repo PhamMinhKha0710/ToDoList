@@ -14,6 +14,20 @@ export const taskService = {
     return response.data.data.tasks;
   },
 
+  getAllTasks: async (): Promise<Task[]> => {
+    const response = await axiosInstance.get<ApiResponse<{ tasks: Task[] }>>(
+      "/tasks",
+    );
+    return response.data.data.tasks;
+  },
+
+  getTaskById: async (taskId: string): Promise<Task> => {
+    const response = await axiosInstance.get<ApiResponse<{ task: Task }>>(
+      `/tasks/${taskId}`,
+    );
+    return response.data.data.task;
+  },
+
   createTask: async (data: CreateTaskPayload | FormData): Promise<Task> => {
     console.log("data: ", data);
 

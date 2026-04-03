@@ -1,7 +1,7 @@
 const attachmentService = require('../services/attachment.service');
 const catchAsync = require('../utils/catchAsync');
 const ApiResponse = require('../utils/ApiResponse');
-const { toAttachmentResponseDTO } = require('../models/attachments/attachmentResponse.model');
+const { toAttachmentResponseModel } = require('../models/attachments/attachmentResponse.model');
 
 class AttachmentController {
   /**
@@ -10,7 +10,7 @@ class AttachmentController {
    */
   uploadAttachment = catchAsync(async (req, res) => {
     const attachment = await attachmentService.uploadAttachment(req.params.taskId, req.file);
-    new ApiResponse(201, 'Tải lên đính kèm thành công', { attachment: toAttachmentResponseDTO(attachment) }).send(res);
+    new ApiResponse(201, 'Tải lên đính kèm thành công', { attachment: toAttachmentResponseModel(attachment) }).send(res);
   });
 
   /**
@@ -19,7 +19,7 @@ class AttachmentController {
    */
   getTaskAttachments = catchAsync(async (req, res) => {
     const attachments = await attachmentService.getTaskAttachments(req.params.taskId);
-    new ApiResponse(200, 'Lấy danh sách đính kèm thành công', { attachments: attachments.map(toAttachmentResponseDTO) }).send(res);
+    new ApiResponse(200, 'Lấy danh sách đính kèm thành công', { attachments: attachments.map(toAttachmentResponseModel) }).send(res);
   });
 
   /**

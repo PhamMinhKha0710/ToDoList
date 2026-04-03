@@ -57,6 +57,8 @@ class UserController {
     const users = await userService.searchUsers(q, currentUserId);
     new ApiResponse(200, 'Tìm kiếm thành công', { users }).send(res);
   });
+
+
 }
 
 module.exports = new UserController();

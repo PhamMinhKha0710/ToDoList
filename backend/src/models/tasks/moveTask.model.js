@@ -1,7 +1,7 @@
 /**
  * Chuẩn hóa dữ liệu di chuyển Task từ request body (position-based)
  */
-const toMoveTaskDTO = (body) => {
+const toMoveTaskModel = (body) => {
   return {
     taskId: body.taskId,
     sourceColumnId: body.sourceColumnId,
@@ -13,4 +13,4 @@ const toMoveTaskDTO = (body) => {
   };
 };
 
-module.exports = { toMoveTaskDTO };
+module.exports = { toMoveTaskModel };

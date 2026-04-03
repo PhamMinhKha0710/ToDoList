@@ -1,7 +1,7 @@
 /**
  * Chuẩn hóa dữ liệu cập nhật Task từ request body
  */
-const toUpdateTaskDTO = (body) => {
+const toUpdateTaskModel = (body) => {
   const data = {};
 
   if (body.title !== undefined) data.title = body.title;
@@ -16,6 +16,8 @@ const toUpdateTaskDTO = (body) => {
   if (body.status !== undefined) data.status = body.status;
   if (body.priority !== undefined) data.priority = body.priority;
   if (body.dueDate !== undefined) data.dueDate = body.dueDate;
+  if (body.startDate !== undefined) data.startDate = body.startDate;
+  if (body.endDate !== undefined) data.endDate = body.endDate;
   if (body.color !== undefined) data.color = body.color;
   if (body.tags !== undefined) {
     try {
@@ -28,4 +30,4 @@ const toUpdateTaskDTO = (body) => {
   return data;
 };
 
-module.exports = { toUpdateTaskDTO };
+module.exports = { toUpdateTaskModel };

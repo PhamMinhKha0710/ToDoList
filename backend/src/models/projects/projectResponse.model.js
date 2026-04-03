@@ -1,4 +1,4 @@
-class ProjectResponseDTO {
+class ProjectResponseModel {
   constructor(project) {
     this._id = project._id;
     this.name = project.name;
@@ -20,12 +20,12 @@ class ProjectResponseDTO {
   }
 
   static fromEntity(project) {
-    return new ProjectResponseDTO(project);
+    return new ProjectResponseModel(project);
   }
 
   static fromEntities(projects) {
-    return projects.map((project) => new ProjectResponseDTO(project));
+    return projects.map((project) => new ProjectResponseModel(project));
   }
 }
 
-module.exports = ProjectResponseDTO;
+module.exports = ProjectResponseModel;
