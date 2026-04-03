@@ -16,9 +16,9 @@ const ProjectDetailPage = lazy(() => import("@/page/ProjectDetailPage"));
 const CalendarPage = lazy(() => import("@/page/CalendarPage"));
 const PersonalTasksPage = lazy(() => import("@/page/PersonalTasksPage"));
 const ProfilePage = lazy(() => import("@/page/ProfilePage"));
-const AdminUsersPage = lazy(() => import("@/page/AdminUsersPage"));
-const AdminProjectsPage = lazy(() => import("@/page/AdminProjectsPage"));
-const AdminDashboardPage = lazy(() => import("@/page/AdminDashboardPage"));
+const AdminUsersPage = lazy(() => import("@/page/admin/AdminUsersPage"));
+const AdminProjectsPage = lazy(() => import("@/page/admin/AdminProjectsPage"));
+const AdminDashboardPage = lazy(() => import("@/page/admin/AdminDashboardPage"));
 
 const RoleRedirect = () => {
   const user = useAuthStore((s) => s.user);
