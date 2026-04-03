@@ -1,7 +1,7 @@
 /**
  * Chuẩn hóa dữ liệu tạo Task từ request body
  */
-const toCreateTaskDTO = (body) => {
+const toCreateTaskModel = (body) => {
   const data = {
     columnId: body.columnId,
     title: body.title,
@@ -19,6 +19,8 @@ const toCreateTaskDTO = (body) => {
   if (body.status !== undefined) data.status = body.status;
   if (body.priority !== undefined) data.priority = body.priority;
   if (body.dueDate !== undefined) data.dueDate = body.dueDate;
+  if (body.startDate !== undefined) data.startDate = body.startDate;
+  if (body.endDate !== undefined) data.endDate = body.endDate;
   if (body.color !== undefined) data.color = body.color;
   
   // Tags might be sent as a JSON string when using FormData
@@ -33,4 +35,4 @@ const toCreateTaskDTO = (body) => {
   return data;
 };
 
-module.exports = { toCreateTaskDTO };
+module.exports = { toCreateTaskModel };

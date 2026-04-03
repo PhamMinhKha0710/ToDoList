@@ -1,7 +1,7 @@
 /**
  * Chuẩn hóa đối tượng Attachment trước khi trả về cho Client
  */
-const toAttachmentResponseDTO = (attachment) => {
+const toAttachmentResponseModel = (attachment) => {
   if (!attachment) return null;
 
   return {
@@ -13,4 +13,4 @@ const toAttachmentResponseDTO = (attachment) => {
   };
 };
 
-module.exports = { toAttachmentResponseDTO };
+module.exports = { toAttachmentResponseModel };

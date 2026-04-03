@@ -326,12 +326,22 @@ const SidebarInset = React.forwardRef<
   HTMLDivElement,
   React.ComponentProps<"main">
 >(({ className, ...props }, ref) => {
+  const { state, isMobile } = useSidebar()
+
+  // CHỈNH SỬA QUAN TRỌNG: Xóa margin-right, thêm position relative và left-0
+  const offsetClass = !isMobile
+    ? state === "expanded"
+      ? "md:left-[var(--sidebar-width)] md:w-[calc(100%-var(--sidebar-width))]"
+      : "md:left-[var(--sidebar-width-icon)] md:w-[calc(100%-var(--sidebar-width-icon))]"
+    : ""
+
   return (
     <main
       ref={ref}
       className={cn(
-        "relative flex w-full flex-1 flex-col bg-background",
-        "md:peer-data-[variant=inset]:m-2 md:peer-data-[variant=inset]:rounded-xl md:peer-data-[variant=inset]:shadow",
+        "absolute top-0 bottom-0 right-0", // Position absolute thay vì relative
+        offsetClass,
+        "md:peer-data-[variant=inset]:m-0 md:peer-data-[variant=inset]:rounded-none", // Loại bỏ margin
         className
       )}
       {...props}

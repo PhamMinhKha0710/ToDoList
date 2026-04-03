@@ -1,24 +1,25 @@
-const Attachment = require('../entities/Attachment');
+class AttachmentRepository {
+  constructor({ Attachment }) {
+    this.Attachment = Attachment;
+  }
 
-const createAttachment = async (attachmentData) => {
-  return await Attachment.create(attachmentData);
-};
+  createAttachment = async (attachmentData) => {
+    return await this.Attachment.create(attachmentData);
+  };
 
-const getAttachmentsByTaskId = async (taskId) => {
-  return await Attachment.find({ taskId }).sort({ createdAt: -1 });
-};
+  getAttachmentsByTaskId = async (taskId) => {
+    return await this.Attachment.find({ taskId }).sort({ createdAt: -1 });
+  };
 
-const getAttachmentById = async (attachmentId) => {
-  return await Attachment.findById(attachmentId);
-};
+  getAttachmentById = async (attachmentId) => {
+    return await this.Attachment.findById(attachmentId);
+  };
 
-const deleteAttachment = async (attachmentId) => {
-  return await Attachment.findByIdAndDelete(attachmentId);
-};
+  deleteAttachment = async (attachmentId) => {
+    return await this.Attachment.findByIdAndDelete(attachmentId);
+  };
+}
 
-module.exports = {
-  createAttachment,
-  getAttachmentsByTaskId,
-  getAttachmentById,
-  deleteAttachment,
-};
+module.exports = new AttachmentRepository({
+  Attachment: require('../entities/Attachment'),
+});

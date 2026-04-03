@@ -2,7 +2,7 @@
  * Chuẩn hóa dữ liệu đầu vào cho mảng Tags
  * @param {Array} tagsArray
  */
-const toAddTagsDTO = (tagsArray) => {
+const toAddTagsModel = (tagsArray) => {
   if (!Array.isArray(tagsArray)) return [];
 
   return tagsArray.map((tag) => ({
@@ -11,4 +11,4 @@ const toAddTagsDTO = (tagsArray) => {
   }));
 };
 
-module.exports = { toAddTagsDTO };
+module.exports = { toAddTagsModel };

@@ -39,6 +39,10 @@ const userSchema = new Schema(
       enum: ['local', 'google'],
       default: 'local',
     },
+    isActive: {
+      type: Boolean,
+      default: true,
+    },
     // Dùng cho tính năng forgot/reset password
     otpCode: {
       type: String,

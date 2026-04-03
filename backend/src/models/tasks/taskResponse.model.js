@@ -1,23 +1,28 @@
 /**
  * Chuẩn định dạng đối tượng Task trước khi trả về cho Client
  */
-const toTaskResponseDTO = (task) => {
+const toTaskResponseModel = (task) => {
   if (!task) return null;
+
+  const isPersonal = task.isPersonal !== undefined ? task.isPersonal : (!!task.userId && !task.columnId);
 
   return {
     _id: task._id,
     columnId: task.columnId,
-    creator: task.creatorId, // Có thể đã được populate
-    creatorId: task.creatorId?._id || task.creatorId, // Fallback
-    assignees: task.assignees, // Mảng users (đã được populate hoặc list ID)
-    assigneeIds: Array.isArray(task.assignees) ? task.assignees.map(a => a._id || a) : [], // Fallback
+    creator: task.creatorId || task.userId, // Dùng userId làm creator cho personal task
+    creatorId: (task.creatorId?._id || task.creatorId) || (task.userId?._id || task.userId),
+    assignees: task.assignees || [],
+    assigneeIds: Array.isArray(task.assignees) ? task.assignees.map(a => a._id || a) : [],
     title: task.title,
     description: task.description,
     status: task.status,
     priority: task.priority,
-    dueDate: task.dueDate,
+    dueDate: task.dueDate || task.endDate || task.startDate,
+    startDate: task.startDate,
+    endDate: task.endDate,
+    isPersonal: isPersonal,
     color: task.color,
-    tags: task.tags,
+    tags: task.tags || [],
     attachments: (task.attachments || []).map(att => ({
       ...att.toObject?.() || att,
       name: att.fileName,
@@ -25,8 +30,8 @@ const toTaskResponseDTO = (task) => {
     })),
     createdAt: task.createdAt,
     updatedAt: task.updatedAt,
-    position: task.position,
+    position: task.position || 0,
   };
 };
 
-module.exports = { toTaskResponseDTO };
+module.exports = { toTaskResponseModel };
