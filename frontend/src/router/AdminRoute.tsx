@@ -10,9 +10,9 @@ export const AdminRoute = () => {
   const user = useAuthStore((s) => s.user)
   if (!user) return <Navigate to={ROUTES.LOGIN} replace />
   if (user.role !== 'admin') return <Navigate to={ROUTES.PROJECTS} replace />
-  
+
   return (
-    <SidebarProvider style={{ '--sidebar-width': '16rem' } as React.CSSProperties}>
+    <SidebarProvider style={{ '--sidebar-width': '11.8rem' } as React.CSSProperties}>
       <AppSidebar />
       <SidebarInset className="flex flex-col h-full min-h-0">
         <SiteHeader />
