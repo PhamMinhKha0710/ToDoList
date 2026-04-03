@@ -1,13 +1,15 @@
-const bcrypt = require("bcryptjs");
-const crypto = require("crypto");
+const jwt = require("jsonwebtoken");
+const { verify: totpVerify } = require('otplib');
 
 class AuthService {
-  constructor({ bcrypt, crypto, User, tokenService, mailService, userResponseModel, ApiError }) {
+  constructor({ bcrypt, crypto, User, Otp, tokenService, mailService, encryption, userResponseModel, ApiError }) {
     this.bcrypt = bcrypt;
     this.crypto = crypto;
     this.User = User;
+    this.Otp = Otp;
     this.tokenService = tokenService;
     this.mailService = mailService;
+    this.encryption = encryption;
     this.userResponseModel = userResponseModel;
     this.ApiError = ApiError;
     this.REFRESH_COOKIE_OPTIONS = {
@@ -37,6 +39,16 @@ class AuthService {
 
     const isMatch = await this.bcrypt.compare(password, user.passwordHash);
     if (!isMatch) throw new this.ApiError(401, "Email hoặc mật khẩu không đúng");
+
+    // 2FA LOGIC
+    if (user.is2FAEnabled) {
+      const tempToken = jwt.sign(
+        { _id: user._id.toString(), type: '2fa_temp' }, 
+        process.env.JWT_ACCESS_SECRET, 
+        { expiresIn: '5m' }
+      );
+      return { require2FA: true, tempToken };
+    }
 
     const payload = {
       _id: user._id.toString(),
@@ -73,7 +85,7 @@ class AuthService {
     user.otpExpires = new Date(Date.now() + 10 * 60 * 1000);
     await user.save();
 
-    await this.mailService.sendOtpEmail(email, otp);
+    await this.mailService.sendOtpEmail(email, otp, 'Khôi phục mật khẩu');
   };
 
   resetPassword = async ({ email, otp, newPassword }) => {
@@ -88,6 +100,81 @@ class AuthService {
     user.otpExpires = null;
     await user.save();
   };
+
+  requestOtp = async ({ email, action }) => {
+    const otpCode = this.crypto.randomInt(100000, 999999).toString();
+    await this.Otp.deleteMany({ email, action });
+    await this.Otp.create({ email, otp: otpCode, action });
+    await this.mailService.sendOtpEmail(email, otpCode, action);
+  };
+
+  verifyOtp = async ({ email, otp, action }) => {
+    const record = await this.Otp.findOne({ email, otp, action });
+    if (!record) {
+      throw new this.ApiError(400, "Mã OTP không hợp lệ hoặc đã hết hạn");
+    }
+    await this.Otp.deleteOne({ _id: record._id });
+    return true;
+  };
+
+  authenticate2FA = async ({ tempToken, code }) => {
+    let decoded;
+    try {
+      decoded = jwt.verify(tempToken, process.env.JWT_ACCESS_SECRET);
+      if (decoded.type !== '2fa_temp') throw new Error();
+    } catch (err) {
+      throw new this.ApiError(401, "Phiên đăng nhập không hợp lệ hoặc đã hết hạn");
+    }
+
+    const user = await this.User.findById(decoded._id);
+    if (!user || !user.is2FAEnabled) throw new this.ApiError(400, "Xác thực 2 bước không khả dụng");
+
+    const decryptedSecret = this.encryption.decrypt(user.twoFactorSecret);
+    
+    let isValid = false;
+    const normalizedCode = code.replace(/\s/g, '');
+    
+    if (normalizedCode.length === 6) {
+      isValid = totpVerify({ token: normalizedCode, secret: decryptedSecret });
+    } else if (normalizedCode.length === 8) {
+      const hashedCodes = user.twoFactorBackupCodes || [];
+      for (let i = 0; i < hashedCodes.length; i++) {
+        const isMatch = await this.bcrypt.compare(normalizedCode, hashedCodes[i]);
+        if (isMatch) {
+          isValid = true;
+          hashedCodes.splice(i, 1);
+          user.twoFactorBackupCodes = hashedCodes;
+          await user.save();
+          break;
+        }
+      }
+    }
+
+    if (!isValid) throw new this.ApiError(400, "Mã xác thực không chính xác");
+
+    const payload = {
+      _id: user._id.toString(),
+      role: user.role,
+      displayName: user.displayName,
+      email: user.email,
+    };
+    const accessToken = this.tokenService.generateAccessToken(payload);
+    const refreshToken = this.tokenService.generateRefreshToken({ _id: user._id.toString() });
+
+    return { accessToken, refreshToken, user: this.userResponseModel(user) };
+  };
+
+  loginWithGoogle = async (user) => {
+    const payload = {
+      _id: user._id.toString(),
+      role: user.role,
+      displayName: user.displayName,
+      email: user.email,
+    };
+    const accessToken = this.tokenService.generateAccessToken(payload);
+    const refreshToken = this.tokenService.generateRefreshToken({ _id: user._id.toString() });
+    return { accessToken, refreshToken, user: this.userResponseModel(user) };
+  };
 }
 
 const tokenService = require("./token.service");
@@ -97,6 +184,7 @@ module.exports = new AuthService({
   bcrypt: require("bcryptjs"),
   crypto: require("crypto"),
   User: require("../entities/User"),
+  Otp: require("../entities/Otp"),
   tokenService: {
     generateAccessToken: tokenService.generateAccessToken,
     generateRefreshToken: tokenService.generateRefreshToken,
@@ -105,6 +193,7 @@ module.exports = new AuthService({
   mailService: {
     sendOtpEmail: mailService.sendOtpEmail,
   },
+  encryption: require('../utils/encryption'),
   userResponseModel: require("../models/users/userResponse.model"),
   ApiError: require("../utils/ApiError"),
 });

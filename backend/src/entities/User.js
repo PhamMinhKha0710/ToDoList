@@ -9,9 +9,13 @@ const userSchema = new Schema(
       // lowercase: true,
       trim: true,
     },
+    googleId: {
+      type: String,
+      default: null,
+    },
     passwordHash: {
       type: String,
-      required: true,
+      default: null, // null nếu đăng nhập bằng Google
     },
     role: {
       type: String,
@@ -22,8 +26,18 @@ const userSchema = new Schema(
       type: String,
       trim: true,
     },
+    fullName: {
+      type: String,
+      trim: true,
+    },
     avatarUrl: {
       type: String,
+      default: null,
+    },
+    provider: {
+      type: String,
+      enum: ['local', 'google'],
+      default: 'local',
     },
     isActive: {
       type: Boolean,
@@ -38,6 +52,18 @@ const userSchema = new Schema(
       type: Date,
       default: null,
     },
+    // 2FA Fields
+    is2FAEnabled: {
+      type: Boolean,
+      default: false,
+    },
+    twoFactorSecret: {
+      type: String,
+      default: null, // will be encrypted string
+    },
+    twoFactorBackupCodes: [{
+      type: String, // array of hashed strings
+    }],
   },
   { timestamps: true },
 );

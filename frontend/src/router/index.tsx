@@ -27,6 +27,7 @@ const RoleRedirect = () => {
   return <Navigate to={ROUTES.PROJECTS} replace />;
 };
 const InvitationPage = lazy(() => import("@/page/InvitationPage"));
+const GoogleCallbackPage = lazy(() => import("@/page/GoogleCallbackPage"));
 const TaskDetailPage = lazy(() => import("@/page/TaskDetailPage"));
 
 export const router = createBrowserRouter([
@@ -36,6 +37,7 @@ export const router = createBrowserRouter([
   { path: ROUTES.REGISTER, element: <RegisterPage /> },
   { path: ROUTES.FORGOT_PASSWORD, element: <ForgotPasswordPage /> },
   { path: ROUTES.RESET_PASSWORD, element: <ResetPasswordPage /> },
+  { path: ROUTES.GOOGLE_CALLBACK, element: <GoogleCallbackPage /> },
 
   // ─── Protected routes ──────────────────────────────────────────────
   {
