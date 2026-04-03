@@ -12,9 +12,9 @@ export const ProtectedRoute = () => {
   return (
     <SidebarProvider style={{ "--sidebar-width": "16rem" } as React.CSSProperties}>
       <AppSidebar />
-      <SidebarInset>
+      <SidebarInset className="flex flex-col h-full min-h-0">
         <SiteHeader />
-        <div className="flex flex-1 flex-col overflow-hidden overflow-x-hidden">
+        <div className="flex flex-1 flex-col overflow-y-auto overflow-x-hidden text-slate-800">
           <Outlet />
         </div>
       </SidebarInset>
