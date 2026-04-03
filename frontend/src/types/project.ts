@@ -2,7 +2,8 @@ import type { User } from './user';
 
 export interface ProjectMember {
   userId: string | User;
-  role: 'owner' | 'member';
+  role: 'owner' | 'admin' | 'member' | 'viewer';
+  status: 'active' | 'pending';
 }
 
 export interface Project {
@@ -13,6 +14,8 @@ export interface Project {
   color?: string;
   members: ProjectMember[];
   columnOrder: string[];
+  owner?: User;
+  memberCount?: number;
   createdAt: string;
   updatedAt: string;
 }

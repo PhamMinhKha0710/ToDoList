@@ -1,0 +1,67 @@
+import axiosInstance from "@/lib/axios";
+import type { Task } from "@/types/task";
+import type {
+  CreateTaskPayload,
+  UpdateTaskPayload,
+} from "@/schemas/task.schema";
+import type { ApiResponse } from "@/types/api";
+
+export const taskService = {
+  getTasksByColumnId: async (columnId: string): Promise<Task[]> => {
+    const response = await axiosInstance.get<ApiResponse<{ tasks: Task[] }>>(
+      `/tasks/column/${columnId}`,
+    );
+    return response.data.data.tasks;
+  },
+
+  getAllTasks: async (): Promise<Task[]> => {
+    const response = await axiosInstance.get<ApiResponse<{ tasks: Task[] }>>(
+      "/tasks",
+    );
+    return response.data.data.tasks;
+  },
+
+  getTaskById: async (taskId: string): Promise<Task> => {
+    const response = await axiosInstance.get<ApiResponse<{ task: Task }>>(
+      `/tasks/${taskId}`,
+    );
+    return response.data.data.task;
+  },
+
+  createTask: async (data: CreateTaskPayload | FormData): Promise<Task> => {
+    console.log("data: ", data);
+
+    const response = await axiosInstance.post<ApiResponse<{ task: Task }>>(
+      "/tasks",
+      data,
+    );
+    return response.data.data.task;
+  },
+
+  updateTask: async (
+    taskId: string,
+    data: UpdateTaskPayload,
+  ): Promise<Task> => {
+    const response = await axiosInstance.put<ApiResponse<{ task: Task }>>(
+      `/tasks/${taskId}`,
+      data,
+    );
+    return response.data.data.task;
+  },
+
+  deleteTask: async (taskId: string): Promise<void> => {
+    await axiosInstance.delete(`/tasks/${taskId}`);
+  },
+
+  moveTask: async (data: {
+    taskId: string;
+    sourceColumnId: string;
+    destinationColumnId: string;
+    sourceTaskIds: string[];       
+    destinationTaskIds: string[];  
+    sourceIndex: number;           // Thêm index theo yêu cầu
+    destinationIndex: number;
+  }): Promise<void> => {
+    await axiosInstance.post("/tasks/move", data);
+  },
+};

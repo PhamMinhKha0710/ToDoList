@@ -25,6 +25,7 @@ import {
 import { useAuthStore } from "@/stores/auth.store";
 import { useNavigate } from "react-router-dom";
 import { ROUTES } from "@/constants/routes";
+import { isEmojiUrl, getAvatarUrl } from "@/lib/utils";
 
 export function NavUser({
   user,
@@ -46,24 +47,24 @@ export function NavUser({
 
   return (
     <SidebarMenu>
-      <SidebarMenuItem>
+      <SidebarMenuItem className="min-w-0 w-full">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <SidebarMenuButton
               size="lg"
-              className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+              className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground min-w-0 w-full"
             >
-              <Avatar className="h-8 w-8 rounded-lg">
-                <AvatarImage src={user.avatar} alt={user.name} />
-                <AvatarFallback className="rounded-lg">
-                  {user.name.substring(0, 2).toUpperCase()}
+              <Avatar className="h-8 w-8 rounded-full">
+                {!isEmojiUrl(user.avatar) && <AvatarImage src={getAvatarUrl(user.avatar)} alt={user.name} className="object-cover" />}
+                <AvatarFallback className="rounded-full">
+                  {isEmojiUrl(user.avatar) ? user.avatar : user.name.substring(0, 2).toUpperCase()}
                 </AvatarFallback>
               </Avatar>
-              <div className="grid flex-1 text-left text-sm leading-tight">
-                <span className="truncate font-semibold">{user.name}</span>
-                <span className="truncate text-xs">{user.email}</span>
+              <div className="flex-1 w-0 min-w-0 overflow-hidden text-left text-sm leading-tight">
+                <div className="truncate font-semibold">{user.name}</div>
+                <div className="truncate text-xs">{user.email}</div>
               </div>
-              <ChevronsUpDown className="ml-auto size-4" />
+              <ChevronsUpDown className="ml-auto size-4 shrink-0" />
             </SidebarMenuButton>
           </DropdownMenuTrigger>
           <DropdownMenuContent
@@ -74,15 +75,15 @@ export function NavUser({
           >
             <DropdownMenuLabel className="p-0 font-normal">
               <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
-                <Avatar className="h-8 w-8 rounded-lg">
-                  <AvatarImage src={user.avatar} alt={user.name} />
-                  <AvatarFallback className="rounded-lg">
-                    {user.name.substring(0, 2).toUpperCase()}
+                <Avatar className="h-8 w-8 rounded-full">
+                  {!isEmojiUrl(user.avatar) && <AvatarImage src={getAvatarUrl(user.avatar)} alt={user.name} className="object-cover" />}
+                  <AvatarFallback className="rounded-full">
+                    {isEmojiUrl(user.avatar) ? user.avatar : user.name.substring(0, 2).toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
-                <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-semibold">{user.name}</span>
-                  <span className="truncate text-xs">{user.email}</span>
+                <div className="flex-1 w-0 min-w-0 overflow-hidden text-left text-sm leading-tight">
+                  <div className="truncate font-semibold">{user.name}</div>
+                  <div className="truncate text-xs">{user.email}</div>
                 </div>
               </div>
             </DropdownMenuLabel>
