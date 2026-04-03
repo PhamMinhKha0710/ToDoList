@@ -11,7 +11,6 @@ const attachmentRoutes = require('./attachment.routes');
 const notificationRoutes = require('./notification.routes');
 const personalTaskRoutes = require('./personalTask.routes');
 const adminRoutes = require('./admin/admin.routes');
-const uploadRoutes = require('./upload.routes');
 const twoFactorRoutes = require('./twoFactor.routes');
 
 const router = Router();
