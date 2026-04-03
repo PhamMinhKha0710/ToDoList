@@ -15,6 +15,11 @@ class AdminController {
     const user = await adminService.setUserActiveStatus(id, isActive);
     new ApiResponse(200, 'Cập nhật trạng thái user thành công', user).send(res);
   });
+
+  getDashboardTasks = catchAsync(async (req, res) => {
+    const tasks = await adminService.getDashboardTasks();
+    new ApiResponse(200, 'Thống kê dashboard', tasks).send(res);
+  });
 }
 
 module.exports = new AdminController();
