@@ -1,23 +1,15 @@
-﻿import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { adminService } from "@/services/admin/admin.service";
+import { toast } from "sonner";
 
 type TaskStatus = "todo" | "in_progress" | "done";
 
 interface TaskItem {
-  id: string;
+  _id: string;
   title: string;
   status: TaskStatus;
   createdAt: string;
 }
-
-const sampleTasks: TaskItem[] = [
-  { id: "1", title: "Thiết kế UI", status: "done", createdAt: "2026-03-05T09:12:00.000Z" },
-  { id: "2", title: "Hoàn thiện API", status: "in_progress", createdAt: "2026-03-08T07:20:00.000Z" },
-  { id: "3", title: "Tạo unit tests", status: "todo", createdAt: "2026-03-10T10:00:00.000Z" },
-  { id: "4", title: "Báo cáo kinh doanh", status: "done", createdAt: "2026-03-12T14:30:00.000Z" },
-  { id: "5", title: "Tối ưu query", status: "in_progress", createdAt: "2026-03-17T11:45:00.000Z" },
-  { id: "6", title: "Kiểm tra bảo mật", status: "todo", createdAt: "2026-03-19T08:00:00.000Z" },
-  { id: "7", title: "Tài liệu tính năng", status: "done", createdAt: "2026-03-20T13:25:00.000Z" },
-];
 
 const statusLabels: Record<TaskStatus, string> = {
   todo: "Chưa làm",
@@ -32,13 +24,31 @@ const periodLabels = {
 
 const AdminDashboardPage = () => {
   const [mode, setMode] = useState<"week" | "month">("week");
+  const [tasks, setTasks] = useState<TaskItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchTasks = async () => {
+      try {
+        const res = await adminService.getDashboardTasks();
+        setTasks(res.data);
+      } catch (error) {
+        toast.error("Không thể lấy dữ liệu thống kê");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchTasks();
+  }, []);
 
   const taskSummary = useMemo(() => {
-    const total = sampleTasks.length;
+    const total = tasks.length;
     const statuses = { todo: 0, in_progress: 0, done: 0 } as Record<TaskStatus, number>;
 
-    sampleTasks.forEach((task) => {
-      statuses[task.status] += 1;
+    tasks.forEach((task) => {
+      if (statuses[task.status] !== undefined) {
+        statuses[task.status] += 1;
+      }
     });
 
     return {
@@ -48,7 +58,7 @@ const AdminDashboardPage = () => {
       todo: statuses.todo,
       statuses,
     };
-  }, []);
+  }, [tasks]);
 
   const periodData = useMemo(() => {
     const now = new Date();
@@ -63,7 +73,7 @@ const AdminDashboardPage = () => {
         const weekEnd = new Date(weekStart);
         weekEnd.setDate(weekStart.getDate() + 7);
 
-        const count = sampleTasks.filter((task) => {
+        const count = tasks.filter((task) => {
           const created = new Date(task.createdAt);
           return created >= weekStart && created < weekEnd;
         }).length;
@@ -75,7 +85,7 @@ const AdminDashboardPage = () => {
         const monthStart = new Date(now.getFullYear(), now.getMonth() - i, 1, 0, 0, 0, 0);
         const monthEnd = new Date(now.getFullYear(), now.getMonth() - i + 1, 1, 0, 0, 0, 0);
 
-        const count = sampleTasks.filter((task) => {
+        const count = tasks.filter((task) => {
           const created = new Date(task.createdAt);
           return created >= monthStart && created < monthEnd;
         }).length;
@@ -85,9 +95,17 @@ const AdminDashboardPage = () => {
     }
 
     return result;
-  }, [mode]);
+  }, [mode, tasks]);
 
   const maxPeriod = Math.max(...periodData, 1);
+
+  if (isLoading) {
+    return (
+      <div className="flex h-full min-h-[400px] items-center justify-center">
+        <p className="text-muted-foreground">Đang tải biểu đồ dữ liệu...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6">

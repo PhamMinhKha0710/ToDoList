@@ -12,4 +12,9 @@ export const adminService = {
     const response = await api.patch(`/admin/users/${id}/active`, { isActive });
     return response.data;
   },
+
+  getDashboardTasks: async (): Promise<ApiResponse<any[]>> => {
+    const response = await api.get('/admin/dashboard/tasks');
+    return response.data;
+  },
 };

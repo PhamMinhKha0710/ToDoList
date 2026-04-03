@@ -1,6 +1,7 @@
 class AdminService {
-  constructor({ User }) {
+  constructor({ User, Task }) {
     this.User = User;
+    this.Task = Task;
   }
 
   async getAllUsers() {
@@ -17,8 +18,14 @@ class AdminService {
     await user.save();
     return user;
   }
+
+  async getDashboardTasks() {
+    // Return only the fields needed for the dashboard charts to save bandwidth
+    return await this.Task.find({}, '_id title status createdAt').lean();
+  }
 }
 
 module.exports = new AdminService({
   User: require('../../entities/User'),
+  Task: require('../../entities/Task'),
 });
