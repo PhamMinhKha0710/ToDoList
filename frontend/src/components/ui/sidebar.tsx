@@ -332,7 +332,7 @@ const SidebarInset = React.forwardRef<
   const offsetClass = !isMobile
     ? state === "expanded"
       ? "md:left-[var(--sidebar-width)] md:w-[calc(100%-var(--sidebar-width))]"
-      : "md:left-[var(--sidebar-width-icon)] md:w-[calc(100%-var(--sidebar-width-icon))]"
+      : "md:left-[var(--sidebar-width-icon)] md:w-[calc(100%-var(--sidebar-width-icon))] md:peer-data-[variant=inset]:left-[calc(var(--sidebar-width-icon)+theme(spacing.4)+2px)] md:peer-data-[variant=inset]:w-[calc(100%-(var(--sidebar-width-icon)+theme(spacing.4)+2px))]"
     : ""
 
   return (
@@ -341,7 +341,7 @@ const SidebarInset = React.forwardRef<
       className={cn(
         "absolute top-0 bottom-0 right-0", // Position absolute thay vì relative
         offsetClass,
-        "md:peer-data-[variant=inset]:m-0 md:peer-data-[variant=inset]:rounded-none", // Loại bỏ margin
+        "md:peer-data-[variant=inset]:m-0 md:peer-data-[variant=inset]:rounded-none md:border-l", // Loại bỏ margin, thêm viền trái
         className
       )}
       {...props}

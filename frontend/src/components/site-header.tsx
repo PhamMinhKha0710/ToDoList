@@ -25,16 +25,16 @@ export function SiteHeader() {
   const { toggleSidebar } = useSidebar()
   const { activeProject } = useKanbanStore()
   const location = useLocation()
-  
+
   const isCalendar = location.pathname === "/calendar"
   const isProfile = location.pathname === "/profile"
   const isMyTasks = location.pathname === "/my-tasks"
 
   return (
     <header className="flex sticky top-0 z-50 w-full items-center border-b bg-background">
-      <div className="flex h-[--header-height] w-full items-center gap-2 px-4">
+      <div className="flex h-[--header-height] w-full items-center gap-2 px-2">
         <Button
-          className="h-8 w-8"
+          className="h-8 w-8 p-0"
           variant="ghost"
           size="icon"
           onClick={toggleSidebar}
@@ -42,7 +42,7 @@ export function SiteHeader() {
           <SidebarIcon />
         </Button>
         <Separator orientation="vertical" className="mr-2 h-4" />
-        
+
         <div className="flex-1 flex items-center overflow-hidden">
           {activeProject ? (
             <SiteHeaderProjectInfo project={activeProject} />
@@ -64,7 +64,7 @@ export function SiteHeader() {
             </Breadcrumb>
           )}
         </div>
-        
+
         <div className="ml-auto flex items-center gap-2">
           {activeProject && (
             <div className="hidden md:flex items-center gap-2 mr-2 pr-2 border-r">
