@@ -14,9 +14,9 @@ export const AdminRoute = () => {
   return (
     <SidebarProvider style={{ '--sidebar-width': '16rem' } as React.CSSProperties}>
       <AppSidebar />
-      <SidebarInset>
+      <SidebarInset className="flex flex-col h-full min-h-0">
         <SiteHeader />
-        <div className="flex flex-1 flex-col gap-4 p-4">
+        <div className="flex flex-1 flex-col gap-4 p-4 overflow-y-auto overflow-x-hidden text-slate-800">
           <Outlet />
         </div>
       </SidebarInset>
