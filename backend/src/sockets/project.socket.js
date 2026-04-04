@@ -50,6 +50,20 @@ module.exports = (io, socket) => {
     socket.leave(taskId);
   });
 
+  // ─── Admin Projects Room ───────────────────────────────────────────────────
+  socket.on('join:admin_projects', () => {
+    if (socket.user?.role !== 'admin') {
+      return console.warn(`[Socket] Non-admin user ${userId} tried to join admin room`);
+    }
+    socket.join('admin:projects');
+    logger.info(`Admin socket ${socket.id} joined admin:projects room`);
+  });
+
+  socket.on('leave:admin_projects', () => {
+    socket.leave('admin:projects');
+    logger.info(`Admin socket ${socket.id} left admin:projects room`);
+  });
+
   // Khi ngắt kết nối, Socket.IO tự xóa khỏi tất cả rooms
   socket.on("disconnect", (reason) => {
     logger.info(`Socket ${socket.id} disconnected: ${reason}`);

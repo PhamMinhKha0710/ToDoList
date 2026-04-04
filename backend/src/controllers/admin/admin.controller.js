@@ -29,6 +29,27 @@ class AdminController {
 
   createProject = catchAsync(async (req, res) => {
     const project = await adminService.createAdminProject(req.body);
+    const io = getIO();
+    
+    // 1. Thông báo cho tất cả Admin đang xem danh sách
+    try {
+      io.to('admin:projects').emit('admin:project_list_updated');
+    } catch (err) {
+      console.error('[Socket] Failed to emit admin:project_list_updated', err);
+    }
+
+    // 2. Thông báo cho người sở hữu dự án để danh sách của họ cập nhật
+    if (project.members && project.members.length > 0) {
+      project.members.forEach(member => {
+        const userId = member.userId._id || member.userId;
+        try {
+          io.to(`user:${userId}`).emit('project:list_updated');
+        } catch (err) {
+          console.error(`[Socket] Failed to emit project:list_updated to user:${userId}`, err);
+        }
+      });
+    }
+
     new ApiResponse(201, 'Tạo dự án thành công', project).send(res);
   });
 
@@ -59,6 +80,13 @@ class AdminController {
       });
     }
     
+    // 3. Thông báo cho tất cả Admin đang xem danh sách
+    try {
+      io.to('admin:projects').emit('admin:project_list_updated');
+    } catch (err) {
+      console.error('[Socket] Failed to emit admin:project_list_updated', err);
+    }
+
     new ApiResponse(200, 'Cập nhật dự án thành công', project).send(res);
   });
 
@@ -86,6 +114,13 @@ class AdminController {
           console.error(`[Socket] Failed to emit project:list_updated to user:${userId}`, err);
         }
       });
+    }
+
+    // 3. Thông báo cho tất cả Admin đang xem danh sách
+    try {
+      io.to('admin:projects').emit('admin:project_list_updated');
+    } catch (err) {
+      console.error('[Socket] Failed to emit admin:project_list_updated', err);
     }
 
     await adminService.deleteAdminProject(id);

@@ -32,6 +32,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { useAdminProjectSocket } from '@/hooks/use-socket';
 
 const AdminProjectsPage = () => {
   const [projects, setProjects] = useState<Project[]>([]);
@@ -75,6 +76,9 @@ const AdminProjectsPage = () => {
   useEffect(() => {
     loadData();
   }, []);
+
+  // 📡 Real-time sync cho Admin
+  useAdminProjectSocket(loadData);
 
   const handleCreate = async () => {
     if (!formData.name || !formData.ownerId) {

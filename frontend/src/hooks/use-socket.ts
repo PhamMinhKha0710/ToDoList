@@ -270,6 +270,37 @@ export const useProjectSocket = (
 };
 
 /**
+ * Hook dành riêng cho trang Quản lý Dự án của Admin.
+ * Lắng nghe các sự kiện tạo/sửa/xóa từ các Admin khác để đồng bộ danh sách.
+ * 
+ * @param onRefresh - Callback để tải lại danh sách dự án (loadData)
+ */
+export const useAdminProjectSocket = (onRefresh: () => void) => {
+  const { isSocketInitialized } = useAuthStore();
+
+  useEffect(() => {
+    const socket = getSocket();
+    if (!socket || !isSocketInitialized) return;
+
+    console.log('[useAdminProjectSocket] Joining admin:projects room');
+    socket.emit('join:admin_projects');
+
+    const onAdminProjectListUpdated = () => {
+      console.log('[useAdminProjectSocket] Admin project list updated, refreshing...');
+      onRefresh();
+    };
+
+    socket.on('admin:project_list_updated', onAdminProjectListUpdated);
+
+    return () => {
+      console.log('[useAdminProjectSocket] Leaving admin:projects room');
+      socket.emit('leave:admin_projects');
+      socket.off('admin:project_list_updated', onAdminProjectListUpdated);
+    };
+  }, [isSocketInitialized, onRefresh]);
+};
+
+/**
  * Hook toàn cục để lắng nghe thông báo mới.
  * Cần được gọi ở cấp cao nhất (App.tsx) sau khi socket đã initialized.
  */
