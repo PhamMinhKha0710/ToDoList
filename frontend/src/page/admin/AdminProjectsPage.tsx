@@ -32,6 +32,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { useAdminProjectSocket } from '@/hooks/use-socket';
 
 const AdminProjectsPage = () => {
   const [projects, setProjects] = useState<Project[]>([]);
@@ -45,14 +46,16 @@ const AdminProjectsPage = () => {
   
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Form states
-  const [formData, setFormData] = useState({
+  const initialFormData = {
     name: '',
     description: '',
     color: '#3b82f6',
     ownerId: '',
     imageUrl: '',
-  });
+  };
+
+  // Form states
+  const [formData, setFormData] = useState(initialFormData);
 
   const loadData = async () => {
     setIsLoading(true);
@@ -74,6 +77,9 @@ const AdminProjectsPage = () => {
     loadData();
   }, []);
 
+  // 📡 Real-time sync cho Admin
+  useAdminProjectSocket(loadData);
+
   const handleCreate = async () => {
     if (!formData.name || !formData.ownerId) {
       toast.error('Vui lòng điền đầy đủ thông tin');
@@ -84,7 +90,7 @@ const AdminProjectsPage = () => {
       await adminService.createAdminProject(formData);
       toast.success('Tạo dự án thành công');
       setIsCreateModalOpen(false);
-      setFormData({ name: '', description: '', color: '#3b82f6', ownerId: '', imageUrl: '' });
+      setFormData(initialFormData);
       loadData();
     } catch (error: any) {
       toast.error(error.response?.data?.message || 'Tạo dự án thất bại');
@@ -132,6 +138,12 @@ const AdminProjectsPage = () => {
     } catch (error: any) {
       toast.error(error.response?.data?.message || 'Cập nhật trạng thái thất bại');
     }
+  };
+
+  const openCreateModal = () => {
+    setSelectedProject(null);
+    setFormData(initialFormData);
+    setIsCreateModalOpen(true);
   };
 
   const openEditModal = (project: Project) => {
@@ -184,7 +196,7 @@ const AdminProjectsPage = () => {
           <h1 className="text-3xl font-bold tracking-tight">Quản lý Dự án</h1>
           <p className="text-muted-foreground">Xem và quản lý tất cả các dự án trong hệ thống.</p>
         </div>
-        <Button onClick={() => setIsCreateModalOpen(true)} className="bg-[#0f172a] hover:bg-[#1e293b]">
+        <Button onClick={openCreateModal} className="bg-[#0f172a] hover:bg-[#1e293b]">
           <Plus className="mr-2 h-4 w-4" /> Thêm Dự án
         </Button>
       </div>
