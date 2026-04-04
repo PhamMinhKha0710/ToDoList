@@ -44,6 +44,10 @@ const projectSchema = new Schema(
       type: [memberSchema],
       default: [],
     },
+    isActive: {
+      type: Boolean,
+      default: true,
+    },
   },
   { timestamps: true }
 );
