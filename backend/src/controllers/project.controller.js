@@ -156,6 +156,52 @@ class ProjectController {
       action === "accept" ? "Chấp nhận lời mời thành công" : "Đã từ chối lời mời";
     new ApiResponse(200, message).send(res);
   });
+ 
+  /**
+   * GET /api/projects/:projectId/invite-code
+   */
+  getInviteCode = catchAsync(async (req, res) => {
+    const data = await projectService.getInviteCode(req.params.projectId);
+    new ApiResponse(200, "Lấy mã mời thành công", { 
+      inviteCode: data.code,
+      expiresAt: data.expiresAt 
+    }).send(res);
+  });
+
+  /**
+   * POST /api/projects/:projectId/invite-code/regenerate
+   */
+  regenerateInviteCode = catchAsync(async (req, res) => {
+    const data = await projectService.regenerateInviteCode(req.params.projectId);
+    new ApiResponse(200, "Làm mới mã mời thành công", { 
+      inviteCode: data.code,
+      expiresAt: data.expiresAt 
+    }).send(res);
+  });
+
+  /**
+   * DELETE /api/projects/:projectId/invite-code
+   */
+  deleteInviteCode = catchAsync(async (req, res) => {
+    await projectService.deleteInviteCode(req.params.projectId);
+    new ApiResponse(200, "Xóa mã mời thành công").send(res);
+  });
+
+  /**
+   * GET /api/projects/invite/:inviteCode
+   */
+  getProjectByInviteCode = catchAsync(async (req, res) => {
+    const project = await projectService.getProjectByInviteCode(req.params.inviteCode);
+    new ApiResponse(200, "Lấy thông tin dự án thành công", { project }).send(res);
+  });
+
+  /**
+   * POST /api/projects/invite/:inviteCode/join
+   */
+  joinByInviteCode = catchAsync(async (req, res) => {
+    await projectService.joinByInviteCode(req.params.inviteCode, req.user._id);
+    new ApiResponse(200, "Gia nhập dự án thành công").send(res);
+  });
 }
 
 module.exports = new ProjectController();

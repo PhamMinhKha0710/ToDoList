@@ -51,6 +51,11 @@ class ProjectRepository {
       { new: true }
     ).populate('members.userId', 'email displayName avatarUrl role');
   }
+
+  async findByInviteCode(inviteCode) {
+    return this.Project.findOne({ inviteCode })
+      .populate('members.userId', 'email displayName avatarUrl role');
+  }
 }
 
 module.exports = new ProjectRepository({
