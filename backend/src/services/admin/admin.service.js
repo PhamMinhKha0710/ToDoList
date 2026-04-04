@@ -6,7 +6,7 @@ class AdminService {
   }
 
   async getAllUsers() {
-    return await this.User.find({}, '-passwordHash -otpCode -otpExpires -__v').lean();
+    return await this.User.find({ role: 'user' }, '-passwordHash -otpCode -otpExpires -__v').lean();
   }
 
   async setUserActiveStatus(userId, isActive) {

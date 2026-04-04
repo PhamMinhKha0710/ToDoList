@@ -346,12 +346,30 @@ export const useAuthSocket = () => {
 
   useEffect(() => {
     console.log('[useAuthSocket] Effect running. Token exists:', !!token);
+    
     if (token) {
       connectSocket(token);
       setSocketInitialized(true);
+      
+      const socket = getSocket();
+      if (socket) {
+        const onUserLocked = () => {
+          console.log('[Socket Global] Account locked by admin');
+          useAuthStore.getState().logout();
+          toast.error('Tài khoản của bạn đã bị khóa bởi Admin', {
+            duration: 0, // Dừng lại cho đến khi user xóa toast hoặc refresh
+          });
+          window.location.href = '/login';
+        };
+
+        socket.on('user:locked', onUserLocked);
+
+        return () => {
+          socket.off('user:locked', onUserLocked);
+        };
+      }
     } else {
       console.log('[useAuthSocket] No token, disconnecting socket');
-      // Nếu logout (token null), ngắt kết nối
       disconnectSocket();
       setSocketInitialized(false);
     }
