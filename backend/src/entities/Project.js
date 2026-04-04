@@ -48,6 +48,15 @@ const projectSchema = new Schema(
       type: Boolean,
       default: true,
     },
+    inviteCode: {
+      type: String,
+      unique: true,
+      sparse: true, // Only if it exists
+      index: true,
+    },
+    inviteCodeExpiresAt: {
+      type: Date,
+    },
   },
   { timestamps: true }
 );
