@@ -3,6 +3,7 @@ const catchAsync = require('../utils/catchAsync');
 const ApiError = require('../utils/ApiError');
 const Task = require('../entities/Task');
 const Column = require('../entities/Column');
+const PersonalTask = require('../entities/PersonalTask');
 
 // Helper: lấy role của user hiện tại trong project
 const getUserRole = (project, userId) => {
@@ -97,31 +98,45 @@ const canModifyTask = catchAsync(async (req, res, next) => {
   const taskId = req.params.taskId || req.body.taskId;
   if (!taskId) throw new ApiError(400, 'Thiếu thông tin tác vụ (taskId)');
   
-  const task = await Task.findById(taskId);
-  if (!task) throw new ApiError(404, 'Không tìm thấy task');
+  let task = await Task.findById(taskId);
+  let isPersonal = false;
 
-  const column = await Column.findById(task.columnId);
-  if (!column) throw new ApiError(404, 'Không tìm thấy cột');
-
-  const project = await projectService.getProjectById(column.projectId);
-  const role = getUserRole(project, req.user._id);
-
-  if (!role) throw new ApiError(403, 'Bạn không phải thành viên của dự án');
-  if (role === 'viewer') throw new ApiError(403, 'Viewer không có quyền chỉnh sửa task');
-  if (role === 'member') {
-    // Member chỉ được sửa task do mình tạo HOẶC mình được gán vào (Assignee)
-    const isCreator = task.creatorId && task.creatorId.toString() === req.user._id.toString();
-    const isAssignee = task.assignees && task.assignees.some(id => id.toString() === req.user._id.toString());
-    
-    if (!isCreator && !isAssignee) {
-      throw new ApiError(403, 'Bạn chỉ có quyền chỉnh sửa task do mình tạo hoặc được gán cho bạn');
-    }
+  if (!task) {
+    // Thử tìm trong PersonalTask
+    task = await PersonalTask.findById(taskId);
+    if (!task) throw new ApiError(404, 'Không tìm thấy task');
+    isPersonal = true;
   }
-  // owner và admin có thể sửa tất cả
+
+  if (isPersonal) {
+    // Nếu là personal task, chỉ cần check xem có phải chủ sở hữu không
+    if (task.userId.toString() !== req.user._id.toString()) {
+      throw new ApiError(403, 'Bạn không có quyền chỉnh sửa công việc cá nhân của người khác');
+    }
+  } else {
+    // Nếu là project task, thực hiện logic phân quyền cũ
+    const column = await Column.findById(task.columnId);
+    if (!column) throw new ApiError(404, 'Không tìm thấy cột tương ứng của task');
+
+    const project = await projectService.getProjectById(column.projectId);
+    const role = getUserRole(project, req.user._id);
+
+    if (!role) throw new ApiError(403, 'Bạn không phải thành viên của dự án');
+    if (role === 'viewer') throw new ApiError(403, 'Viewer không có quyền chỉnh sửa task');
+    if (role === 'member') {
+      const isCreator = task.creatorId && task.creatorId.toString() === req.user._id.toString();
+      const isAssignee = task.assignees && task.assignees.some(id => id.toString() === req.user._id.toString());
+      
+      if (!isCreator && !isAssignee) {
+        throw new ApiError(403, 'Bạn chỉ có quyền chỉnh sửa task do mình tạo hoặc được gán cho bạn');
+      }
+    }
+    
+    req.project = project;
+    req.userRole = role;
+  }
 
   req.task = task;
-  req.project = project;
-  req.userRole = role;
   next();
 });
 

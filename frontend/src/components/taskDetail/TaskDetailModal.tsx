@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import type { Task, Attachment as TaskAttachment } from "@/types/task";
 import type { UpdateTaskPayload } from "@/schemas/task.schema";
 import { taskService } from "@/services/task.service";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   Dialog,
   DialogContent,
@@ -85,6 +85,7 @@ export const TaskDetailModal = ({
   open,
   onOpenChange,
 }: Omit<TaskDetailModalProps, "projectId">) => {
+  const queryClient = useQueryClient();
   const [editedTask, setEditedTask] = useState<TaskFormState>({});
   const [isEditing, setIsEditing] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -248,6 +249,7 @@ export const TaskDetailModal = ({
 
       // Cập nhật store local - Zustand là nguồn duy nhất
       storeUpdateTask(currentColumnId, task._id, updatedTask as Partial<Task>);
+      queryClient.invalidateQueries({ queryKey: ["all-tasks"] });
     },
     onError: (error: AppAxiosError) => {
       toast.error(getErrorMessage(error));
@@ -257,8 +259,9 @@ export const TaskDetailModal = ({
   const deleteTaskMutation = useMutation({
     mutationFn: () => taskService.deleteTask(task._id),
     onSuccess: () => {
-      // Chỉ xóa ở store, không invalidateQueries
+      // Xóa ở store và cập nhật cache global
       storeDeleteTask(task.columnId, task._id);
+      queryClient.invalidateQueries({ queryKey: ["all-tasks"] });
       onOpenChange(false);
     },
     onError: (error: AppAxiosError) => {
@@ -411,13 +414,14 @@ export const TaskDetailModal = ({
           <div className="flex items-start gap-5 w-full">
             {/* Status Icon Indicator */}
             <div
-              className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 shadow-sm border transition-colors ${
+              className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 shadow-sm border-2 transition-colors ${
                 currentStatus === "done"
-                  ? "bg-green-50 text-green-600 border-green-100"
+                  ? "bg-green-50 text-green-600"
                   : currentStatus === "in_progress"
-                    ? "bg-blue-50 text-blue-600 border-blue-100"
-                    : "bg-white text-slate-400 border-slate-200"
+                    ? "bg-blue-50 text-blue-600"
+                    : "bg-white text-slate-400"
               }`}
+              style={{ borderColor: currentColor || '#e2e8f0' }}
             >
               <CheckCircle2 className="w-6 h-6 stroke-[2.5]" />
             </div>
@@ -684,18 +688,39 @@ export const TaskDetailModal = ({
                 </select>
               ) : (
                 <div className="inline-flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-white border border-slate-200 text-sm font-bold shadow-sm w-full">
-                  <Flag
-                    className={`w-4 h-4 fill-current ${
-                      currentPriority === "urgent"
-                        ? "text-red-500"
-                        : currentPriority === "high"
-                          ? "text-orange-500"
-                          : currentPriority === "normal"
-                            ? "text-blue-500"
-                            : "text-slate-400"
-                    }`}
-                  />
                   {priorityLabels[currentPriority] || "Thường"}
+                </div>
+              )}
+            </div>
+
+            {/* Task Color */}
+            <div className="space-y-2.5">
+              <h4 className="text-[11px] font-extrabold uppercase tracking-widest text-slate-400 flex items-center gap-1.5">
+                <Palette className="w-3.5 h-3.5" /> Màu sắc chủ đề
+              </h4>
+              {isEditing ? (
+                <div className="flex flex-wrap gap-2 p-2 bg-white rounded-xl border border-slate-200">
+                  {PRESET_COLORS.map((c) => (
+                    <button
+                      key={c}
+                      type="button"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        handleSave("color", c);
+                      }}
+                      className={`w-7 h-7 rounded-full border-2 transition-all hover:scale-110 active:scale-95 ${
+                        currentColor === c ? "border-slate-800 ring-2 ring-slate-100 scale-110" : "border-slate-100 hover:border-slate-300"
+                      }`}
+                      style={{ backgroundColor: c }}
+                      title={c}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <div className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-white border border-slate-200 shadow-sm w-full">
+                  <div className="w-4 h-4 rounded-full" style={{ backgroundColor: currentColor || '#cbd5e1' }} />
+                  <span className="text-sm font-bold text-slate-700">Màu chủ đề</span>
                 </div>
               )}
             </div>

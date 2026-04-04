@@ -1,6 +1,7 @@
 class TaskRepository {
   constructor({ Task, Attachment, mongoose }) {
     this.Task = Task;
+    this.PersonalTask = require('../entities/PersonalTask');
     this.Attachment = Attachment;
     this.mongoose = mongoose;
   }
@@ -117,7 +118,8 @@ class TaskRepository {
   };
 
   getAllTasksForUser = async (userId) => {
-    const tasks = await this.Task.find({
+    // 1. Fetch Project Tasks
+    const projectTasks = await this.Task.find({
       $or: [
         { creatorId: userId },
         { assignees: userId }
@@ -126,16 +128,34 @@ class TaskRepository {
     .sort({ createdAt: -1 })
     .populate('creatorId assignees', 'displayName email avatar avatarUrl');
 
-    const tasksWithAttachments = await Promise.all(
-      tasks.map(async (task) => {
+    // 2. Fetch Personal Tasks
+    const personalTasks = await this.PersonalTask.find({ userId })
+    .sort({ createdAt: -1 });
+
+    // 3. Get Attachments for Project Tasks
+    const projectTasksWithAttachments = await Promise.all(
+      projectTasks.map(async (task) => {
         const taskObj = task.toObject();
         const attachments = await this.Attachment.find({ taskId: task._id });
         taskObj.attachments = attachments;
+        taskObj.isPersonal = false;
         return taskObj;
       })
     );
 
-    return tasksWithAttachments;
+    // 4. Format Personal Tasks
+    const personalTasksFormatted = personalTasks.map(task => {
+      const taskObj = task.toObject();
+      taskObj.isPersonal = true;
+      return taskObj;
+    });
+
+    // 5. Combine and Sort
+    const allTasks = [...projectTasksWithAttachments, ...personalTasksFormatted].sort(
+      (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+    );
+
+    return allTasks;
   };
 }
 

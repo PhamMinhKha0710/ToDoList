@@ -36,19 +36,46 @@ const CalendarView = () => {
 
   const events = (tasks || [])
     .filter((task) => task.dueDate || task.startDate)
-    .map((task) => ({
-      id: task._id,
-      title: task.isPersonal ? `[Cá nhân] ${task.title}` : task.title,
-      start: task.startDate || task.dueDate,
-      end: task.endDate,
-      backgroundColor: task.isPersonal ? "#8b5cf6" : (STATUS_COLORS[task.status as keyof typeof STATUS_COLORS] || STATUS_COLORS.todo),
-      borderColor: "transparent",
-      className: task.isPersonal ? "personal-task-event" : "project-task-event",
-      extendedProps: {
-        status: task.status,
-        isPersonal: task.isPersonal,
-      },
-    }));
+    .map((task) => {
+      const start = task.startDate || task.dueDate;
+      let end = task.endDate || task.dueDate;
+
+      let isMultiDay = false;
+      if (start && end) {
+        const s = new Date(start);
+        const e = new Date(end);
+        // Kiểm tra nếu cách nhau qua đêm (khác ngày)
+        if (s.toDateString() !== e.toDateString()) {
+          isMultiDay = true;
+        }
+      }
+
+      const timeStr = start ? new Date(start).toLocaleTimeString("vi-VN", { hour: '2-digit', minute: '2-digit' }) : "";
+      const displayTitle = isMultiDay ? `${timeStr} ${task.title}` : task.title;
+
+      // FullCalendar allDay end là exclusive, nên nếu multi-day ta +1 ngày để hiển thị đúng ô ngày kết thúc
+      let finalEnd = end;
+      if (isMultiDay && end) {
+        const endDateObj = new Date(end);
+        endDateObj.setDate(endDateObj.getDate() + 1);
+        finalEnd = endDateObj.toISOString();
+      }
+
+      return {
+        id: task._id,
+        title: task.isPersonal ? `[Cá nhân] ${displayTitle}` : displayTitle,
+        start: start,
+        end: finalEnd,
+        backgroundColor: task.color || (task.isPersonal ? "#8b5cf6" : (STATUS_COLORS[task.status as keyof typeof STATUS_COLORS] || STATUS_COLORS.todo)),
+        borderColor: "transparent",
+        className: task.isPersonal ? "personal-task-event" : "project-task-event",
+        allDay: isMultiDay,
+        extendedProps: {
+          status: task.status,
+          isPersonal: task.isPersonal,
+        },
+      };
+    });
 
   return (
     <div className="calendar-container h-full">
@@ -56,6 +83,7 @@ const CalendarView = () => {
         plugins={[dayGridPlugin, interactionPlugin]}
         initialView="dayGridMonth"
         events={events}
+        eventDisplay="block"
         eventClick={(info) => {
           navigate(ROUTES.TASK_DETAIL(info.event.id));
         }}
@@ -75,6 +103,7 @@ const CalendarView = () => {
             meridiem: false,
             hour12: false
         }}
+        displayEventTime={true}
         dayMaxEvents={true}
       />
 

@@ -3,6 +3,7 @@ class CommentService {
     commentRepository,
     ApiError,
     Task,
+    PersonalTask,
     Column,
     projectService,
     commentSocket,
@@ -11,6 +12,7 @@ class CommentService {
     this.commentRepository = commentRepository;
     this.ApiError = ApiError;
     this.Task = Task;
+    this.PersonalTask = PersonalTask;
     this.Column = Column;
     this.projectService = projectService;
     this.commentSocket = commentSocket;
@@ -23,23 +25,34 @@ class CommentService {
     await populated.populate("authorId", "displayName email avatarUrl");
 
     const taskIdStr = commentData.taskId.toString();
-
     this.commentSocket.emitCommentCreated(taskIdStr, populated);
 
-    const task = await this.Task.findById(commentData.taskId).lean();
+    let task = await this.Task.findById(commentData.taskId).lean();
+    let isPersonal = false;
+    if (!task) {
+        task = await this.PersonalTask.findById(commentData.taskId).lean();
+        if (task) isPersonal = true;
+    }
+
     if (task) {
       const column = await this.Column.findById(task.columnId).select('projectId').lean();
       const projectId = column?.projectId?.toString() || null;
 
       const recipients = new Set();
-      if (task.creatorId.toString() !== commentData.authorId.toString()) {
+      if (task.creatorId && task.creatorId.toString() !== commentData.authorId.toString()) {
         recipients.add(task.creatorId.toString());
+      } else if (task.userId && task.userId.toString() !== commentData.authorId.toString()) {
+        // Case for PersonalTask
+        recipients.add(task.userId.toString());
       }
-      task.assignees.forEach(id => {
-        if (id.toString() !== commentData.authorId.toString()) {
-          recipients.add(id.toString());
-        }
-      });
+
+      if (task.assignees) {
+        task.assignees.forEach(id => {
+            if (id.toString() !== commentData.authorId.toString()) {
+                recipients.add(id.toString());
+            }
+        });
+      }
 
       if (commentData.mentions && Array.isArray(commentData.mentions)) {
         for (const mentionId of commentData.mentions) {
@@ -106,8 +119,14 @@ class CommentService {
     let isManager = false;
 
     if (!isAuthor) {
-      const task = await this.Task.findById(comment.taskId);
-      if (task) {
+      let task = await this.Task.findById(comment.taskId);
+      let isPersonal = false;
+      if (!task) {
+          task = await this.PersonalTask.findById(comment.taskId);
+          if (task) isPersonal = true;
+      }
+
+      if (task && !isPersonal) {
         const column = await this.Column.findById(task.columnId);
         if (column) {
           const project = await this.projectService.getProjectById(column.projectId);
@@ -151,6 +170,7 @@ module.exports = new CommentService({
   commentRepository: require('../repositories/comment.repository'),
   ApiError: require('../utils/ApiError'),
   Task: require('../entities/Task'),
+  PersonalTask: require('../entities/PersonalTask'),
   Column: require('../entities/Column'),
   projectService: require('./project.service'),
   commentSocket: {
