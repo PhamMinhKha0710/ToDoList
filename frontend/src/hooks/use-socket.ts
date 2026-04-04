@@ -223,6 +223,24 @@ export const useProjectSocket = (
     socket.on('activity:created', onActivityCreated);
     socket.on('project:member_updated', onProjectMemberUpdated);
 
+    // ─── Project Deactivation/Deletion ──────────────────────────────────────────
+    const onProjectDeactivated = () => {
+      toast.error('Dự án này đã bị vô hiệu hóa bởi Admin', {
+        duration: 5000,
+      });
+      window.location.href = '/projects';
+    };
+
+    const onProjectDeleted = () => {
+      toast.error('Dự án này đã bị xóa bởi Admin', {
+        duration: 5000,
+      });
+      window.location.href = '/projects';
+    };
+
+    socket.on('project:deactivated', onProjectDeactivated);
+    socket.on('project:deleted', onProjectDeleted);
+
     // ─── Cleanup ─────────────────────────────────────────────────────────────
     return () => {
       console.log(`[useProjectSocket] Leaving room for project: ${projectId}`);
@@ -244,6 +262,9 @@ export const useProjectSocket = (
       socket.off('comment:created', onCommentCreated);
       socket.off('comment:updated', onCommentUpdated);
       socket.off('comment:deleted', onCommentDeleted);
+
+      socket.off('project:deactivated', onProjectDeactivated);
+      socket.off('project:deleted', onProjectDeleted);
     };
   }, [projectId, token, isSocketInitialized]);
 };
@@ -255,6 +276,7 @@ export const useProjectSocket = (
 export const useNotificationSocket = () => {
   const { increment } = useNotificationStore();
   const { isSocketInitialized } = useAuthStore();
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     const socket = getSocket();
@@ -270,8 +292,16 @@ export const useNotificationSocket = () => {
 
     socket.on('notification:new', onNotificationNew);
 
+    const onProjectListUpdated = () => {
+      console.log('[Socket Global] Project list updated');
+      queryClient.invalidateQueries({ queryKey: ['projects'] });
+    };
+
+    socket.on('project:list_updated', onProjectListUpdated);
+
     return () => {
       socket.off('notification:new', onNotificationNew);
+      socket.off('project:list_updated', onProjectListUpdated);
     };
   }, [isSocketInitialized, increment]);
 };

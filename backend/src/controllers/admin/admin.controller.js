@@ -1,6 +1,7 @@
 const adminService = require('../../services/admin/admin.service');
 const catchAsync = require('../../utils/catchAsync');
 const ApiResponse = require('../../utils/ApiResponse');
+const { getIO } = require('../../config/socket');
 
 class AdminController {
   getAllUsers = catchAsync(async (req, res) => {
@@ -19,6 +20,76 @@ class AdminController {
   getDashboardTasks = catchAsync(async (req, res) => {
     const tasks = await adminService.getDashboardTasks();
     new ApiResponse(200, 'Thống kê dashboard', tasks).send(res);
+  });
+
+  getAllProjects = catchAsync(async (req, res) => {
+    const projects = await adminService.getAllProjects();
+    new ApiResponse(200, 'Danh sách dự án', projects).send(res);
+  });
+
+  createProject = catchAsync(async (req, res) => {
+    const project = await adminService.createAdminProject(req.body);
+    new ApiResponse(201, 'Tạo dự án thành công', project).send(res);
+  });
+
+  updateProject = catchAsync(async (req, res) => {
+    const { id } = req.params;
+    const project = await adminService.updateAdminProject(id, req.body);
+    
+    const io = getIO();
+    
+    // 1. Nếu vô hiệu hoá, đuổi tất cả user đang xem ra ngay lập tức
+    if (req.body.isActive === false) {
+      try {
+        io.to(id).emit('project:deactivated', { projectId: id });
+      } catch (err) {
+        console.error('[Socket] Failed to emit project:deactivated', err);
+      }
+    }
+
+    // 2. Luôn thông báo cập nhật danh sách cho tất cả thành viên trong dự án
+    if (project.members && project.members.length > 0) {
+      project.members.forEach(member => {
+        const userId = member.userId._id || member.userId;
+        try {
+          io.to(`user:${userId}`).emit('project:list_updated');
+        } catch (err) {
+          console.error(`[Socket] Failed to emit project:list_updated to user:${userId}`, err);
+        }
+      });
+    }
+    
+    new ApiResponse(200, 'Cập nhật dự án thành công', project).send(res);
+  });
+
+  deleteProject = catchAsync(async (req, res) => {
+    const { id } = req.params;
+    const io = getIO();
+
+    // Lấy thông tin dự án trước khi xoá để biết danh sách thành viên
+    const project = await adminService.updateAdminProject(id, {}); 
+    
+    if (project) {
+      // 1. Đuổi tất cả user đang xem ra
+      try {
+        io.to(id).emit('project:deleted', { projectId: id });
+      } catch (err) {
+        console.error('[Socket] Failed to emit project:deleted', err);
+      }
+
+      // 2. Thông báo cập nhật danh sách cho tất cả thành viên
+      project.members.forEach(member => {
+        const userId = member.userId._id || member.userId;
+        try {
+          io.to(`user:${userId}`).emit('project:list_updated');
+        } catch (err) {
+          console.error(`[Socket] Failed to emit project:list_updated to user:${userId}`, err);
+        }
+      });
+    }
+
+    await adminService.deleteAdminProject(id);
+    new ApiResponse(200, 'Xóa dự án thành công', null).send(res);
   });
 }
 

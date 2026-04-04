@@ -1,5 +1,6 @@
 import api from '@/lib/axios';
 import type { ApiResponse } from '@/types/api';
+import type { Project } from '@/types/project';
 import type { User } from '@/types/user';
 
 export const adminService = {
@@ -15,6 +16,26 @@ export const adminService = {
 
   getDashboardTasks: async (): Promise<ApiResponse<any[]>> => {
     const response = await api.get('/admin/dashboard/tasks');
+    return response.data;
+  },
+
+  getAdminProjects: async (): Promise<ApiResponse<Project[]>> => {
+    const response = await api.get('/admin/projects');
+    return response.data;
+  },
+
+  createAdminProject: async (data: any): Promise<ApiResponse<Project>> => {
+    const response = await api.post('/admin/projects', data);
+    return response.data;
+  },
+
+  updateAdminProject: async (id: string, data: any): Promise<ApiResponse<Project>> => {
+    const response = await api.put(`/admin/projects/${id}`, data);
+    return response.data;
+  },
+
+  deleteAdminProject: async (id: string): Promise<ApiResponse<null>> => {
+    const response = await api.delete(`/admin/projects/${id}`);
     return response.data;
   },
 };

@@ -14,7 +14,7 @@ class ProjectRepository {
   }
 
   async findByUserId(userId) {
-    return this.Project.find({ 'members.userId': userId })
+    return this.Project.find({ 'members.userId': userId, isActive: { $ne: false } })
       .populate('members.userId', 'email displayName avatarUrl')
       .sort({ updatedAt: -1 });
   }

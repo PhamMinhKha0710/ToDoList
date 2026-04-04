@@ -47,10 +47,32 @@ const respondInvitationSchema = Joi.object({
   }),
 });
 
+const adminCreateProjectSchema = Joi.object({
+  name: Joi.string().trim().required().messages({
+    'string.empty': 'Tên dự án không được để trống',
+    'any.required': 'Tên dự án là bắt buộc',
+  }),
+  description: Joi.string().trim().allow('').optional(),
+  color: Joi.string().trim().allow('').optional(),
+  imageUrl: Joi.string().trim().allow('').optional(),
+  ownerId: Joi.string().required().messages({
+    'any.required': 'Chủ số hữu là bắt buộc',
+  }),
+});
+
+const adminUpdateProjectSchema = Joi.object({
+  name: Joi.string().trim().optional(),
+  description: Joi.string().trim().allow('').optional(),
+  color: Joi.string().trim().allow('').optional(),
+  isActive: Joi.boolean().optional(),
+});
+
 module.exports = {
   createProjectSchema,
   updateProjectSchema,
   addMemberSchema,
   updateMemberRoleSchema,
   respondInvitationSchema,
+  adminCreateProjectSchema,
+  adminUpdateProjectSchema,
 };
