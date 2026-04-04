@@ -1,3 +1,5 @@
+const crypto = require('crypto');
+
 class ProjectService {
   constructor({ projectRepository, User, ApiError, notificationService, getIO }) {
     this.projectRepository = projectRepository;
@@ -224,6 +226,87 @@ class ProjectService {
     } else {
       throw new this.ApiError(400, 'Hành động không hợp lệ');
     }
+  }
+
+  async getInviteCode(projectId) {
+    let project = await this.getProjectById(projectId);
+    if (!project.inviteCode) {
+      project.inviteCode = crypto.randomBytes(5).toString('hex'); // 10 characters
+      await project.save();
+    }
+    return project.inviteCode;
+  }
+
+  async regenerateInviteCode(projectId) {
+    const project = await this.getProjectById(projectId);
+    project.inviteCode = crypto.randomBytes(5).toString('hex');
+    await project.save();
+    return project.inviteCode;
+  }
+
+  async getProjectByInviteCode(inviteCode) {
+    const project = await this.projectRepository.findByInviteCode(inviteCode);
+    if (!project) {
+      throw new this.ApiError(404, 'Mã mời không lệ hoặc đã hết hạn');
+    }
+
+    const owner = project.members.find(m => m.role === 'owner')?.userId;
+    const activeMembersCount = project.members.filter(m => m.status === 'active').length;
+
+    return {
+      _id: project._id,
+      name: project.name,
+      description: project.description,
+      imageUrl: project.imageUrl,
+      color: project.color,
+      owner: owner ? {
+        _id: owner._id,
+        displayName: owner.displayName,
+        email: owner.email,
+        avatarUrl: owner.avatarUrl
+      } : null,
+      memberCount: activeMembersCount,
+    };
+  }
+
+  async joinByInviteCode(inviteCode, userId) {
+    const project = await this.projectRepository.findByInviteCode(inviteCode);
+    if (!project) {
+      throw new this.ApiError(404, 'Mã mời không lệ hoặc đã hết hạn');
+    }
+
+    const isMember = project.members.some(
+      (m) => m.userId._id.toString() === userId.toString() || m.userId.toString() === userId.toString()
+    );
+
+    if (isMember) {
+      // Find the member to check status
+      const existingMember = project.members.find(
+        (m) => m.userId._id.toString() === userId.toString() || m.userId.toString() === userId.toString()
+      );
+      
+      if (existingMember.status === 'active') {
+        return project;
+      }
+
+      // If pending, activate it
+      existingMember.status = 'active';
+      await project.save();
+      this._emitMemberUpdated(project._id);
+      return project;
+    }
+
+    const memberData = {
+      userId: userId,
+      role: 'member',
+      status: 'active',
+    };
+
+    const result = await this.projectRepository.addMember(project._id, memberData);
+    this._emitMemberUpdated(project._id);
+    await this._notifyOwnerOnResponse(project, userId, 'accept');
+
+    return result;
   }
 }
 

@@ -75,4 +75,24 @@ export const projectService = {
     const response = await api.post(`/projects/${projectId}/invitation/respond`, { action });
     return response.data;
   },
+
+  getInviteCode: async (projectId: string): Promise<ApiResponse<{ inviteCode: string }>> => {
+    const response = await api.get(`/projects/${projectId}/invite-code`);
+    return response.data;
+  },
+
+  regenerateInviteCode: async (projectId: string): Promise<ApiResponse<{ inviteCode: string }>> => {
+    const response = await api.post(`/projects/${projectId}/invite-code/regenerate`);
+    return response.data;
+  },
+
+  getProjectByInviteStatus: async (inviteCode: string): Promise<ApiResponse<{ project: any }>> => {
+    const response = await api.get(`/projects/invite/code/${inviteCode}`);
+    return response.data;
+  },
+
+  joinByInviteCode: async (inviteCode: string): Promise<ApiResponse<void>> => {
+    const response = await api.post(`/projects/invite/code/${inviteCode}/join`);
+    return response.data;
+  },
 };

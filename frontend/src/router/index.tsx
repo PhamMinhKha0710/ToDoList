@@ -19,6 +19,7 @@ const ProfilePage = lazy(() => import("@/page/ProfilePage"));
 const AdminUsersPage = lazy(() => import("@/page/admin/AdminUsersPage"));
 const AdminProjectsPage = lazy(() => import("@/page/admin/AdminProjectsPage"));
 const AdminDashboardPage = lazy(() => import("@/page/admin/AdminDashboardPage"));
+const JoinProjectPage = lazy(() => import("@/page/JoinProjectPage"));
 
 const RoleRedirect = () => {
   const user = useAuthStore((s) => s.user);
@@ -45,6 +46,7 @@ export const router = createBrowserRouter([
     children: [
       { path: ROUTES.PROJECTS, element: <ProjectsPage /> },
       { path: "/projects/:id/invite", element: <InvitationPage /> },
+      { path: "/join/:inviteCode", element: <JoinProjectPage /> },
       { path: "/projects/:id", element: <ProjectDetailPage /> },
       { path: ROUTES.CALENDAR, element: <CalendarPage /> },
       { path: "/tasks/:id", element: <TaskDetailPage /> },

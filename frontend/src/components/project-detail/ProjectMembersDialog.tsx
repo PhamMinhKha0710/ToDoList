@@ -20,9 +20,11 @@ import {
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Trash2, ShieldAlert } from "lucide-react";
+import { Trash2, ShieldAlert, Link as LinkIcon, Copy, RefreshCw, Check } from "lucide-react";
 import { UserSearchSelect } from "../project/UserSearchSelect";
 import type { User } from "@/types/user";
+import { useQuery } from "@tanstack/react-query";
+import { cn } from "@/lib/utils";
 
 type AssignableRole = "admin" | "member" | "viewer";
 
@@ -64,6 +66,17 @@ export const ProjectMembersDialog = ({
   const [memberToRemove, setMemberToRemove] = useState<ProjectMember | null>(
     null,
   );
+  const [copied, setCopied] = useState(false);
+
+  // Queries
+  const { data: inviteRes, refetch: refetchInvite } = useQuery({
+    queryKey: ["projectInviteCode", project._id],
+    queryFn: () => projectService.getInviteCode(project._id),
+    enabled: open && isManager,
+  });
+
+  const inviteCode = inviteRes?.data?.inviteCode;
+  const inviteLink = `${window.location.origin}/join/${inviteCode}`;
 
   // Mutations
   const addMemberMutation = useMutation({
@@ -103,6 +116,21 @@ export const ProjectMembersDialog = ({
       setMemberToRemove(null);
     },
   });
+
+  const regenerateInviteMutation = useMutation({
+    mutationFn: () => projectService.regenerateInviteCode(project._id),
+    onSuccess: () => {
+      toast.success("Đã tạo mới mã mời thành công.");
+      refetchInvite();
+    },
+  });
+
+  const handleCopyLink = () => {
+    navigator.clipboard.writeText(inviteLink);
+    setCopied(true);
+    toast.success("Đã sao chép link mời");
+    setTimeout(() => setCopied(false), 2000);
+  };
 
   const handleAddMember = (user: User, role: AssignableRole) => {
     addMemberMutation.mutate({ user, role });
@@ -208,14 +236,61 @@ export const ProjectMembersDialog = ({
 
         {/* Phần mời thành viên: chỉ hiện với Owner hoặc Admin */}
         {isManager && (
-          <div className="py-4 border-b">
-            <h4 className="text-sm font-semibold mb-3">Mời người mới</h4>
-            <UserSearchSelect
-              onAddMember={handleAddMember}
-              excludeUserIds={project.members.map(
-                (m) => (m.userId as User)._id,
-              )}
-            />
+          <div className="py-4 border-b space-y-6">
+            <div className="space-y-3">
+              <h4 className="text-sm font-semibold flex items-center gap-2">
+                <LinkIcon className="h-4 w-4" /> Link mời tham gia
+              </h4>
+              <p className="text-xs text-muted-foreground">
+                Gửi link này cho đồng nghiệp để họ tham gia trực tiếp vào dự án.
+              </p>
+              <div className="flex gap-2">
+                <div className="relative flex-1">
+                  <input
+                    type="text"
+                    readOnly
+                    value={inviteCode ? inviteLink : "Đang tạo mã..."}
+                    className="w-full h-9 px-3 py-1 text-xs bg-muted rounded-md border border-input focus:outline-none pr-20 truncate"
+                  />
+                  <div className="absolute right-1 top-1 flex gap-1">
+                    <Button 
+                      size="sm" 
+                      variant="ghost" 
+                      className="h-7 px-2 text-[10px]"
+                      onClick={handleCopyLink}
+                      disabled={!inviteCode}
+                    >
+                      {copied ? <Check className="h-3 w-3 mr-1" /> : <Copy className="h-3 w-3 mr-1" />}
+                      {copied ? "Đã chép" : "Sao chép"}
+                    </Button>
+                  </div>
+                </div>
+                <Button 
+                  size="sm" 
+                  variant="outline" 
+                  className="h-9 px-2 hover:bg-destructive/10 hover:text-destructive hover:border-destructive/20 transition-all group"
+                  title="Tạo lại mã mới"
+                  onClick={() => {
+                    if (confirm("Bạn có chắc muốn tạo lại mã mời mới? Link cũ sẽ không còn hiệu lực.")) {
+                      regenerateInviteMutation.mutate();
+                    }
+                  }}
+                  disabled={regenerateInviteMutation.isPending || !inviteCode}
+                >
+                  <RefreshCw className={cn("h-4 w-4", regenerateInviteMutation.isPending && "animate-spin")} />
+                </Button>
+              </div>
+            </div>
+
+            <div className="space-y-3 pt-2 border-t border-dashed">
+              <h4 className="text-sm font-semibold">Mời qua email</h4>
+              <UserSearchSelect
+                onAddMember={handleAddMember}
+                excludeUserIds={project.members.map(
+                  (m) => (m.userId as User)._id,
+                )}
+              />
+            </div>
           </div>
         )}
 
