@@ -136,16 +136,26 @@ export default function ProfileForm() {
         <CardDescription>Cập nhật ảnh đại diện và chi tiết thông tin cá nhân của bạn.</CardDescription>
       </CardHeader>
       <CardContent className="space-y-8">
-        
+
         {/* Avatar Section */}
         <div className="flex flex-col sm:flex-row gap-6 items-start sm:items-center">
-          <div className="relative">
-            <Avatar className="w-24 h-24 border-4 border-white shadow-md">
-              <AvatarFallback className="text-4xl bg-indigo-50 text-indigo-500">
-                {isSavingAvatar ? <Loader2 className="animate-spin w-8 h-8" /> : (isEmojiUrl(avatarPreview) ? avatarPreview : "JD")}
-              </AvatarFallback>
-              {!isEmojiUrl(avatarPreview) && <AvatarImage src={getAvatarUrl(avatarPreview)} className="object-cover" />}
-            </Avatar>
+          <div className="relative group">
+            <div className="w-24 h-24 rounded-full border-4 border-white shadow-xl ring-1 ring-slate-100 transition-all duration-300 overflow-hidden flex items-center justify-center bg-indigo-50">
+              {isSavingAvatar ? (
+                <Loader2 className="animate-spin w-8 h-8 text-indigo-500" />
+              ) : isEmojiUrl(avatarPreview) ? (
+                <span className="text-4xl leading-none select-none">
+                  {avatarPreview}
+                </span>
+              ) : (
+                <Avatar className="w-full h-full border-0 shadow-none">
+                  <AvatarImage src={getAvatarUrl(avatarPreview)} className="object-cover" />
+                  <AvatarFallback className="text-2xl bg-slate-100 text-slate-400 font-bold uppercase tracking-widest border-0">
+                    {(user?.displayName || "JD").substring(0, 2).toUpperCase()}
+                  </AvatarFallback>
+                </Avatar>
+              )}
+            </div>
             <Button
               type="button"
               size="icon"
@@ -156,11 +166,11 @@ export default function ProfileForm() {
             >
               <Camera size={14} className="text-slate-600" />
             </Button>
-            <input 
-              type="file" 
-              ref={fileInputRef} 
-              className="hidden" 
-              accept=".jpg,.jpeg,.png" 
+            <input
+              type="file"
+              ref={fileInputRef}
+              className="hidden"
+              accept=".jpg,.jpeg,.png"
               onChange={handleAvatarChange}
             />
           </div>
@@ -168,7 +178,7 @@ export default function ProfileForm() {
           <div className="flex-1 space-y-2">
             <h4 className="text-sm font-medium text-slate-700 flex items-center gap-2">
               Ảnh đại diện mẫu
-              {isSavingAvatar && <span className="text-xs text-indigo-500 font-normal flex items-center gap-1"><Loader2 className="w-3 h-3 animate-spin"/> Đang lưu...</span>}
+              {isSavingAvatar && <span className="text-xs text-indigo-500 font-normal flex items-center gap-1"><Loader2 className="w-3 h-3 animate-spin" /> Đang lưu...</span>}
             </h4>
             <div className="flex flex-wrap gap-2">
               {DEFAULT_AVATARS.map((emoji) => (
@@ -191,9 +201,9 @@ export default function ProfileForm() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
               <Label htmlFor="fullName" className="text-slate-700">Họ và tên</Label>
-              <Input 
-                id="fullName" 
-                placeholder="Nguyễn Văn A" 
+              <Input
+                id="fullName"
+                placeholder="Nguyễn Văn A"
                 {...register("fullName")}
                 className="focus-visible:ring-indigo-500 transition-shadow"
               />
@@ -202,9 +212,9 @@ export default function ProfileForm() {
 
             <div className="space-y-2">
               <Label htmlFor="displayName" className="text-slate-700">Tên hiển thị</Label>
-              <Input 
-                id="displayName" 
-                placeholder="Văn A" 
+              <Input
+                id="displayName"
+                placeholder="Văn A"
                 {...register("displayName")}
                 className="focus-visible:ring-indigo-500 transition-shadow"
               />
@@ -224,15 +234,15 @@ export default function ProfileForm() {
               <div className="flex flex-col sm:flex-row gap-4 sm:items-center">
                 <div className="relative flex-1">
                   <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
-                  <Input 
-                    value={user?.email || "Chưa có email"} 
-                    readOnly 
+                  <Input
+                    value={user?.email || "Chưa có email"}
+                    readOnly
                     className="pl-9 bg-slate-50 text-slate-600 focus-visible:ring-0 border-slate-200 cursor-default"
                   />
                   <BadgeCheck className="absolute right-3 top-1/2 -translate-y-1/2 text-emerald-500" size={18} />
                 </div>
-                <Button 
-                  type="button" 
+                <Button
+                  type="button"
                   variant="outline"
                   onClick={() => setIsUpdatingEmail(!isUpdatingEmail)}
                   className="shrink-0 text-slate-700 hover:bg-slate-50"
@@ -246,18 +256,18 @@ export default function ProfileForm() {
               <div className="bg-slate-50 p-4 rounded-lg border border-slate-200 space-y-3 animate-in fade-in zoom-in-95 duration-200">
                 <div className="space-y-2">
                   <Label htmlFor="newEmail" className="text-slate-700">Địa chỉ Email mới</Label>
-                  <Input 
-                    id="newEmail" 
-                    type="email" 
+                  <Input
+                    id="newEmail"
+                    type="email"
                     value={newEmailValue}
                     onChange={(e) => setNewEmailValue(e.target.value)}
-                    placeholder="Nhập email mới" 
+                    placeholder="Nhập email mới"
                     className="bg-white focus-visible:ring-indigo-500"
                   />
                 </div>
-                <Button 
-                  type="button" 
-                  size="sm" 
+                <Button
+                  type="button"
+                  size="sm"
                   onClick={handleRequestEmailOtp}
                   disabled={isRequestingEmailOtp || !newEmailValue}
                   className="bg-indigo-600 hover:bg-indigo-700 text-white"
@@ -272,7 +282,7 @@ export default function ProfileForm() {
 
       </CardContent>
 
-      <OtpModal 
+      <OtpModal
         isOpen={showEmailOtpModal}
         onClose={() => setShowEmailOtpModal(false)}
         onSubmit={handleEmailOtpSubmit}
