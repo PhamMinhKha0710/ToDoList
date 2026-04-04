@@ -31,6 +31,10 @@ const isProjectMember = catchAsync(async (req, res, next) => {
     throw new ApiError(403, 'Bạn không có quyền truy cập vào dự án này');
   }
 
+  if (project.isActive === false) {
+    throw new ApiError(403, 'Dự án này đã bị vô hiệu hóa bởi Admin');
+  }
+
   req.project = project;
   req.userRole = role;
   next();
@@ -44,6 +48,10 @@ const isProjectOwner = catchAsync(async (req, res, next) => {
   const role = getUserRole(project, req.user._id);
   if (role !== 'owner') {
     throw new ApiError(403, 'Chỉ Project Owner mới có quyền thực hiện hành động này');
+  }
+
+  if (project.isActive === false) {
+    throw new ApiError(403, 'Dự án này đã bị vô hiệu hóa bởi Admin');
   }
 
   req.project = project;
@@ -67,6 +75,10 @@ const isProjectManagerOrAbove = catchAsync(async (req, res, next) => {
     throw new ApiError(403, 'Chỉ Owner hoặc Admin mới có quyền thực hiện hành động này');
   }
 
+  if (project.isActive === false) {
+    throw new ApiError(403, 'Dự án này đã bị vô hiệu hóa bởi Admin');
+  }
+
   console.log('Access granted for role:', role);
   req.project = project;
   req.userRole = role;
@@ -86,6 +98,11 @@ const canWriteTask = catchAsync(async (req, res, next) => {
   const role = getUserRole(project, req.user._id);
 
   if (!role) throw new ApiError(403, 'Bạn không phải thành viên của dự án này');
+
+  if (project.isActive === false) {
+    throw new ApiError(403, 'Dự án này đã bị vô hiệu hóa bởi Admin');
+  }
+
   if (role === 'viewer') throw new ApiError(403, 'Viewer không có quyền tạo task');
 
   req.project = project;
@@ -122,6 +139,11 @@ const canModifyTask = catchAsync(async (req, res, next) => {
     const role = getUserRole(project, req.user._id);
 
     if (!role) throw new ApiError(403, 'Bạn không phải thành viên của dự án');
+
+    if (project.isActive === false) {
+      throw new ApiError(403, 'Dự án này đã bị vô hiệu hóa bởi Admin');
+    }
+
     if (role === 'viewer') throw new ApiError(403, 'Viewer không có quyền chỉnh sửa task');
     if (role === 'member') {
       const isCreator = task.creatorId && task.creatorId.toString() === req.user._id.toString();

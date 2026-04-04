@@ -16,6 +16,7 @@ export interface Project {
   columnOrder: string[];
   owner?: User;
   memberCount?: number;
+  isActive?: boolean;
   createdAt: string;
   updatedAt: string;
 }

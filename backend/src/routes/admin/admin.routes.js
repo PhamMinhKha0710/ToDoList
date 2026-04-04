@@ -5,6 +5,8 @@ const { requireRole } = require('../../middlewares/role.middleware');
 const { validate } = require('../../middlewares/validate.middleware');
 const { updateUserStatusSchema } = require('../../validators/user.validator');
 
+const { adminCreateProjectSchema, adminUpdateProjectSchema } = require('../../validators/project.validator');
+
 const router = Router();
 
 // GET /api/admin/users
@@ -15,5 +17,18 @@ router.patch('/users/:id/active', authenticate, requireRole('admin'), validate(u
 
 // GET /api/admin/dashboard/tasks
 router.get('/dashboard/tasks', authenticate, requireRole('admin'), controller.getDashboardTasks);
+
+// Project Management
+// GET /api/admin/projects
+router.get('/projects', authenticate, requireRole('admin'), controller.getAllProjects);
+
+// POST /api/admin/projects
+router.post('/projects', authenticate, requireRole('admin'), validate(adminCreateProjectSchema), controller.createProject);
+
+// PUT /api/admin/projects/:id
+router.put('/projects/:id', authenticate, requireRole('admin'), validate(adminUpdateProjectSchema), controller.updateProject);
+
+// DELETE /api/admin/projects/:id
+router.delete('/projects/:id', authenticate, requireRole('admin'), controller.deleteProject);
 
 module.exports = router;
