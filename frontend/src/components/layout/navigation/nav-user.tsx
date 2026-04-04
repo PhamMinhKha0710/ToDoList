@@ -54,12 +54,18 @@ export function NavUser({
               size="lg"
               className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground min-w-0 w-full"
             >
-              <Avatar className="h-8 w-8 rounded-full">
-                {!isEmojiUrl(user.avatar) && <AvatarImage src={getAvatarUrl(user.avatar)} alt={user.name} className="object-cover" />}
-                <AvatarFallback className="rounded-full">
-                  {isEmojiUrl(user.avatar) ? user.avatar : user.name.substring(0, 2).toUpperCase()}
-                </AvatarFallback>
-              </Avatar>
+              {isEmojiUrl(user.avatar) ? (
+                <div className="h-8 w-8 rounded-md flex items-center justify-center bg-sidebar-accent text-sidebar-accent-foreground text-sm">
+                  {user.avatar}
+                </div>
+              ) : (
+                <Avatar className="h-8 w-8 rounded-md">
+                  <AvatarImage src={getAvatarUrl(user.avatar)} alt={user.name} className="object-cover" />
+                  <AvatarFallback className="rounded-md">
+                    {user.name.substring(0, 2).toUpperCase()}
+                  </AvatarFallback>
+                </Avatar>
+              )}
               <div className="flex-1 w-0 min-w-0 overflow-hidden text-left text-sm leading-tight">
                 <div className="truncate font-semibold">{user.name}</div>
                 <div className="truncate text-xs">{user.email}</div>
@@ -74,13 +80,19 @@ export function NavUser({
             sideOffset={4}
           >
             <DropdownMenuLabel className="p-0 font-normal">
-              <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
-                <Avatar className="h-8 w-8 rounded-full">
-                  {!isEmojiUrl(user.avatar) && <AvatarImage src={getAvatarUrl(user.avatar)} alt={user.name} className="object-cover" />}
-                  <AvatarFallback className="rounded-full">
-                    {isEmojiUrl(user.avatar) ? user.avatar : user.name.substring(0, 2).toUpperCase()}
-                  </AvatarFallback>
-                </Avatar>
+                <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
+                  {isEmojiUrl(user.avatar) ? (
+                    <div className="h-8 w-8 rounded-md flex items-center justify-center bg-sidebar-accent text-sidebar-accent-foreground text-sm">
+                      {user.avatar}
+                    </div>
+                  ) : (
+                    <Avatar className="h-8 w-8 rounded-md">
+                      <AvatarImage src={getAvatarUrl(user.avatar)} alt={user.name} className="object-cover" />
+                      <AvatarFallback className="rounded-md">
+                        {user.name.substring(0, 2).toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                  )}
                 <div className="flex-1 w-0 min-w-0 overflow-hidden text-left text-sm leading-tight">
                   <div className="truncate font-semibold">{user.name}</div>
                   <div className="truncate text-xs">{user.email}</div>
