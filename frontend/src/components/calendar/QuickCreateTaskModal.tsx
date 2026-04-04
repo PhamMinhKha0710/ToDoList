@@ -165,7 +165,7 @@ export const QuickCreateTaskModal = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[480px] p-6 shadow-2xl border-none">
         <DialogHeader>
           <DialogTitle className="flex justify-between items-center pr-8">
             <span>Thêm công việc nhanh</span>
@@ -267,23 +267,25 @@ export const QuickCreateTaskModal = ({
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div className="grid gap-2">
-                  <Label htmlFor="startDate">Ngày bắt đầu</Label>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full">
+                <div className="grid gap-2 w-full">
+                  <Label htmlFor="startDate" className="text-[13px] font-semibold text-slate-600">Ngày bắt đầu</Label>
                   <Input
                     id="startDate"
                     type="datetime-local"
                     value={startDate}
                     onChange={(e) => setStartDate(e.target.value)}
+                    className="w-full bg-slate-50 border-slate-200 focus:bg-white transition-all"
                   />
                 </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="endDate">Ngày kết thúc</Label>
+                <div className="grid gap-2 w-full">
+                  <Label htmlFor="endDate" className="text-[13px] font-semibold text-slate-600">Ngày kết thúc</Label>
                   <Input
                     id="endDate"
                     type="datetime-local"
                     value={endDate}
                     onChange={(e) => setEndDate(e.target.value)}
+                    className="w-full bg-slate-50 border-slate-200 focus:bg-white transition-all"
                   />
                 </div>
               </div>
@@ -333,23 +335,25 @@ export const QuickCreateTaskModal = ({
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div className="grid gap-2">
-                  <Label htmlFor="startDate-p">Ngày bắt đầu</Label>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full">
+                <div className="grid gap-2 w-full">
+                  <Label htmlFor="startDate-p" className="text-[13px] font-semibold text-slate-600">Ngày bắt đầu</Label>
                   <Input
                     id="startDate-p"
                     type="datetime-local"
                     value={startDate}
                     onChange={(e) => setStartDate(e.target.value)}
+                    className="w-full bg-slate-50 border-slate-200 focus:bg-white transition-all"
                   />
                 </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="endDate-p">Ngày kết thúc</Label>
+                <div className="grid gap-2 w-full">
+                  <Label htmlFor="endDate-p" className="text-[13px] font-semibold text-slate-600">Ngày kết thúc</Label>
                   <Input
                     id="endDate-p"
                     type="datetime-local"
                     value={endDate}
                     onChange={(e) => setEndDate(e.target.value)}
+                    className="w-full bg-slate-50 border-slate-200 focus:bg-white transition-all"
                   />
                 </div>
               </div>
