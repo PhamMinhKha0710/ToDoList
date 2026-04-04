@@ -76,13 +76,18 @@ export const projectService = {
     return response.data;
   },
 
-  getInviteCode: async (projectId: string): Promise<ApiResponse<{ inviteCode: string }>> => {
+  getInviteCode: async (projectId: string): Promise<ApiResponse<{ inviteCode: string; expiresAt: string }>> => {
     const response = await api.get(`/projects/${projectId}/invite-code`);
     return response.data;
   },
 
-  regenerateInviteCode: async (projectId: string): Promise<ApiResponse<{ inviteCode: string }>> => {
+  regenerateInviteCode: async (projectId: string): Promise<ApiResponse<{ inviteCode: string; expiresAt: string }>> => {
     const response = await api.post(`/projects/${projectId}/invite-code/regenerate`);
+    return response.data;
+  },
+
+  deleteInviteCode: async (projectId: string): Promise<ApiResponse<void>> => {
+    const response = await api.delete(`/projects/${projectId}/invite-code`);
     return response.data;
   },
 

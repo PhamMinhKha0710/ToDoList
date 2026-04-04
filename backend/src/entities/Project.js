@@ -54,6 +54,9 @@ const projectSchema = new Schema(
       sparse: true, // Only if it exists
       index: true,
     },
+    inviteCodeExpiresAt: {
+      type: Date,
+    },
   },
   { timestamps: true }
 );

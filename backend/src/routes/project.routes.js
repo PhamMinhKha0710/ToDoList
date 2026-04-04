@@ -82,7 +82,10 @@ router
   .delete(isProjectManagerOrAbove, projectController.removeMember); // Owner hoặc Admin xóa member
 
 // Quản lý mã mời (Chỉ Manager trở lên)
-router.get("/:projectId/invite-code", isProjectManagerOrAbove, projectController.getInviteCode);
+router.route("/:projectId/invite-code")
+  .get(isProjectManagerOrAbove, projectController.getInviteCode)
+  .delete(isProjectManagerOrAbove, projectController.deleteInviteCode);
+
 router.post("/:projectId/invite-code/regenerate", isProjectManagerOrAbove, projectController.regenerateInviteCode);
 
 // Gia nhập qua mã mời (Dành cho bất kỳ user nào đã login)

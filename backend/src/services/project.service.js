@@ -230,24 +230,48 @@ class ProjectService {
 
   async getInviteCode(projectId) {
     let project = await this.getProjectById(projectId);
+    // Return null if no code exists (Manager must manually generate/regenerate)
     if (!project.inviteCode) {
-      project.inviteCode = crypto.randomBytes(5).toString('hex'); // 10 characters
-      await project.save();
+      return {
+        code: null,
+        expiresAt: null
+      };
     }
-    return project.inviteCode;
+    return {
+      code: project.inviteCode,
+      expiresAt: project.inviteCodeExpiresAt
+    };
   }
 
   async regenerateInviteCode(projectId) {
     const project = await this.getProjectById(projectId);
+    const now = new Date();
     project.inviteCode = crypto.randomBytes(5).toString('hex');
+    project.inviteCodeExpiresAt = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
     await project.save();
-    return project.inviteCode;
+    return {
+      code: project.inviteCode,
+      expiresAt: project.inviteCodeExpiresAt
+    };
+  }
+
+  async deleteInviteCode(projectId) {
+    const project = await this.getProjectById(projectId);
+    project.inviteCode = undefined;
+    project.inviteCodeExpiresAt = undefined;
+    await project.save();
+    return true;
   }
 
   async getProjectByInviteCode(inviteCode) {
     const project = await this.projectRepository.findByInviteCode(inviteCode);
     if (!project) {
       throw new this.ApiError(404, 'Mã mời không lệ hoặc đã hết hạn');
+    }
+
+    // Check expiration
+    if (project.inviteCodeExpiresAt && new Date() > project.inviteCodeExpiresAt) {
+      throw new this.ApiError(400, 'Mã mời này đã hết hạn (hiệu lực 7 ngày)');
     }
 
     const owner = project.members.find(m => m.role === 'owner')?.userId;
@@ -273,6 +297,11 @@ class ProjectService {
     const project = await this.projectRepository.findByInviteCode(inviteCode);
     if (!project) {
       throw new this.ApiError(404, 'Mã mời không lệ hoặc đã hết hạn');
+    }
+
+    // Check expiration
+    if (project.inviteCodeExpiresAt && new Date() > project.inviteCodeExpiresAt) {
+      throw new this.ApiError(400, 'Mã mời này đã hết hạn (hiệu lực 7 ngày)');
     }
 
     const isMember = project.members.some(

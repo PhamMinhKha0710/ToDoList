@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { projectService } from "@/services/project.service";
 import type { Project, ProjectMember } from "@/types/project";
 import {
@@ -20,10 +20,9 @@ import {
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Trash2, ShieldAlert, Link as LinkIcon, Copy, RefreshCw, Check } from "lucide-react";
+import { Trash2, ShieldAlert, Link as LinkIcon, Copy, Check, RefreshCw } from "lucide-react";
 import { UserSearchSelect } from "../project/UserSearchSelect";
 import type { User } from "@/types/user";
-import { useQuery } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
 
 type AssignableRole = "admin" | "member" | "viewer";
@@ -76,7 +75,9 @@ export const ProjectMembersDialog = ({
   });
 
   const inviteCode = inviteRes?.data?.inviteCode;
+  const expiresAt = inviteRes?.data?.expiresAt ? new Date(inviteRes.data.expiresAt) : null;
   const inviteLink = `${window.location.origin}/join/${inviteCode}`;
+  const isExpired = expiresAt ? new Date() > expiresAt : false;
 
   // Mutations
   const addMemberMutation = useMutation({
@@ -103,6 +104,14 @@ export const ProjectMembersDialog = ({
     },
   });
 
+  const regenerateInviteMutation = useMutation({
+    mutationFn: () => projectService.regenerateInviteCode(project._id),
+    onSuccess: () => {
+      toast.success("Đã tạo mã mời thành công.");
+      refetchInvite();
+    },
+  });
+
   const removeMemberMutation = useMutation({
     mutationFn: (memberId: string) =>
       projectService.removeMember(project._id, memberId),
@@ -117,26 +126,17 @@ export const ProjectMembersDialog = ({
     },
   });
 
-  const regenerateInviteMutation = useMutation({
-    mutationFn: () => projectService.regenerateInviteCode(project._id),
-    onSuccess: () => {
-      toast.success("Đã tạo mới mã mời thành công.");
-      refetchInvite();
-    },
-  });
+  const handleAddMember = (user: User, role: AssignableRole) => {
+    addMemberMutation.mutate({ user, role });
+  };
 
   const handleCopyLink = () => {
+    if (!inviteLink || isExpired) return;
     navigator.clipboard.writeText(inviteLink);
     setCopied(true);
     toast.success("Đã sao chép link mời");
     setTimeout(() => setCopied(false), 2000);
   };
-
-  const handleAddMember = (user: User, role: AssignableRole) => {
-    addMemberMutation.mutate({ user, role });
-  };
-
-  console.log("project: ", project);
 
   const activeMembers = project.members.filter(m => m.status !== 'pending');
   const pendingMembers = project.members.filter(m => m.status === 'pending');
@@ -230,66 +230,62 @@ export const ProjectMembersDialog = ({
         <DialogHeader>
           <DialogTitle>Thành viên dự án</DialogTitle>
           <DialogDescription>
-            Quản lý quyền truy cập và mời thêm thành viên mới.
+            Quản lý quyền truy cập và mời thêm thành viên mới qua email.
           </DialogDescription>
         </DialogHeader>
 
         {/* Phần mời thành viên: chỉ hiện với Owner hoặc Admin */}
         {isManager && (
-          <div className="py-4 border-b space-y-6">
+          <div className="py-4 border-b space-y-5">
             <div className="space-y-3">
-              <h4 className="text-sm font-semibold flex items-center gap-2">
-                <LinkIcon className="h-4 w-4" /> Link mời tham gia
-              </h4>
-              <p className="text-xs text-muted-foreground">
-                Gửi link này cho đồng nghiệp để họ tham gia trực tiếp vào dự án.
-              </p>
-              <div className="flex gap-2">
-                <div className="relative flex-1">
-                  <input
-                    type="text"
-                    readOnly
-                    value={inviteCode ? inviteLink : "Đang tạo mã..."}
-                    className="w-full h-9 px-3 py-1 text-xs bg-muted rounded-md border border-input focus:outline-none pr-20 truncate"
-                  />
-                  <div className="absolute right-1 top-1 flex gap-1">
-                    <Button 
-                      size="sm" 
-                      variant="ghost" 
-                      className="h-7 px-2 text-[10px]"
-                      onClick={handleCopyLink}
-                      disabled={!inviteCode}
-                    >
-                      {copied ? <Check className="h-3 w-3 mr-1" /> : <Copy className="h-3 w-3 mr-1" />}
-                      {copied ? "Đã chép" : "Sao chép"}
-                    </Button>
-                  </div>
-                </div>
-                <Button 
-                  size="sm" 
-                  variant="outline" 
-                  className="h-9 px-2 hover:bg-destructive/10 hover:text-destructive hover:border-destructive/20 transition-all group"
-                  title="Tạo lại mã mới"
-                  onClick={() => {
-                    if (confirm("Bạn có chắc muốn tạo lại mã mời mới? Link cũ sẽ không còn hiệu lực.")) {
-                      regenerateInviteMutation.mutate();
-                    }
-                  }}
-                  disabled={regenerateInviteMutation.isPending || !inviteCode}
-                >
-                  <RefreshCw className={cn("h-4 w-4", regenerateInviteMutation.isPending && "animate-spin")} />
-                </Button>
-              </div>
-            </div>
-
-            <div className="space-y-3 pt-2 border-t border-dashed">
-              <h4 className="text-sm font-semibold">Mời qua email</h4>
+              <h4 className="text-[11px] font-black text-slate-400 uppercase tracking-wider">Mời qua email</h4>
               <UserSearchSelect
                 onAddMember={handleAddMember}
                 excludeUserIds={project.members.map(
                   (m) => (m.userId as User)._id,
                 )}
               />
+            </div>
+
+            <div className="space-y-2 pt-2 border-t border-dashed">
+              <h4 className="text-[11px] font-black text-slate-400 uppercase tracking-wider flex items-center gap-2">
+                <LinkIcon className="h-3 w-3" /> Link mời tham gia
+              </h4>
+              
+              {!inviteCode || isExpired ? (
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="w-full h-9 rounded-lg border-dashed border-primary/30 text-primary hover:bg-primary/5 gap-2 font-bold transition-all text-xs"
+                  onClick={() => regenerateInviteMutation.mutate()}
+                  disabled={regenerateInviteMutation.isPending}
+                >
+                  <RefreshCw className={cn("h-3.5 w-4", regenerateInviteMutation.isPending && "animate-spin")} />
+                  Tạo link mời tham gia
+                </Button>
+              ) : (
+                <div className="flex gap-2">
+                  <div className="relative flex-1 group">
+                    <input
+                      type="text"
+                      readOnly
+                      value={inviteLink}
+                      className="w-full h-9 px-3 py-1 text-xs bg-muted rounded-lg border border-transparent focus:outline-none pr-20 truncate font-medium"
+                    />
+                    <div className="absolute right-1 top-1">
+                      <Button 
+                        size="sm" 
+                        variant="ghost" 
+                        className="h-7 px-2 text-[10px] font-bold"
+                        onClick={handleCopyLink}
+                      >
+                        {copied ? <Check className="h-3 w-3 mr-1 text-green-600" /> : <Copy className="h-3 w-3 mr-1" />}
+                        {copied ? "Xong" : "Copy"}
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         )}

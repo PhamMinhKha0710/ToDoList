@@ -161,16 +161,30 @@ class ProjectController {
    * GET /api/projects/:projectId/invite-code
    */
   getInviteCode = catchAsync(async (req, res) => {
-    const code = await projectService.getInviteCode(req.params.projectId);
-    new ApiResponse(200, "Lấy mã mời thành công", { inviteCode: code }).send(res);
+    const data = await projectService.getInviteCode(req.params.projectId);
+    new ApiResponse(200, "Lấy mã mời thành công", { 
+      inviteCode: data.code,
+      expiresAt: data.expiresAt 
+    }).send(res);
   });
 
   /**
    * POST /api/projects/:projectId/invite-code/regenerate
    */
   regenerateInviteCode = catchAsync(async (req, res) => {
-    const code = await projectService.regenerateInviteCode(req.params.projectId);
-    new ApiResponse(200, "Làm mới mã mời thành công", { inviteCode: code }).send(res);
+    const data = await projectService.regenerateInviteCode(req.params.projectId);
+    new ApiResponse(200, "Làm mới mã mời thành công", { 
+      inviteCode: data.code,
+      expiresAt: data.expiresAt 
+    }).send(res);
+  });
+
+  /**
+   * DELETE /api/projects/:projectId/invite-code
+   */
+  deleteInviteCode = catchAsync(async (req, res) => {
+    await projectService.deleteInviteCode(req.params.projectId);
+    new ApiResponse(200, "Xóa mã mời thành công").send(res);
   });
 
   /**

@@ -10,6 +10,7 @@ import {
   Users,
   Trash2,
   ShieldAlert,
+  Link as LinkIcon,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -20,6 +21,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { EditProjectDialog } from "./EditProjectDialog";
 import { ProjectMembersDialog } from "./ProjectMembersDialog";
+import { ProjectInvitationsDialog } from "./ProjectInvitationsDialog";
 import { useAuthStore } from "@/stores/auth.store";
 import {
   Dialog,
@@ -44,6 +46,7 @@ export function ProjectNavbarActions({ project }: ProjectNavbarActionsProps) {
 
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isMembersDialogOpen, setIsMembersDialogOpen] = useState(false);
+  const [isInvitationsDialogOpen, setIsInvitationsDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
   // Determine current user's role
@@ -124,6 +127,11 @@ export function ProjectNavbarActions({ project }: ProjectNavbarActionsProps) {
                 <Edit className="h-4 w-4 mr-2" /> Sửa thông tin
               </DropdownMenuItem>
             )}
+            {isManager && (
+              <DropdownMenuItem onClick={() => setIsInvitationsDialogOpen(true)}>
+                <LinkIcon className="h-4 w-4 mr-2" /> Mã mời tham gia
+              </DropdownMenuItem>
+            )}
             {isOwner && <DropdownMenuSeparator />}
             {isOwner && (
               <DropdownMenuItem
@@ -154,6 +162,14 @@ export function ProjectNavbarActions({ project }: ProjectNavbarActionsProps) {
           isOwner={isOwner}
           isManager={isManager}
           currentUserId={currentUser?._id || ""}
+        />
+      )}
+
+      {isInvitationsDialogOpen && (
+        <ProjectInvitationsDialog
+          project={project}
+          open={isInvitationsDialogOpen}
+          onOpenChange={setIsInvitationsDialogOpen}
         />
       )}
 
