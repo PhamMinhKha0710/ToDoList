@@ -14,6 +14,16 @@ class AdminController {
     const { isActive } = req.body;
 
     const user = await adminService.setUserActiveStatus(id, isActive);
+    
+    // Nếu vô hiệu hóa, đá user ra ngay lập tức
+    if (isActive === false) {
+      try {
+        getIO().to(`user:${id}`).emit('user:locked');
+      } catch (err) {
+        console.error(`[Socket] Failed to emit user:locked for ${id}`, err);
+      }
+    }
+    
     new ApiResponse(200, 'Cập nhật trạng thái user thành công', user).send(res);
   });
 
