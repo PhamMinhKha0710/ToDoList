@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Plus, LayoutGrid, List as ListIcon, Loader2 } from "lucide-react";
+import { Plus, LayoutGrid, List as ListIcon, Loader2, Search, X } from "lucide-react";
 import { projectService } from "@/services/project.service";
 import { useAuthStore } from "@/stores/auth.store";
 import type { User } from "@/types/user";
@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 const ProjectsPage = () => {
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [filter, setFilter] = useState<"active" | "pending">("active");
+  const [searchTerm, setSearchTerm] = useState("");
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const { user: currentUser } = useAuthStore();
 
@@ -33,106 +34,145 @@ const ProjectsPage = () => {
         currentUser?._id,
     );
     const status = member?.status || "active"; // Mặc định active cho data cũ
-    return status === filter;
+    
+    const matchesFilter = status === filter;
+    const matchesSearch = project.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                         (project.description?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false);
+                         
+    return matchesFilter && matchesSearch;
   });
 
   return (
-    <div className="flex flex-col h-full bg-background/50">
+    <div className="flex flex-col h-full bg-background relative overflow-hidden">
+      {/* Premium Background Blobs */}
+      <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary/5 rounded-full blur-[120px] pointer-events-none" />
+      <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-primary/5 rounded-full blur-[120px] pointer-events-none" />
+      
       {/* Header Area */}
-      <div className="flex items-center justify-between px-8 py-6 border-b bg-background">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight text-foreground">
+      <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between px-8 py-8 border-b bg-background/80 backdrop-blur-md sticky top-0">
+        <div className="mb-4 md:mb-0">
+          <h1 className="text-4xl font-black tracking-tight text-foreground bg-clip-text text-transparent bg-gradient-to-r from-foreground to-foreground/70">
             Projects
           </h1>
-          <p className="text-muted-foreground mt-1">
-            Manage and view all your current projects.
+          <p className="text-muted-foreground mt-1.5 font-medium">
+            Manage your workspace and collaborate with your team.
           </p>
         </div>
-        <div className="flex items-center space-x-4">
-          <div className="flex items-center bg-muted/50 rounded-lg p-1 border">
+        
+        <div className="flex flex-wrap items-center gap-4">
+          {/* Search Input */}
+          <div className="relative group w-full md:w-64">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground transition-colors group-focus-within:text-primary" />
+            <input
+              type="text"
+              placeholder="Search projects..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full h-10 pl-9 pr-9 bg-muted/30 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-300"
+            />
+            {searchTerm && (
+              <button
+                onClick={() => setSearchTerm("")}
+                className="absolute right-3 top-1/2 -translate-y-1/2 p-0.5 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground transition-all"
+              >
+                <X className="h-3 w-3" />
+              </button>
+            )}
+          </div>
+
+          <div className="flex items-center bg-muted/30 rounded-xl p-1 border shadow-inner">
             <Button
               variant={filter === "active" ? "secondary" : "ghost"}
               size="sm"
               onClick={() => setFilter("active")}
-              className="px-3"
+              className={`px-4 rounded-lg font-bold transition-all duration-300 ${filter === "active" ? "shadow-sm" : ""}`}
             >
-              Dự án
+              Active
             </Button>
             <Button
               variant={filter === "pending" ? "secondary" : "ghost"}
               size="sm"
               onClick={() => setFilter("pending")}
-              className="px-3"
+              className={`px-4 rounded-lg font-bold transition-all duration-300 ${filter === "pending" ? "shadow-sm" : ""}`}
             >
-              Chờ xác nhận
+              Invites
             </Button>
           </div>
 
-          <div className="flex items-center bg-muted/50 rounded-lg p-1 border">
+          <div className="flex items-center bg-muted/30 rounded-xl p-1 border shadow-inner">
             <Button
               variant={viewMode === "grid" ? "secondary" : "ghost"}
               size="sm"
               onClick={() => setViewMode("grid")}
-              className="px-3"
+              className={`px-3 rounded-lg transition-all duration-300 ${viewMode === "grid" ? "shadow-sm" : ""}`}
             >
-              <LayoutGrid className="h-4 w-4 mr-2" />
-              Grid
+              <LayoutGrid className="h-4 w-4" />
             </Button>
             <Button
               variant={viewMode === "list" ? "secondary" : "ghost"}
               size="sm"
               onClick={() => setViewMode("list")}
-              className="px-3"
+              className={`px-3 rounded-lg transition-all duration-300 ${viewMode === "list" ? "shadow-sm" : ""}`}
             >
-              <ListIcon className="h-4 w-4 mr-2" />
-              List
+              <ListIcon className="h-4 w-4" />
             </Button>
           </div>
+          
           <Button
-            className="shadow-sm"
+            className="shadow-lg shadow-primary/20 bg-primary hover:scale-105 active:scale-95 transition-all duration-300 rounded-xl px-6 font-bold"
             onClick={() => setIsCreateModalOpen(true)}
           >
-            <Plus className="mr-2 h-4 w-4" />
-            Create Project
+            <Plus className="mr-2 h-5 w-5" />
+            New Project
           </Button>
         </div>
       </div>
 
       {/* Content Area */}
-      <div className="flex-1 p-8 overflow-auto">
+      <div className="flex-1 p-8 overflow-auto relative z-10 custom-scrollbar">
         {isLoading ? (
-          <div className="flex flex-col items-center justify-center h-full space-y-4 text-muted-foreground">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
-            <p>Loading your projects...</p>
+          <div className="flex flex-col items-center justify-center h-full space-y-6 text-muted-foreground animate-in fade-in duration-700">
+            <div className="relative">
+              <div className="absolute inset-0 bg-primary/20 rounded-full blur-xl animate-pulse" />
+              <Loader2 className="h-12 w-12 animate-spin text-primary relative z-10" />
+            </div>
+            <p className="font-bold tracking-widest uppercase text-xs opacity-50">Synchronizing Workspace...</p>
           </div>
         ) : error ? (
-          <div className="flex flex-col items-center justify-center h-full text-destructive">
-            <p>Failed to load projects. Please try again.</p>
+          <div className="flex flex-col items-center justify-center h-full text-destructive p-8 border-2 border-destructive/20 border-dashed rounded-3xl bg-destructive/5 m-4">
+            <p className="font-bold">Failed to load projects. Please try again.</p>
           </div>
         ) : projects.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-full space-y-4 border-2 border-dashed rounded-xl p-12 bg-background/50">
-            <div className="p-4 bg-muted rounded-full">
-              <LayoutGrid className="h-8 w-8 text-muted-foreground" />
+          <div className="flex flex-col items-center justify-center h-full space-y-6 border-2 border-dashed rounded-[2.5rem] p-16 bg-muted/10 backdrop-blur-sm animate-in zoom-in-95 duration-500">
+            <div className="p-6 bg-background shadow-xl rounded-[2rem] border-2 border-primary/10">
+              <LayoutGrid className="h-12 w-12 text-primary/40" />
             </div>
-            <div className="text-center">
-              <h3 className="text-lg font-semibold">
-                {filter === "active"
-                  ? "Không tìm thấy dự án nào"
-                  : "Không có lời mời nào đang chờ"}
+            <div className="text-center max-w-sm">
+              <h3 className="text-2xl font-black text-foreground">
+                {searchTerm 
+                  ? "No results found"
+                  : filter === "active"
+                    ? "No projects yet"
+                    : "No pending invites"}
               </h3>
-              <p className="text-muted-foreground mt-1">
-                {filter === "active"
-                  ? "Bắt đầu bằng cách tạo dự án đầu tiên của bạn."
-                  : "Khi có người mời bạn vào dự án, lời mời sẽ xuất hiện ở đây."}
+              <p className="text-muted-foreground mt-3 leading-relaxed">
+                {searchTerm
+                  ? `No projects found matching "${searchTerm}". Try using a different search term.`
+                  : filter === "active"
+                    ? "Your workspace is empty. Create your first project to start tracking your tasks."
+                    : "Collaborations will appear here once you've been invited to a project."}
               </p>
             </div>
-            {filter === "active" && (
+            {(filter === "active" || searchTerm) && (
               <Button
-                className="mt-4"
-                onClick={() => setIsCreateModalOpen(true)}
+                className="mt-6 px-10 h-12 rounded-2xl font-black shadow-xl shadow-primary/20 hover:scale-105 active:scale-95 transition-all"
+                onClick={() => {
+                  if (searchTerm) setSearchTerm("");
+                  else setIsCreateModalOpen(true);
+                }}
               >
-                <Plus className="mr-2 h-4 w-4" />
-                Create Project
+                {searchTerm ? <X className="mr-2 h-6 w-6" /> : <Plus className="mr-2 h-6 w-6" />}
+                {searchTerm ? "Clear Search" : "Initialize Project"}
               </Button>
             )}
           </div>
@@ -141,9 +181,10 @@ const ProjectsPage = () => {
             className={`
               ${
                 viewMode === "grid"
-                  ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
-                  : "flex flex-col space-y-4 max-w-5xl mx-auto"
+                  ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8"
+                  : "flex flex-col space-y-4 max-w-6xl mx-auto"
               }
+              animate-in slide-in-from-bottom-4 duration-700
             `}
           >
             {projects.map((project) => {

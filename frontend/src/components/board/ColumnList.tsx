@@ -83,6 +83,17 @@ export const ColumnList = ({ columnId }: ColumnListProps) => {
               {columnTasks.map((task) => (
                 <TaskCard key={task._id} task={task} onClick={handleTaskClick} />
               ))}
+              
+              {!isViewer && columnTasks.length > 5 && (
+                <Button
+                  variant="outline"
+                  className="w-full bg-background border-dashed text-muted-foreground hover:text-foreground justify-start px-4 h-10 mt-1 shrink-0"
+                  onClick={() => setIsAddTaskModalOpen(true)}
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  <span className="font-semibold text-sm">Thêm task...</span>
+                </Button>
+              )}
             </div>
           </SortableContext>
         )}

@@ -52,7 +52,6 @@ export const KanbanBoard = ({ projectId }: KanbanBoardProps) => {
     moveTask,
     reorderColumns,
     members: projectMembers,
-    activeProject,
   } = useKanbanStore();
 
   useProjectSocket(projectId);
@@ -434,7 +433,7 @@ export const KanbanBoard = ({ projectId }: KanbanBoardProps) => {
         </div>
 
         <div className={cn(
-          "absolute right-20 top-0 bottom-0 w-32 z-40 flex items-center justify-end pr-4 pointer-events-none transition-all duration-500 ease-out",
+          "absolute right-0 top-0 bottom-0 w-32 z-40 flex items-center justify-end pr-4 pointer-events-none transition-all duration-500 ease-out",
           (showRightArrow && isNearRight) ? "opacity-100 translate-x-0" : "opacity-0 translate-x-full"
         )}>
 

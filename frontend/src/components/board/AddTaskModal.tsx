@@ -27,7 +27,7 @@ import {
 } from "@/components/ui/select";
 import { toast } from "sonner";
 import { type AppAxiosError, getErrorMessage } from "@/types/error";
-import { Loader2, Flag, Plus, X, User as UserIcon } from "lucide-react";
+import { Loader2, Flag, Plus, X, User as UserIcon, Clock } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useKanbanStore } from "@/stores/kanban.store";
@@ -78,6 +78,9 @@ export const AddTaskModal = ({
       tags: [],
       attachments: [],
       assignees: [], // Thêm default cho assignees
+      startDate: "",
+      endDate: "",
+      dueDate: "",
     },
   });
 
@@ -158,6 +161,21 @@ export const AddTaskModal = ({
         }
       }
 
+      if (data.startDate) {
+        try {
+          formData.append('startDate', new Date(data.startDate).toISOString());
+        } catch (e) {
+          console.error("Invalid start date", e);
+        }
+      }
+
+      if (data.endDate) {
+        try {
+          formData.append('endDate', new Date(data.endDate).toISOString());
+        } catch (e) {
+          console.error("Invalid end date", e);
+        }
+      }
       if (data.tags && data.tags.length > 0) {
         formData.append('tags', JSON.stringify(data.tags));
       }
@@ -332,7 +350,9 @@ export const AddTaskModal = ({
                   </div>
 
                   <div className="space-y-2">
-                    <Label className="text-sm font-semibold">Độ ưu tiên</Label>
+                    <Label className="text-sm font-semibold flex items-center gap-1.5">
+                      <Flag className="w-3.5 h-3.5" /> Độ ưu tiên
+                    </Label>
                     <Select
                       value={selectedPriority}
                       onValueChange={(val: TaskPriorityType) => setValue("priority", val)}
@@ -370,10 +390,24 @@ export const AddTaskModal = ({
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="dueDate" className="text-sm font-semibold">
-                      Ngày hết hạn
+                    <Label htmlFor="dueDate" className="text-sm font-semibold flex items-center gap-1.5 uppercase tracking-tighter text-slate-500">
+                      <Clock className="w-3.5 h-3.5" /> Hạn chót
                     </Label>
-                    <Input id="dueDate" type="date" {...register("dueDate")} />
+                    <Input id="dueDate" type="datetime-local" {...register("dueDate")} className="w-full" />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="startDate" className="text-sm font-semibold text-blue-600 flex items-center gap-1.5">
+                      Bắt đầu
+                    </Label>
+                    <Input id="startDate" type="datetime-local" {...register("startDate")} className="bg-blue-50/30 border-blue-100 focus-visible:ring-blue-400" />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="endDate" className="text-sm font-semibold text-green-600 flex items-center gap-1.5">
+                      Kết thúc
+                    </Label>
+                    <Input id="endDate" type="datetime-local" {...register("endDate")} className="bg-green-50/30 border-green-100 focus-visible:ring-green-400" />
                   </div>
                 </div>
 

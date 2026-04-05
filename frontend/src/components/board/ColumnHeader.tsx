@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import type { Column } from '@/types/column';
-import { MoreHorizontal, Edit2, Trash } from 'lucide-react';
+import { MoreHorizontal, Edit2, Trash, Plus } from 'lucide-react';
 import { 
   DropdownMenu, 
   DropdownMenuContent, 
@@ -13,6 +13,7 @@ import { useAuthStore } from '@/stores/auth.store';
 import type { User } from '@/types/user';
 import { EditColumnModal } from './EditColumnModal';
 import { DeleteColumnConfirmModal } from './DeleteColumnConfirmModal';
+import { AddTaskModal } from './AddTaskModal';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { columnService } from '@/services/column.service';
 import { toast } from 'sonner';
@@ -24,6 +25,7 @@ interface ColumnHeaderProps {
 export const ColumnHeader = ({ column }: ColumnHeaderProps) => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isAddTaskModalOpen, setIsAddTaskModalOpen] = useState(false);
   const { tasks, deleteColumn: deleteColumnFromStore, members: projectMembers } = useKanbanStore();
   const { user: currentUser } = useAuthStore();
   
@@ -31,6 +33,7 @@ export const ColumnHeader = ({ column }: ColumnHeaderProps) => {
     (m) => (m.userId as User)._id === currentUser?._id
   );
   const isManager = currentMember?.role === "owner" || currentMember?.role === "admin";
+  const isViewer = currentMember?.role === "viewer";
 
   const queryClient = useQueryClient();
   const taskCount = tasks[column._id]?.length || 0;
@@ -73,6 +76,15 @@ export const ColumnHeader = ({ column }: ColumnHeaderProps) => {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-[160px]">
+              {!isViewer && (
+                <DropdownMenuItem 
+                  className="cursor-pointer"
+                  onClick={() => setIsAddTaskModalOpen(true)}
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  <span>Thêm task</span>
+                </DropdownMenuItem>
+              )}
               <DropdownMenuItem 
                 className="cursor-pointer"
                 onClick={() => setIsEditModalOpen(true)}
@@ -92,6 +104,12 @@ export const ColumnHeader = ({ column }: ColumnHeaderProps) => {
           </DropdownMenu>
         )}
       </div>
+
+      <AddTaskModal
+        columnId={column._id}
+        open={isAddTaskModalOpen}
+        onOpenChange={setIsAddTaskModalOpen}
+      />
 
       <EditColumnModal 
         column={column}
