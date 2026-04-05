@@ -5,7 +5,6 @@ import {
   Card,
   CardTitle,
   CardDescription,
-  CardContent,
   CardFooter,
 } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -36,12 +35,10 @@ export const ProjectItem = ({ project, viewMode }: ProjectItemProps) => {
           <div
             className={`${isGrid ? "flex-1 pt-4 pb-2 pr-4" : "flex-1 flex items-center gap-4"}`}
           >
-            <div
-              className={`flex ${isGrid ? "flex-col items-start gap-3" : "items-center gap-4"} mb-2`}
-            >
+            <div className="flex items-center gap-4 mb-3">
               {/* Project Icon */}
               <Avatar
-                className={`${isGrid ? "h-12 w-12" : "h-10 w-10"} rounded-lg border shadow-sm`}
+                className={`${isGrid ? "h-12 w-12" : "h-10 w-10"} rounded-lg border shadow-sm flex-shrink-0`}
               >
                 <AvatarImage
                   src={project.imageUrl}
@@ -56,24 +53,21 @@ export const ProjectItem = ({ project, viewMode }: ProjectItemProps) => {
                 </AvatarFallback>
               </Avatar>
 
-              {/* Title & Description */}
-              <div>
-                <CardTitle className="text-base font-semibold tracking-tight text-foreground/90 group-hover:text-primary transition-colors">
+              {/* Title, Description & Date */}
+              <div className="flex flex-col min-w-0">
+                <CardTitle className="text-base font-semibold tracking-tight text-foreground/90 group-hover:text-primary transition-colors truncate">
                   {project.name}
                 </CardTitle>
                 <CardDescription
-                  className={`mt-0.5 ${isGrid ? "line-clamp-2" : "line-clamp-1"} text-sm text-muted-foreground`}
+                  className={`mt-0.5 ${isGrid ? "line-clamp-1" : "line-clamp-1"} text-sm text-muted-foreground`}
                 >
-                  {project.description || "Company-managed project"}
+                  {project.description || "Project"}
                 </CardDescription>
+                <div className="text-xs text-muted-foreground/80 mt-1">
+                  Updated {dayjs(project.updatedAt).format("MMM D, YYYY")}
+                </div>
               </div>
             </div>
-
-            <CardContent className={isGrid ? "pt-0 px-0" : "p-0 ml-14"}>
-              <div className="text-xs text-muted-foreground/80 mt-1">
-                Updated {dayjs(project.updatedAt).format("MMM D, YYYY")}
-              </div>
-            </CardContent>
           </div>
 
           {/* Members Area */}
