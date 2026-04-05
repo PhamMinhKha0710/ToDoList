@@ -16,6 +16,34 @@ const tagSchema = new Schema(
   { _id: false }
 );
 
+// SubTask nhúng trong Task
+const subTaskSchema = new Schema(
+  {
+    title: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    status: {
+      type: String,
+      enum: ['todo', 'done'],
+      default: 'todo',
+    },
+    color: {
+      type: String,
+    },
+    position: {
+      type: Number,
+      default: 0,
+    },
+    createdAt: {
+      type: Date,
+      default: Date.now,
+    },
+  },
+  { _id: true }
+);
+
 const taskSchema = new Schema(
   {
     columnId: {
@@ -64,6 +92,10 @@ const taskSchema = new Schema(
     },
     tags: {
       type: [tagSchema],
+      default: [],
+    },
+    subTasks: {
+      type: [subTaskSchema],
       default: [],
     },
     position: {

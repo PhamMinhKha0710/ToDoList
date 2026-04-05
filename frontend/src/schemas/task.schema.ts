@@ -41,6 +41,16 @@ export const createTaskSchema = z.object({
       file: z.any().optional(),
     })
   ).optional(),
+  subTasks: z.array(
+    z.object({
+      _id: z.string().optional(),
+      title: z.string().min(1, 'Tiêu đề không được để trống'),
+      status: z.enum(['todo', 'done']),
+      color: z.string().optional(),
+      position: z.number().optional(),
+      createdAt: z.string().optional(),
+    })
+  ).optional(),
 });
 
 export type CreateTaskPayload = z.infer<typeof createTaskSchema>;

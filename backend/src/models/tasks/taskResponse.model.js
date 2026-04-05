@@ -30,6 +30,7 @@ const toTaskResponseModel = (task) => {
     })),
     createdAt: task.createdAt,
     updatedAt: task.updatedAt,
+    subTasks: task.subTasks || [],
     position: task.position || 0,
   };
 };
