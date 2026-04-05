@@ -11,6 +11,14 @@ export const createPersonalTaskSchema = z.object({
   priority: z.enum(["urgent", "high", "normal", "low"]).default("normal"),
   status: z.enum(["todo", "in_progress", "done"]).default("todo"),
   color: z.string().optional(),
+}).refine((data) => {
+  if (data.startDate && data.endDate) {
+    return new Date(data.endDate) >= new Date(data.startDate);
+  }
+  return true;
+}, {
+  message: "Ngày kết thúc không được trước ngày bắt đầu",
+  path: ["endDate"],
 });
 
 export type CreatePersonalTaskFormValues = z.infer<typeof createPersonalTaskSchema>;
