@@ -26,6 +26,13 @@ const toUpdateTaskModel = (body) => {
       data.tags = body.tags;
     }
   }
+  if (body.subTasks !== undefined) {
+    try {
+      data.subTasks = typeof body.subTasks === 'string' ? JSON.parse(body.subTasks) : body.subTasks;
+    } catch (e) {
+      data.subTasks = body.subTasks;
+    }
+  }
 
   return data;
 };

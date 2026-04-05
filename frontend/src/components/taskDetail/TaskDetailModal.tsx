@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import type { Task, Attachment as TaskAttachment } from "@/types/task";
+import type { Task, SubTask, Attachment as TaskAttachment } from "@/types/task";
 import type { UpdateTaskPayload } from "@/schemas/task.schema";
 import { taskService } from "@/services/task.service";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -32,6 +32,7 @@ import { TaskAttachments } from "./TaskAttachments";
 import { TaskTags } from "./TaskTags";
 import { TaskComments } from "./TaskComments";
 import { TaskActivities } from "./TaskActivities";
+import { TaskSubtasks } from "./TaskSubtasks";
 import { useAuthStore } from "@/stores/auth.store";
 import { useTaskSocket } from "@/hooks/use-socket";
 import type { User } from "@/types/user";
@@ -50,6 +51,7 @@ interface TaskFormState extends Partial<Omit<Task, "assignees">> {
   assignees?: string[];
   startDate?: string;
   endDate?: string;
+  subTasks?: SubTask[];
 }
 
 const PRESET_COLORS = [
@@ -153,6 +155,7 @@ export const TaskDetailModal = ({
         startDate: task.startDate,
         endDate: task.endDate,
         tags: task.tags || [],
+        subTasks: task.subTasks || [],
         // Lưu mảng ID (string[]), đúng theo type UpdateTaskPayload
         assignees: (task.assigneeIds || []) as string[],
       });
@@ -208,6 +211,7 @@ export const TaskDetailModal = ({
         dueDate: storeTask.dueDate,
         color: storeTask.color,
         tags: storeTask.tags || [],
+        subTasks: storeTask.subTasks || [],
         assignees: (storeTask.assigneeIds || []) as string[],
       }));
       lastSyncedRef.current = storeTask.updatedAt;
@@ -386,6 +390,7 @@ export const TaskDetailModal = ({
       startDate: task.startDate,
       endDate: task.endDate,
       tags: task.tags || [],
+      subTasks: task.subTasks || [],
       assignees: (task.assigneeIds || []) as string[],
     });
     setDeletedAttachmentIds([]);
@@ -396,6 +401,7 @@ export const TaskDetailModal = ({
   const currentPriority = editedTask.priority || task.priority;
   const currentColor = editedTask.color || task.color;
   const currentTags = editedTask.tags || task.tags || [];
+  const currentSubTasks = editedTask.subTasks || task.subTasks || [];
   const currentAttachments = editedTask.attachments || task.attachments || [];
 
   return (
@@ -599,6 +605,14 @@ export const TaskDetailModal = ({
                   )}
                 </div>
               )}
+            </div>
+            {/* Subtasks Section */}
+            <div className="pt-6 border-t border-slate-100">
+              <TaskSubtasks
+                subTasks={currentSubTasks}
+                onChange={(newSubTasks) => handleSave("subTasks", newSubTasks)}
+                isEditing={isEditing}
+              />
             </div>
 
             {/* Attachments Section */}

@@ -9,6 +9,15 @@ export interface Attachment {
   createdAt: string;
 }
 
+export interface SubTask {
+  _id?: string;
+  title: string;
+  status: 'todo' | 'done';
+  color?: string;
+  position?: number;
+  createdAt?: string;
+}
+
 export interface Task {
   _id: string;
   columnId: string;
@@ -24,6 +33,7 @@ export interface Task {
   dueDate?: string;
   color?: string;
   tags?: { name: string; color?: string }[];
+  subTasks?: SubTask[];
   // attachments không còn nằm cứng trong Task, nhưng ở frontend có thể để dạng custom field
   attachments?: Attachment[];
   position: number;
