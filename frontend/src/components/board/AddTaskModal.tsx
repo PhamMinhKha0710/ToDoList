@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { taskService } from "@/services/task.service";
 import {
   createTaskSchema,
@@ -59,6 +59,7 @@ export const AddTaskModal = ({
   onOpenChange,
 }: Omit<AddTaskModalProps, 'projectId'>) => {
   const { addTask, members: projectMembers } = useKanbanStore();
+  const queryClient = useQueryClient();
 
   const {
     register,
@@ -193,6 +194,8 @@ export const AddTaskModal = ({
 
       toast.success("Đã thêm công việc mới!");
       addTask(columnId, newTask);
+      queryClient.invalidateQueries({ queryKey: ["tasks", columnId] });
+      queryClient.invalidateQueries({ queryKey: ["all-tasks"] });
       reset();
       onOpenChange(false);
     } catch (error: unknown) {

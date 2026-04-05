@@ -15,26 +15,35 @@ class PersonalTaskService {
     return await this.personalTaskRepository.findByUserId(userId);
   }
 
-  async getPersonalTaskById(taskId) {
+  async getPersonalTaskById(taskId, userId) {
     const task = await this.personalTaskRepository.findById(taskId);
     if (!task) {
       throw new this.ApiError(404, 'Không tìm thấy công việc cá nhân');
+    }
+    if (task.userId.toString() !== userId.toString()) {
+      throw new this.ApiError(403, 'Bạn không có quyền truy cập công việc này');
     }
     return task;
   }
 
-  async updatePersonalTask(taskId, updateData) {
+  async updatePersonalTask(taskId, updateData, userId) {
     const task = await this.personalTaskRepository.findById(taskId);
     if (!task) {
       throw new this.ApiError(404, 'Không tìm thấy công việc cá nhân');
     }
+    if (task.userId.toString() !== userId.toString()) {
+      throw new this.ApiError(403, 'Bạn không có quyền chỉnh sửa công việc này');
+    }
     return await this.personalTaskRepository.updateById(taskId, updateData);
   }
 
-  async deletePersonalTask(taskId) {
+  async deletePersonalTask(taskId, userId) {
     const task = await this.personalTaskRepository.findById(taskId);
     if (!task) {
       throw new this.ApiError(404, 'Không tìm thấy công việc cá nhân');
+    }
+    if (task.userId.toString() !== userId.toString()) {
+      throw new this.ApiError(403, 'Bạn không có quyền xóa công việc này');
     }
     return await this.personalTaskRepository.deleteById(taskId);
   }

@@ -15,18 +15,18 @@ class PersonalTaskController {
   });
 
   getPersonalTaskById = catchAsync(async (req, res) => {
-    const task = await personalTaskService.getPersonalTaskById(req.params.taskId);
+    const task = await personalTaskService.getPersonalTaskById(req.params.taskId, req.user._id);
     new ApiResponse(200, 'Lấy chi tiết công việc cá nhân thành công', { task: toPersonalTaskModel(task) }).send(res);
   });
 
   updatePersonalTask = catchAsync(async (req, res) => {
-    const task = await personalTaskService.updatePersonalTask(req.params.taskId, req.body);
+    const task = await personalTaskService.updatePersonalTask(req.params.taskId, req.body, req.user._id);
     new ApiResponse(200, 'Cập nhật công việc cá nhân thành công', { task: toPersonalTaskModel(task) }).send(res);
   });
 
 
   deletePersonalTask = catchAsync(async (req, res) => {
-    await personalTaskService.deletePersonalTask(req.params.taskId);
+    await personalTaskService.deletePersonalTask(req.params.taskId, req.user._id);
     new ApiResponse(200, 'Xóa công việc cá nhân thành công').send(res);
   });
 }

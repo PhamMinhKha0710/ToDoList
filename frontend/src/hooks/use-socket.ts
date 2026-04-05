@@ -146,6 +146,8 @@ export const useProjectSocket = (
     const onTaskCreated = (task: Task) => {
       console.log('[Socket] Task created:', task);
       addTask(task.columnId, task);
+      queryClient.invalidateQueries({ queryKey: ["tasks", task.columnId] });
+      queryClient.invalidateQueries({ queryKey: ["all-tasks"] });
     };
 
     const onTaskUpdated = (task: Task) => {
