@@ -27,11 +27,7 @@ import {
 } from "@/components/ui/select";
 import { toast } from "sonner";
 import { type AppAxiosError, getErrorMessage } from "@/types/error";
-<<<<<<< HEAD
 import { Loader2, Flag, Plus, X, User as UserIcon, Clock } from "lucide-react";
-=======
-import { Loader2, Flag, Plus, X, User as UserIcon } from "lucide-react";
->>>>>>> 14f48500d44fb91de408da6b36f2d3e0963837e3
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useKanbanStore } from "@/stores/kanban.store";
@@ -82,12 +78,9 @@ export const AddTaskModal = ({
       tags: [],
       attachments: [],
       assignees: [], // Thêm default cho assignees
-<<<<<<< HEAD
       startDate: "",
       endDate: "",
       dueDate: "",
-=======
->>>>>>> 14f48500d44fb91de408da6b36f2d3e0963837e3
     },
   });
 
@@ -168,7 +161,6 @@ export const AddTaskModal = ({
         }
       }
 
-<<<<<<< HEAD
       if (data.startDate) {
         try {
           formData.append('startDate', new Date(data.startDate).toISOString());
@@ -184,9 +176,6 @@ export const AddTaskModal = ({
           console.error("Invalid end date", e);
         }
       }
-
-=======
->>>>>>> 14f48500d44fb91de408da6b36f2d3e0963837e3
       if (data.tags && data.tags.length > 0) {
         formData.append('tags', JSON.stringify(data.tags));
       }
@@ -361,13 +350,9 @@ export const AddTaskModal = ({
                   </div>
 
                   <div className="space-y-2">
-<<<<<<< HEAD
                     <Label className="text-sm font-semibold flex items-center gap-1.5">
                       <Flag className="w-3.5 h-3.5" /> Độ ưu tiên
                     </Label>
-=======
-                    <Label className="text-sm font-semibold">Độ ưu tiên</Label>
->>>>>>> 14f48500d44fb91de408da6b36f2d3e0963837e3
                     <Select
                       value={selectedPriority}
                       onValueChange={(val: TaskPriorityType) => setValue("priority", val)}
@@ -405,7 +390,6 @@ export const AddTaskModal = ({
                   </div>
 
                   <div className="space-y-2">
-<<<<<<< HEAD
                     <Label htmlFor="dueDate" className="text-sm font-semibold flex items-center gap-1.5 uppercase tracking-tighter text-slate-500">
                       <Clock className="w-3.5 h-3.5" /> Hạn chót
                     </Label>
@@ -424,12 +408,6 @@ export const AddTaskModal = ({
                       Kết thúc
                     </Label>
                     <Input id="endDate" type="datetime-local" {...register("endDate")} className="bg-green-50/30 border-green-100 focus-visible:ring-green-400" />
-=======
-                    <Label htmlFor="dueDate" className="text-sm font-semibold">
-                      Ngày hết hạn
-                    </Label>
-                    <Input id="dueDate" type="date" {...register("dueDate")} />
->>>>>>> 14f48500d44fb91de408da6b36f2d3e0963837e3
                   </div>
                 </div>
 

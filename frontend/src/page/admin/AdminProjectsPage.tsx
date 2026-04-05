@@ -13,18 +13,11 @@ import {
   DialogTitle,
   DialogFooter,
 } from '@/components/ui/dialog';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
-import { Plus, Pencil, Trash2, MoreVertical, Layout, Users, Activity, Upload, X, Loader2, Search } from 'lucide-react';
+import { Plus, Pencil, Trash2, MoreVertical, Layout, Users, Activity, X, Loader2, Search } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,

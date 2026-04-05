@@ -1,0 +1,6 @@
+src/components/board/KanbanBoard.tsx(55,5): error TS6133: 'activeProject' is declared but its value is never read.
+src/components/common/OtpModal.tsx(1,8): error TS6133: 'React' is declared but its value is never read.
+src/components/common/TwoFactorLoginModal.tsx(1,8): error TS6133: 'React' is declared but its value is never read.
+src/components/common/TwoFactorSetupModal.tsx(1,8): error TS6133: 'React' is declared but its value is never read.
+src/page/admin/AdminProjectsPage.tsx(16,1): error TS6192: All imports in import declaration are unused.
+src/page/admin/AdminProjectsPage.tsx(27,71): error TS6133: 'Upload' is declared but its value is never read.

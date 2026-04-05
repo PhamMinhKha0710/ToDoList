@@ -1,0 +1,4 @@
+AA frontend/src/components/board/AddTaskModal.tsx
+UU frontend/src/components/board/ColumnHeader.tsx
+UU frontend/src/components/board/ColumnList.tsx
+AA frontend/src/components/board/KanbanBoard.tsx
