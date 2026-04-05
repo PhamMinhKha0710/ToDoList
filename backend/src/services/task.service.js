@@ -31,13 +31,31 @@ class TaskService {
 
     this.taskSocket.emitTaskCreated(column.projectId.toString(), task);
 
+    const taskWithCreator = await this.Task.findById(task._id).populate('creatorId', 'displayName email').lean();
+    
     await this.activityService.createActivityLog({
       projectId: column.projectId,
       userId: taskData.creatorId,
       action: 'TASK_CREATED',
       entityType: 'task',
       entityId: task._id,
-      detail: { title: task.title }
+      detail: { 
+        title: task.title, 
+        columnId: column._id.toString(),
+        columnTitle: column.title,
+        status: task.status,
+        priority: task.priority,
+        color: task.color,
+        tags: task.tags,
+        startDate: task.startDate,
+        endDate: task.endDate,
+        dueDate: task.dueDate,
+        position: task.position,
+        descriptionSnippet: task.description?.substring(0, 100),
+        creatorName: taskWithCreator.creatorId?.displayName || taskWithCreator.creatorId?.email,
+        attachments: (task.attachments || []).map(a => ({ fileName: a.fileName, fileUrl: a.fileUrl })),
+        fileCount: files?.length || 0
+      }
     });
 
     if (task.assignees && task.assignees.length > 0) {
@@ -96,16 +114,41 @@ class TaskService {
       return updatedTask;
     }
 
-    const oldTask = task;
+    const oldTask = await this.Task.findById(taskId).populate('assignees', 'displayName email').lean();
     const updatedTask = await this.taskRepository.updateTask(taskId, updateData);
+    const newTask = await this.Task.findById(taskId).populate('assignees', 'displayName email').lean();
     
-    // ... logic thông báo cho project task như cũ
-    const column = await this.Column.findById(updatedTask.columnId)
-      .select("projectId")
-      .lean();
+    const column = await this.Column.findById(updatedTask.columnId).select("projectId").lean();
     if (column) {
       const projectId = column.projectId.toString();
       this.taskSocket.emitTaskUpdated(projectId, updatedTask);
+
+      const differences = {};
+      const fields = Object.keys(updateData).filter(k => k !== 'assignees' && k !== 'fileIds');
+      
+      fields.forEach(field => {
+        if (updateData[field] !== undefined && JSON.stringify(oldTask[field]) !== JSON.stringify(updateData[field])) {
+          differences[field] = {
+            old: oldTask[field],
+            new: newTask[field]
+          };
+        }
+      });
+
+      if (updateData.assignees !== undefined) {
+        const oldIds = (oldTask.assignees || []).map(u => u._id.toString());
+        const newIds = (newTask.assignees || []).map(u => u._id.toString());
+        
+        const added = newTask.assignees.filter(u => !oldIds.includes(u._id.toString()));
+        const removed = oldTask.assignees.filter(u => !newIds.includes(u._id.toString()));
+
+        if (added.length > 0 || removed.length > 0) {
+          differences.assignees = {
+            added: added.map(u => ({ id: u._id, name: u.displayName || u.email })),
+            removed: removed.map(u => ({ id: u._id, name: u.displayName || u.email }))
+          };
+        }
+      }
 
       await this.activityService.createActivityLog({
         projectId,
@@ -113,15 +156,15 @@ class TaskService {
         action: 'TASK_UPDATED',
         entityType: 'task',
         entityId: updatedTask._id,
-        detail: updateData
+        detail: { taskTitle: updatedTask.title, differences }
       });
 
-      const oldAssigneesStr = (oldTask.assignees || []).map(id => id.toString());
+      const oldAssigneesStr = (oldTask.assignees || []).map(u => u._id.toString());
       const isAssigneesUpdated = updateData.assignees !== undefined;
       let newAssignedIds = [];
 
       if (isAssigneesUpdated) {
-        const currentAssigneesStr = (updateData.assignees || []).map(id => typeof id === 'object' ? (id._id || id).toString() : id.toString());
+        const currentAssigneesStr = (updateData.assignees || []).map(id => id.toString());
         newAssignedIds = currentAssigneesStr.filter(id => !oldAssigneesStr.includes(id));
 
         for (const assigneeId of newAssignedIds) {
@@ -208,7 +251,7 @@ class TaskService {
       { $inc: { position: -1 } },
     );
 
-    const column = await this.Column.findById(columnId).select("projectId").lean();
+    const column = await this.Column.findById(columnId).select("projectId title").lean();
     if (column) {
       this.taskSocket.emitTaskDeleted(column.projectId.toString(), taskId, columnId);
       await this.activityService.createActivityLog({
@@ -217,7 +260,12 @@ class TaskService {
         action: 'TASK_DELETED',
         entityType: 'task',
         entityId: taskId,
-        detail: { taskTitle: task.title, columnId }
+        detail: { 
+          taskTitle: task.title, 
+          columnId,
+          columnTitle: column.title,
+          fullSnapshot: task // Save everything
+        }
       });
     }
   };
@@ -259,13 +307,24 @@ class TaskService {
         sourceTaskIds,
         destinationTaskIds,
       });
+      const sourceCol = await this.Column.findById(sourceColumnId).select('title').lean();
+      const destCol = await this.Column.findById(destinationColumnId).select('title').lean();
+
       await this.activityService.createActivityLog({
         projectId: column.projectId,
         userId,
         action: 'TASK_MOVED',
         entityType: 'task',
         entityId: taskId,
-        detail: { sourceColumnId, destinationColumnId }
+        detail: { 
+          taskTitle: task.title, 
+          sourceColumnId, 
+          sourceColumnTitle: sourceCol?.title || 'Unknown',
+          destinationColumnId, 
+          destinationColumnTitle: destCol?.title || 'Unknown',
+          sourceTaskIds,
+          destinationTaskIds
+        }
       });
 
       if (sourceColumnId !== destinationColumnId) {

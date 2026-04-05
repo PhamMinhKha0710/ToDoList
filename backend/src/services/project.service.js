@@ -1,12 +1,13 @@
 const crypto = require('crypto');
 
 class ProjectService {
-  constructor({ projectRepository, User, ApiError, notificationService, getIO }) {
+  constructor({ projectRepository, User, ApiError, notificationService, getIO, activityService }) {
     this.projectRepository = projectRepository;
     this.User = User;
     this.ApiError = ApiError;
     this.notificationService = notificationService;
     this.getIO = getIO;
+    this.activityService = activityService;
   }
 
   _notifyOwnerOnResponse(project, userId, action) {
@@ -55,7 +56,18 @@ class ProjectService {
       ...projectData,
       members,
     };
-    return this.projectRepository.create(newProjectData);
+    const project = await this.projectRepository.create(newProjectData);
+
+    await this.activityService.createActivityLog({
+      projectId: project._id,
+      userId,
+      action: 'PROJECT_CREATED',
+      entityType: 'project',
+      entityId: project._id,
+      detail: { name: project.name }
+    });
+
+    return project;
   }
 
   async getUserProjects(userId) {
@@ -70,18 +82,53 @@ class ProjectService {
     return project;
   }
 
-  async updateProject(projectId, updateData) {
+  async updateProject(projectId, updateData, userId) {
     const project = await this.getProjectById(projectId);
-    return this.projectRepository.updateById(projectId, updateData);
+    const updated = await this.projectRepository.updateById(projectId, updateData);
+
+    const differences = {};
+    const fields = Object.keys(updateData);
+    fields.forEach(key => {
+      if (updateData[key] !== undefined && JSON.stringify(project[key]) !== JSON.stringify(updateData[key])) {
+        differences[key] = {
+          old: project[key],
+          new: updateData[key]
+        };
+      }
+    });
+
+    await this.activityService.createActivityLog({
+      projectId: updated._id,
+      userId,
+      action: 'PROJECT_UPDATED',
+      entityType: 'project',
+      entityId: updated._id,
+      detail: { differences }
+    });
+
+    return updated;
   }
 
-  async deleteProject(projectId) {
+  async deleteProject(projectId, userId) {
     const project = await this.getProjectById(projectId);
     await this.projectRepository.deleteById(projectId);
+
+    // Note: Project deletion activity log is tricky if the project is gone, 
+    // but we can log it with the projectId before it is deleted or keep it 
+    // since the activity log references the projectId (which remains as an ID in logs).
+    await this.activityService.createActivityLog({
+       projectId,
+       userId,
+       action: 'PROJECT_DELETED',
+       entityType: 'project',
+       entityId: projectId,
+       detail: { name: project.name }
+    });
+
     return null;
   }
 
-  async addMember(projectId, email, role = 'member') {
+  async addMember(projectId, email, role = 'member', inviterId) {
     const project = await this.getProjectById(projectId);
 
     const userToAdd = await this.User.findOne({ email });
@@ -115,10 +162,19 @@ class ProjectService {
 
     this._emitMemberUpdated(projectId);
 
+    await this.activityService.createActivityLog({
+      projectId,
+      userId: inviterId,
+      action: 'MEMBER_INVITED',
+      entityType: 'user',
+      entityId: userToAdd._id,
+      detail: { email, role }
+    });
+
     return result;
   }
 
-  async removeMember(projectId, userIdToRemove) {
+  async removeMember(projectId, userIdToRemove, actorId) {
     const project = await this.getProjectById(projectId);
 
     const memberToRemove = project.members.find(
@@ -135,10 +191,20 @@ class ProjectService {
 
     const result = await this.projectRepository.removeMember(projectId, userIdToRemove);
     this._emitMemberUpdated(projectId);
+
+    await this.activityService.createActivityLog({
+      projectId,
+      userId: actorId,
+      action: 'MEMBER_REMOVED',
+      entityType: 'user',
+      entityId: userIdToRemove,
+      detail: { email: memberToRemove.userId.email }
+    });
+
     return result;
   }
 
-  async updateMemberRole(projectId, userIdToUpdate, newRole) {
+  async updateMemberRole(projectId, userIdToUpdate, newRole, actorId) {
     const project = await this.getProjectById(projectId);
 
     const memberToUpdate = project.members.find(
@@ -158,6 +224,19 @@ class ProjectService {
 
     const result = await this.projectRepository.updateMemberRole(projectId, userIdToUpdate, newRole);
     this._emitMemberUpdated(projectId);
+
+    await this.activityService.createActivityLog({
+      projectId,
+      userId: actorId,
+      action: 'MEMBER_ROLE_UPDATED',
+      entityType: 'user',
+      entityId: userIdToUpdate,
+      detail: { 
+        oldRole: memberToUpdate.role,
+        newRole 
+      }
+    });
+
     return result;
   }
 
@@ -217,6 +296,16 @@ class ProjectService {
       await project.save();
       this._emitMemberUpdated(projectId);
       await this._notifyOwnerOnResponse(project, userId, 'accept');
+
+      await this.activityService.createActivityLog({
+        projectId,
+        userId,
+        action: 'MEMBER_JOINED',
+        entityType: 'user',
+        entityId: userId,
+        detail: { method: 'invitation_accept' }
+      });
+
       return project;
     } else if (action === 'decline') {
       await this._notifyOwnerOnResponse(project, userId, 'decline');
@@ -322,6 +411,16 @@ class ProjectService {
       existingMember.status = 'active';
       await project.save();
       this._emitMemberUpdated(project._id);
+
+      await this.activityService.createActivityLog({
+        projectId: project._id,
+        userId,
+        action: 'MEMBER_JOINED',
+        entityType: 'user',
+        entityId: userId,
+        detail: { method: 'invite_code_reactivate' }
+      });
+
       return project;
     }
 
@@ -335,6 +434,15 @@ class ProjectService {
     this._emitMemberUpdated(project._id);
     await this._notifyOwnerOnResponse(project, userId, 'accept');
 
+    await this.activityService.createActivityLog({
+      projectId: project._id,
+      userId,
+      action: 'MEMBER_JOINED',
+      entityType: 'user',
+      entityId: userId,
+      detail: { method: 'invite_code_join' }
+    });
+
     return result;
   }
 }
@@ -345,4 +453,5 @@ module.exports = new ProjectService({
   ApiError: require('../utils/ApiError'),
   notificationService: require('./notification.service'),
   getIO: require('../config/socket').getIO,
+  activityService: require('./activity.service'),
 });

@@ -11,7 +11,8 @@ class ColumnController {
    */
   createColumn = catchAsync(async (req, res) => {
     const columnData = toCreateColumnModel(req.body);
-    const column = await columnService.createColumn(columnData);
+    const userId = req.user?._id;
+    const column = await columnService.createColumn(columnData, userId);
     new ApiResponse(201, 'Tạo cột thành công', { column: toColumnModel(column) }).send(res);
   });
 
@@ -37,7 +38,8 @@ class ColumnController {
    */
   updateColumn = catchAsync(async (req, res) => {
     const updateData = toUpdateColumnModel(req.body);
-    const column = await columnService.updateColumn(req.params.columnId, updateData);
+    const userId = req.user?._id;
+    const column = await columnService.updateColumn(req.params.columnId, updateData, userId);
     new ApiResponse(200, 'Cập nhật cột thành công', { column: toColumnModel(column) }).send(res);
   });
 
@@ -45,7 +47,8 @@ class ColumnController {
    * DELETE /api/columns/:columnId
    */
   deleteColumn = catchAsync(async (req, res) => {
-    await columnService.deleteColumn(req.params.columnId);
+    const userId = req.user?._id;
+    await columnService.deleteColumn(req.params.columnId, userId);
     new ApiResponse(200, 'Xóa cột thành công').send(res);
   });
 
@@ -54,7 +57,8 @@ class ColumnController {
    */
   reorderColumns = catchAsync(async (req, res) => {
     const { orderedColumnIds } = req.body;
-    const columns = await columnService.reorderColumns(req.params.projectId, orderedColumnIds);
+    const userId = req.user?._id;
+    const columns = await columnService.reorderColumns(req.params.projectId, orderedColumnIds, userId);
     new ApiResponse(200, 'Sắp xếp lại cột thành công', { columns: columns.map(toColumnModel) }).send(res);
   });
 }

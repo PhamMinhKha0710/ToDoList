@@ -7,14 +7,20 @@ import {
   ArrowLeft,
   ChevronUp,
   ChevronDown,
+  History,
+  Film,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { ProjectNavbarActions } from "./ProjectNavbarActions";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface ProjectHeaderProps {
   project: Project;
+  onToggleActivity: () => void;
+  onToggleReplay: () => void;
 }
 
-export const ProjectHeader = ({ project }: ProjectHeaderProps) => {
+export const ProjectHeader = ({ project, onToggleActivity, onToggleReplay }: ProjectHeaderProps) => {
   const navigate = useNavigate();
 
   // State for collapse
@@ -85,7 +91,30 @@ export const ProjectHeader = ({ project }: ProjectHeaderProps) => {
           </div>
 
           <div className="flex items-center gap-3">
-            {/* Project Actions are now in the global Navbar (ProjectNavbarActions) */}
+            <TooltipProvider>
+              <div className="flex items-center gap-2 bg-accent/30 p-1 rounded-lg border border-border/50">
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-background" onClick={onToggleReplay}>
+                      <Film className="h-4 w-4 text-primary" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Phát lại sự kiện (Replay)</TooltipContent>
+                </Tooltip>
+                
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-background" onClick={onToggleActivity}>
+                      <History className="h-4 w-4 text-muted-foreground" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Lịch sử hoạt động</TooltipContent>
+                </Tooltip>
+              </div>
+            </TooltipProvider>
+
+            <div className="h-6 w-px bg-border mx-1" />
+            <ProjectNavbarActions project={project} />
           </div>
         </div>
       </div>

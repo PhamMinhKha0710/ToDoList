@@ -9,7 +9,7 @@ class AttachmentController {
    * Upload an attachment
    */
   uploadAttachment = catchAsync(async (req, res) => {
-    const attachment = await attachmentService.uploadAttachment(req.params.taskId, req.file);
+    const attachment = await attachmentService.uploadAttachment(req.params.taskId, req.file, req.user._id);
     new ApiResponse(201, 'Tải lên đính kèm thành công', { attachment: toAttachmentResponseModel(attachment) }).send(res);
   });
 
@@ -27,7 +27,7 @@ class AttachmentController {
    * Delete an attachment
    */
   deleteAttachment = catchAsync(async (req, res) => {
-    await attachmentService.deleteAttachment(req.params.attachmentId);
+    await attachmentService.deleteAttachment(req.params.attachmentId, req.user._id);
     new ApiResponse(200, 'Xóa file đính kèm thành công').send(res);
   });
 }

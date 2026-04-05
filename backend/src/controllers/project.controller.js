@@ -55,6 +55,7 @@ class ProjectController {
     const project = await projectService.updateProject(
       req.params.projectId,
       projectData,
+      req.user._id
     );
     const projectModel = ProjectResponseModel.fromEntity(project);
     new ApiResponse(200, "Cập nhật dự án thành công", {
@@ -79,6 +80,7 @@ class ProjectController {
       req.params.projectId,
       req.body.email,
       role,
+      req.user._id
     );
 
     const projectUrl = `${CLIENT_URL}/projects/${project._id}/invite`;
@@ -106,6 +108,7 @@ class ProjectController {
     const project = await projectService.removeMember(
       req.params.projectId,
       req.params.memberId,
+      req.user._id
     );
     const projectModel = ProjectResponseModel.fromEntity(project);
     new ApiResponse(200, "Xóa thành viên thành công", {
@@ -122,6 +125,7 @@ class ProjectController {
       req.params.projectId,
       req.params.memberId,
       role,
+      req.user._id
     );
     const projectModel = ProjectResponseModel.fromEntity(project);
     new ApiResponse(200, "Cập nhật phân quyền thành công", {

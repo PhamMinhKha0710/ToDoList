@@ -8,6 +8,7 @@ class CommentService {
     projectService,
     commentSocket,
     notificationService,
+    activityService,
   }) {
     this.commentRepository = commentRepository;
     this.ApiError = ApiError;
@@ -17,6 +18,7 @@ class CommentService {
     this.projectService = projectService;
     this.commentSocket = commentSocket;
     this.notificationService = notificationService;
+    this.activityService = activityService;
   }
 
   createComment = async (commentData) => {
@@ -78,6 +80,17 @@ class CommentService {
           metadata: { taskId: task._id, commentId: comment._id, projectId }
         }, taskIdStr);
       }
+
+      if (projectId) {
+        await this.activityService.createActivityLog({
+          projectId,
+          userId: commentData.authorId,
+          action: 'COMMENT_CREATED',
+          entityType: 'comment',
+          entityId: comment._id,
+          detail: { taskTitle: task.title, taskId: task._id, contentSnippet: comment.content.substring(0, 50) }
+        });
+      }
     }
 
     return populated;
@@ -103,10 +116,34 @@ class CommentService {
       );
     }
 
+    const oldContent = comment.content;
     const updated = await this.commentRepository.updateById(commentId, { content });
     await updated.populate("authorId", "displayName email avatarUrl");
 
     this.commentSocket.emitCommentUpdated(comment.taskId.toString(), updated);
+
+    let task = await this.Task.findById(comment.taskId).lean();
+    if (task) {
+      const column = await this.Column.findById(task.columnId).select('projectId').lean();
+      const projectId = column?.projectId?.toString() || null;
+      if (projectId) {
+        await this.activityService.createActivityLog({
+          projectId,
+          userId: authorId,
+          action: 'COMMENT_UPDATED',
+          entityType: 'comment',
+          entityId: commentId,
+          detail: { 
+            taskTitle: task.title, 
+            oldContentSnippet: oldContent.substring(0, 50),
+            newContentSnippet: updated.content.substring(0, 50),
+            differences: {
+              content: { old: oldContent, new: updated.content }
+            }
+          }
+        });
+      }
+    }
 
     return updated;
   };
@@ -163,6 +200,27 @@ class CommentService {
     await this.commentRepository.deleteById(commentId);
 
     this.commentSocket.emitCommentDeleted(taskId, idComment);
+
+    let task = await this.Task.findById(comment.taskId).lean();
+    if (task) {
+      const column = await this.Column.findById(task.columnId).select('projectId').lean();
+      const projectId = column?.projectId?.toString() || null;
+      if (projectId) {
+        await this.activityService.createActivityLog({
+          projectId,
+          userId,
+          action: 'COMMENT_DELETED',
+          entityType: 'comment',
+          entityId: commentId,
+          detail: { 
+            taskTitle: task.title, 
+            taskId: task._id,
+            oldContentSnippet: comment.content.substring(0, 50),
+            fullSnapshot: comment
+          }
+        });
+      }
+    }
   };
 }
 
@@ -179,5 +237,6 @@ module.exports = new CommentService({
     emitCommentUpdated: require('../sockets/comment.socket').emitCommentUpdated,
   },
   notificationService: require('./notification.service'),
+  activityService: require('./activity.service'),
 });
 

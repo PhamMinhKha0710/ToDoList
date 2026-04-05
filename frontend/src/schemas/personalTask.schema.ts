@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export const createPersonalTaskSchema = z.object({
+export const personalTaskBaseSchema = z.object({
   title: z
     .string()
     .min(1, "Tiêu đề không được để trống")
@@ -11,18 +11,24 @@ export const createPersonalTaskSchema = z.object({
   priority: z.enum(["urgent", "high", "normal", "low"]).default("normal"),
   status: z.enum(["todo", "in_progress", "done"]).default("todo"),
   color: z.string().optional(),
-}).refine((data) => {
+});
+
+const dateRefinement = (data: any) => {
   if (data.startDate && data.endDate) {
     return new Date(data.endDate) >= new Date(data.startDate);
   }
   return true;
-}, {
+};
+
+const dateRefinementConfig = {
   message: "Ngày kết thúc không được trước ngày bắt đầu",
   path: ["endDate"],
-});
+};
+
+export const createPersonalTaskSchema = personalTaskBaseSchema.refine(dateRefinement, dateRefinementConfig);
 
 export type CreatePersonalTaskFormValues = z.infer<typeof createPersonalTaskSchema>;
 
-export const updatePersonalTaskSchema = createPersonalTaskSchema.partial();
+export const updatePersonalTaskSchema = personalTaskBaseSchema.partial().refine(dateRefinement, dateRefinementConfig);
 
 export type UpdatePersonalTaskFormValues = z.infer<typeof updatePersonalTaskSchema>;
