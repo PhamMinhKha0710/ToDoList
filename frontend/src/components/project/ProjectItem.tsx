@@ -1,5 +1,10 @@
 import { Link } from "react-router-dom";
+import { Users } from "lucide-react";
 import dayjs from "dayjs";
+import relativeTime from "dayjs/plugin/relativeTime";
+
+dayjs.extend(relativeTime);
+import { cn } from "@/lib/utils";
 import type { Project } from "@/types/project";
 import type { User } from "@/types/user";
 import { useAuthStore } from "@/stores/auth.store";
@@ -7,9 +12,9 @@ import {
   Card,
   CardTitle,
   CardDescription,
-  CardFooter,
 } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 
 interface ProjectItemProps {
   project: Project;
@@ -32,23 +37,52 @@ export const ProjectItem = ({ project, viewMode }: ProjectItemProps) => {
   return (
     <Link
       to={targetUrl}
-      className="block h-full outline-none ring-offset-background focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-xl group"
+      className={`block h-full outline-none group ${isGrid ? "perspective-1000" : ""}`}
     >
       <Card
-        className="h-full transition-all duration-300 hover:shadow-md hover:-translate-y-0.5 hover:border-border cursor-pointer overflow-hidden flex flex-col border-l-4"
-        style={{ borderLeftColor: accentColor }}
+        className={cn(
+          "h-full transition-all duration-500 cursor-pointer overflow-hidden flex flex-col relative border-0 shadow-sm",
+          isGrid 
+            ? "hover:shadow-2xl hover:-translate-y-2 hover:rotate-x-1" 
+            : "hover:shadow-xl hover:translate-x-2",
+          "bg-white/40 dark:bg-slate-900/40 backdrop-blur-xl border border-white/20 dark:border-slate-800/20"
+        )}
       >
+        {/* Accent Top Bar / Side Bar Glow */}
+        <div 
+          className={cn(
+            "absolute transition-all duration-500",
+            isGrid ? "top-0 left-0 right-0 h-1.5" : "top-0 left-0 bottom-0 w-1.5"
+          )}
+          style={{ 
+            backgroundColor: accentColor,
+            boxShadow: `0 0 20px ${accentColor}40`
+          }}
+        />
+
         {/* Content Area */}
         <div
-          className={`pl-4 ${isGrid ? "flex-1 flex flex-col" : "flex-1 flex flex-row items-center p-4 gap-6"}`}
+          className={cn(
+            "relative z-10",
+            isGrid ? "p-6 flex-1 flex flex-col" : "p-4 flex-1 flex flex-row items-center gap-6"
+          )}
         >
           <div
-            className={`${isGrid ? "flex-1 pt-4 pb-2 pr-4" : "flex-1 flex items-center gap-4"}`}
+            className={cn(
+              isGrid ? "flex-1 flex flex-row items-center gap-5" : "flex-1 flex items-center gap-6"
+            )}
           >
-            <div className="flex items-center gap-4 mb-3">
-              {/* Project Icon */}
+            {/* Project Icon */}
+            <div className="relative group/icon">
+              <div 
+                className="absolute inset-0 blur-lg opacity-20 group-hover/icon:opacity-40 transition-opacity duration-500 rounded-2xl"
+                style={{ backgroundColor: accentColor }}
+              />
               <Avatar
-                className={`${isGrid ? "h-12 w-12" : "h-10 w-10"} rounded-lg border shadow-sm flex-shrink-0`}
+                className={cn(
+                  isGrid ? "h-16 w-16" : "h-12 w-12",
+                  "rounded-2xl border-2 border-white/50 dark:border-white/10 shadow-lg flex-shrink-0 relative z-10 transition-transform duration-500 group-hover:scale-110"
+                )}
               >
                 <AvatarImage
                   src={project.imageUrl}
@@ -56,83 +90,120 @@ export const ProjectItem = ({ project, viewMode }: ProjectItemProps) => {
                   className="object-cover"
                 />
                 <AvatarFallback
-                  className="rounded-lg text-white font-bold"
+                  className="rounded-2xl text-white text-xl font-black"
                   style={{ backgroundColor: accentColor }}
                 >
                   {initials}
                 </AvatarFallback>
               </Avatar>
+            </div>
 
-              {/* Title, Description & Date */}
-              <div className="flex flex-col min-w-0">
-                <CardTitle className="text-base font-semibold tracking-tight text-foreground/90 group-hover:text-primary transition-colors truncate">
+            {/* Title, Description & Date */}
+            <div className="flex flex-col min-w-0 flex-1">
+              <div className="flex items-center gap-2">
+                <CardTitle className="text-xl font-black tracking-tight text-foreground/90 group-hover:text-primary transition-colors truncate">
                   {project.name}
                 </CardTitle>
-                <CardDescription
-                  className={`mt-0.5 ${isGrid ? "line-clamp-1" : "line-clamp-1"} text-sm text-muted-foreground`}
-                >
-                  {project.description || "Project"}
-                </CardDescription>
-                <div className="text-xs text-muted-foreground/80 mt-1">
-                  Updated {dayjs(project.updatedAt).format("MMM D, YYYY")}
-                </div>
+                {isPending && (
+                  <Badge variant="secondary" className="px-2 py-0 text-[10px] uppercase font-black bg-amber-100 text-amber-700 border-amber-200">
+                    Pending
+                  </Badge>
+                )}
               </div>
+              <CardDescription
+                className={cn(
+                  "mt-1 text-sm font-medium text-muted-foreground/80 leading-relaxed",
+                  isGrid ? "line-clamp-2" : "line-clamp-1"
+                )}
+              >
+                {project.description || "No description provided."}
+              </CardDescription>
+              {!isGrid && (
+                <div className="flex items-center gap-4 mt-2">
+                  <div className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground/60 uppercase tracking-wider">
+                    <div className="w-1.5 h-1.5 rounded-full bg-primary/40" />
+                    Updated {dayjs(project.updatedAt).format("HH:mm DD/MM/YYYY")}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 
-          {/* Members Area */}
-          <div
-            className={`${isGrid ? "pr-4 w-full" : "w-48 flex justify-end"}`}
-          >
-            <CardFooter
-              className={`${isGrid ? "pb-4 pt-3 border-t px-0" : "p-0"} justify-between items-center w-full`}
-            >
-              <div className="flex -space-x-2 overflow-hidden py-1">
-                {project.members &&
-                  project.members.slice(0, 5).map((member, i) => {
-                    const user =
-                      typeof member.userId === "object" ? member.userId : null;
-                    const name = user?.displayName || user?.email || "User";
-                    const userInitials = name.substring(0, 2).toUpperCase();
-
-                    return (
-                      <Avatar
-                        key={i}
-                        className="inline-block border-2 border-background w-7 h-7 rounded-full overflow-hidden"
-                      >
-                        <AvatarImage
-                          src={user?.avatarUrl}
-                          alt={name}
-                          className="object-cover"
-                        />
-                        <AvatarFallback className="text-[10px] bg-primary/10 text-primary font-medium">
-                          {userInitials}
-                        </AvatarFallback>
-                      </Avatar>
-                    );
-                  })}
-                {project.members && project.members.length > 5 && (
-                  <div className="flex items-center justify-center w-7 h-7 rounded-full border-2 border-background bg-muted text-[10px] font-medium text-muted-foreground z-10">
-                    +{project.members.length - 5}
-                  </div>
-                )}
-                {(!project.members || project.members.length === 0) && (
-                  <div className="text-sm text-muted-foreground italic">
-                    No members
-                  </div>
-                )}
+          {/* Grid View Date & Footer */}
+          {isGrid && (
+            <div className="mt-6 flex flex-col gap-4 w-full">
+              <div className="flex items-center gap-1.5 text-[10px] font-black text-muted-foreground/40 uppercase tracking-[0.2em]">
+                Last activity {dayjs(project.updatedAt).format("HH:mm DD/MM/YYYY")}
               </div>
+              
+              <div className="h-px w-full bg-gradient-to-r from-transparent via-border/50 to-transparent" />
+              
+              <div className="flex justify-between items-center w-full">
+                <div className="flex items-center overflow-hidden py-1">
+                  {project.members &&
+                    project.members.slice(0, 4).map((member, i) => {
+                      const user = typeof member.userId === "object" ? member.userId : null;
+                      const name = user?.displayName || user?.email || "User";
+                      const userInitials = name.substring(0, 2).toUpperCase();
 
-              {isGrid && (
-                <span className="text-xs font-medium text-muted-foreground bg-secondary px-2 py-0.5 rounded-full">
-                  {project.members?.length || 0}{" "}
-                  {project.members?.length === 1 ? "member" : "members"}
-                </span>
-              )}
-            </CardFooter>
-          </div>
+                      return (
+                        <div key={i} className="group/avatar relative">
+                          <Avatar
+                            className="inline-block border-2 border-white dark:border-slate-800 w-7 h-7 rounded-full overflow-hidden shadow-sm transition-all duration-300 group-hover/avatar:-translate-y-1 group-hover/avatar:scale-110"
+                            style={{ 
+                              zIndex: 10 - i,
+                              marginLeft: i > 0 ? "-0.625rem" : "0" 
+                            }}
+                          >
+                            <AvatarImage
+                              src={user?.avatarUrl}
+                              alt={name}
+                              className="object-cover"
+                            />
+                            <AvatarFallback className="text-[10px] bg-primary/10 text-primary font-bold">
+                              {userInitials}
+                            </AvatarFallback>
+                          </Avatar>
+                        </div>
+                      );
+                    })}
+                  {project.members && project.members.length > 4 && (
+                    <div className="flex items-center justify-center w-7 h-7 rounded-full border-2 border-white dark:border-slate-800 bg-muted text-[10px] font-bold text-muted-foreground shadow-sm relative z-0 -ml-2.5">
+                      +{project.members.length - 4}
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex items-center gap-1.5 px-3 py-1 bg-primary/5 border border-primary/10 rounded-full group-hover:bg-primary/10 transition-colors">
+                  <Users className="w-3 h-3 text-primary" />
+                  <span className="text-[10px] font-black text-primary uppercase tracking-wider">
+                    {project.members?.length || 0}
+                  </span>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* List View Members Stack */}
+          {!isGrid && (
+            <div className="flex items-center gap-6 shrink-0">
+              <div className="flex -space-x-2 overflow-hidden">
+                {project.members?.slice(0, 3).map((m, i) => (
+                  <Avatar key={i} className="w-8 h-8 border-2 border-white dark:border-slate-800 rounded-full ring-2 ring-transparent group-hover:ring-primary/20 transition-all">
+                    <AvatarImage src={typeof m.userId === 'object' ? m.userId.avatarUrl : ''} />
+                    <AvatarFallback className="text-[10px] font-bold">{(typeof m.userId === 'object' ? (m.userId.displayName || m.userId.email) : 'U').substring(0, 2)}</AvatarFallback>
+                  </Avatar>
+                ))}
+              </div>
+              <div className="w-8 h-8 flex items-center justify-center rounded-full bg-primary/5 text-[10px] font-black text-primary border border-primary/20">
+                {project.members?.length}
+              </div>
+            </div>
+          )}
         </div>
       </Card>
     </Link>
   );
 };
+
+export default ProjectItem;
