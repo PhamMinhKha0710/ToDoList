@@ -14,15 +14,17 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 
+type AssignableRole = 'admin' | 'member' | 'viewer';
+
 interface UserSearchSelectProps {
-  onAddMember: (user: User, role: 'owner' | 'member') => void;
+  onAddMember: (user: User, role: AssignableRole) => void;
   excludeUserIds?: string[];
 }
 
 export const UserSearchSelect = ({ onAddMember, excludeUserIds = [] }: UserSearchSelectProps) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
-  const [roles, setRoles] = useState<Record<string, 'owner'|'member'>>({});
+  const [roles, setRoles] = useState<Record<string, AssignableRole>>({});
 
   // Debounce search term
   useEffect(() => {
@@ -44,7 +46,7 @@ export const UserSearchSelect = ({ onAddMember, excludeUserIds = [] }: UserSearc
   );
 
   const handleRoleChange = (userId: string, role: string) => {
-    setRoles((prev) => ({ ...prev, [userId]: role as 'owner' | 'member' }));
+    setRoles((prev) => ({ ...prev, [userId]: role as AssignableRole }));
   };
 
   const handleInvite = (user: User) => {
@@ -58,7 +60,7 @@ export const UserSearchSelect = ({ onAddMember, excludeUserIds = [] }: UserSearc
       <div className="relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input
-          placeholder="Search users by email or name..."
+          placeholder="Tìm user theo email hoặc tên..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           className="pl-10"
@@ -95,12 +97,13 @@ export const UserSearchSelect = ({ onAddMember, excludeUserIds = [] }: UserSearc
                     value={roles[user._id] || 'member'} 
                     onValueChange={(val: string) => handleRoleChange(user._id, val)}
                   >
-                    <SelectTrigger className="w-[100px] h-8 text-xs">
-                      <SelectValue placeholder="Role" />
+                    <SelectTrigger className="w-[110px] h-8 text-xs">
+                      <SelectValue placeholder="Vai trò" />
                     </SelectTrigger>
                     <SelectContent>
+                      <SelectItem value="admin">Admin</SelectItem>
                       <SelectItem value="member">Member</SelectItem>
-                      <SelectItem value="owner">Owner</SelectItem>
+                      <SelectItem value="viewer">Viewer</SelectItem>
                     </SelectContent>
                   </Select>
 
@@ -117,13 +120,13 @@ export const UserSearchSelect = ({ onAddMember, excludeUserIds = [] }: UserSearc
 
       {debouncedSearch && !isLoading && filteredResults.length === 0 && searchResults.length !== 0 && (
         <div className="text-sm text-center p-4 border rounded-md text-muted-foreground">
-          All matched users are already invited.
+          Tất cả người dùng phù hợp đã được mời.
         </div>
       )}
 
       {debouncedSearch && !isLoading && searchResults.length === 0 && (
         <div className="text-sm text-center p-4 border rounded-md text-muted-foreground bg-muted/50">
-          No users found for "{debouncedSearch}".
+          Không tìm thấy người dùng cho "{debouncedSearch}".
         </div>
       )}
     </div>

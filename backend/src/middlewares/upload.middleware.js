@@ -24,18 +24,28 @@ const storage = multer.diskStorage({
 
 // File filter to restrict file types
 const fileFilter = (req, file, cb) => {
-  // Allow only images for this context
-  if (file.mimetype.startsWith('image/')) {
+  const allowedTypes = [
+    'application/pdf',
+    'application/msword', // .doc
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document', // .docx
+    'application/zip',
+    'application/x-zip-compressed',
+    'text/plain',
+    'application/vnd.ms-excel',
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+  ];
+  if (file.mimetype.startsWith('image/') || allowedTypes.includes(file.mimetype)) {
     cb(null, true);
   } else {
-    cb(new ApiError(400, 'Chỉ hỗ trợ định dạng hình ảnh (jpeg, jpg, png, gif, webp,...)'), false);
+    console.log(`[Upload] Rejected mimetype: ${file.mimetype} for file: ${file.originalname}`);
+    cb(new ApiError(400, `Tệp tin không hợp lệ (${file.mimetype}). Chỉ hỗ trợ Hình ảnh, PDF, Word, Excel, ZIP, TXT.`), false);
   }
 };
 
 const upload = multer({
   storage: storage,
   limits: {
-    fileSize: 5 * 1024 * 1024, // Limit size to 5MB
+    fileSize: 10 * 1024 * 1024, // Limit size to 10MB
   },
   fileFilter: fileFilter,
 });
