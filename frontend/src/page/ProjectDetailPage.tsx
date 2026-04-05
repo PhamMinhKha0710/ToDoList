@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { projectService } from "@/services/project.service";
@@ -7,10 +7,15 @@ import { Loader2 } from "lucide-react";
 import { KanbanBoard } from "@/components/board/KanbanBoard";
 import { useKanbanStore } from "@/stores/kanban.store";
 import { useProjectSocket } from "@/hooks/use-socket";
+import { EventReplayModal } from "@/components/board/EventReplayModal";
+import { ProjectHeader } from "@/components/project-detail/ProjectHeader";
+import { ProjectActivitySidebar } from "@/components/project-detail/ProjectActivitySidebar";
 
 const ProjectDetailPage = () => {
   const { id } = useParams<{ id: string }>();
   const { setMembers, setActiveProject } = useKanbanStore();
+  const [isReplayOpen, setIsReplayOpen] = useState(false);
+  const [isActivityOpen, setIsActivityOpen] = useState(false);
 
   const {
     data: response,
@@ -60,15 +65,36 @@ const ProjectDetailPage = () => {
   }
 
   return (
-    <div className="h-full w-full flex flex-col bg-background">
-      {/* <div className="p-6 pb-0">
-        <ProjectHeader project={project} />
+    <div className="h-full w-full flex flex-col bg-background overflow-hidden">
+      <div className="p-4 pb-2">
+        <ProjectHeader 
+          project={project} 
+          onToggleActivity={() => setIsActivityOpen(!isActivityOpen)}
+          onToggleReplay={() => setIsReplayOpen(true)}
+        />
       </div>
-       */}
-      {/* Kanban Board Area */}
-      <div className="flex-1 overflow-hidden">
-        <KanbanBoard projectId={project._id} />
+      
+      <div className="flex-1 flex overflow-hidden relative">
+        {/* Kanban Board Area */}
+        <div className="flex-1 overflow-hidden">
+          <KanbanBoard projectId={project._id} />
+        </div>
+
+        {/* Activity Sidebar */}
+        <ProjectActivitySidebar 
+          projectId={project._id}
+          isOpen={isActivityOpen}
+          onClose={() => setIsActivityOpen(false)}
+        />
       </div>
+
+      {isReplayOpen && (
+        <EventReplayModal 
+            isOpen={isReplayOpen} 
+            onClose={() => setIsReplayOpen(false)} 
+            projectId={project._id} 
+        />
+      )}
     </div>
   );
 };
