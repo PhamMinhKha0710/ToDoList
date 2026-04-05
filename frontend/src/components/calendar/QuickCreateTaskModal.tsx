@@ -23,6 +23,7 @@ import {
 } from "@/components/ui/select";
 import { toast } from "sonner";
 import { Loader2, User, Briefcase } from "lucide-react";
+import { queryKeys } from "@/constants/queryKeys";
 
 interface QuickCreateTaskModalProps {
   open: boolean;
@@ -105,6 +106,7 @@ export const QuickCreateTaskModal = ({
     onSuccess: () => {
       toast.success("Đã thêm công việc cá nhân mới!");
       queryClient.invalidateQueries({ queryKey: ["all-tasks"] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.personalTasks.all() });
       onOpenChange(false);
       resetForm();
     },
