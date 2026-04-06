@@ -59,24 +59,24 @@ export function TwoFactorLoginModal({ isOpen, onClose, tempToken }: Props) {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md bg-white border-slate-200">
+      <DialogContent className="sm:max-w-md bg-card border-border">
         <DialogHeader>
           <div className="flex justify-center mb-4">
-            <div className="w-16 h-16 bg-indigo-50 text-indigo-600 rounded-full flex items-center justify-center">
+            <div className="w-16 h-16 bg-primary/10 text-primary rounded-full flex items-center justify-center">
               <ShieldCheck size={32} />
             </div>
           </div>
-          <DialogTitle className="text-xl font-bold text-center">
+          <DialogTitle className="text-xl font-bold text-center text-foreground">
             Xác thực 2 bước 🛡️
           </DialogTitle>
-          <DialogDescription className="text-center text-slate-600 pt-2">
+          <DialogDescription className="text-center text-muted-foreground pt-2">
             Vì lý do bảo mật, vui lòng mở ứng dụng <strong>Authenticator</strong> trên điện thoại và nhập mã hoặc sử dụng <strong>Mã dự phòng</strong>.
           </DialogDescription>
         </DialogHeader>
         
         <div className="space-y-6 mt-4">
           <div className="flex justify-center relative">
-            <Key className="absolute left-[15%] top-1/2 -translate-y-1/2 text-slate-400" size={20} />
+            <Key className="absolute left-[15%] top-1/2 -translate-y-1/2 text-muted-foreground" size={20} />
             <Input
               type="text"
               inputMode="text"
@@ -84,7 +84,7 @@ export function TwoFactorLoginModal({ isOpen, onClose, tempToken }: Props) {
               value={code}
               onChange={(e) => setCode(e.target.value.replace(/[^0-9a-zA-Z]/g, ''))}
               placeholder="000000"
-              className="text-center text-3xl font-bold tracking-[0.4em] h-16 w-80 focus-visible:ring-indigo-500 pl-10"
+              className="text-center text-3xl font-bold tracking-[0.4em] h-16 w-80 focus-visible:ring-primary pl-10 bg-muted/30 border-border text-foreground"
               autoFocus
             />
           </div>
@@ -94,7 +94,7 @@ export function TwoFactorLoginModal({ isOpen, onClose, tempToken }: Props) {
               variant="outline" 
               onClick={onClose} 
               disabled={isLoading} 
-              className="border-slate-300 hover:bg-slate-50 text-slate-700 w-full sm:w-auto"
+              className="border-border text-foreground hover:bg-muted w-full sm:w-auto"
             >
               Hủy đăng nhập
             </Button>
@@ -102,7 +102,7 @@ export function TwoFactorLoginModal({ isOpen, onClose, tempToken }: Props) {
               type="button" 
               onClick={handleConfirmClick}
               disabled={isLoading} 
-              className="bg-indigo-600 hover:bg-indigo-700 text-white font-medium w-full sm:w-auto"
+              className="bg-primary text-primary-foreground hover:bg-primary/90 w-full sm:w-auto"
             >
               {isLoading && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
               Tiếp tục

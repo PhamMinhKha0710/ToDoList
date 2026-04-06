@@ -414,20 +414,20 @@ export const TaskDetailModal = ({
         onOpenChange(isOpen);
       }}
     >
-      <DialogContent className=" [&>button]:hidden max-w-[900px] h-[88vh] p-0 overflow-hidden flex flex-col bg-white rounded-3xl shadow-[0_20px_60px_-15px_rgba(0,0,0,0.15)] outline-none border-0 [&>button]:hidden">
+      <DialogContent className=" [&>button]:hidden max-w-[900px] h-[88vh] p-0 overflow-hidden flex flex-col bg-card rounded-3xl shadow-2xl outline-none border-border [&>button]:hidden">
         {/* Header Section */}
-        <div className="flex items-start justify-between px-8 py-6 bg-slate-50/50 border-b border-slate-100 shrink-0">
+        <div className="flex items-start justify-between px-8 py-6 bg-muted/50 border-b border-border shrink-0">
           <div className="flex items-start gap-5 w-full">
             {/* Status Icon Indicator */}
             <div
               className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 shadow-sm border-2 transition-colors ${
                 currentStatus === "done"
-                  ? "bg-green-50 text-green-600"
+                  ? "bg-green-500/10 text-green-600 border-green-500/20"
                   : currentStatus === "in_progress"
-                    ? "bg-blue-50 text-blue-600"
-                    : "bg-white text-slate-400"
+                    ? "bg-blue-500/10 text-blue-600 border-blue-500/20"
+                    : "bg-muted text-muted-foreground border-border"
               }`}
-              style={{ borderColor: currentColor || '#e2e8f0' }}
+              style={{ borderColor: currentColor && currentStatus === 'todo' ? currentColor : undefined }}
             >
               <CheckCircle2 className="w-6 h-6 stroke-[2.5]" />
             </div>
@@ -454,10 +454,10 @@ export const TaskDetailModal = ({
                   onKeyDown={(e) => {
                     if (e.key === "Enter") e.currentTarget.blur();
                   }}
-                  className="text-2xl font-black text-slate-800 tracking-tight leading-none bg-white border border-slate-300 focus:border-indigo-400 px-3 py-1.5 focus:ring-4 focus:ring-indigo-50 w-full outline-none rounded-lg transition-all -ml-3"
+                   className="text-2xl font-black text-foreground tracking-tight leading-none bg-card border border-border focus:border-primary px-3 py-1.5 focus:ring-4 focus:ring-primary/10 w-full outline-none rounded-lg transition-all -ml-3"
                 />
               ) : (
-                <DialogTitle className="text-2xl font-black text-slate-800 tracking-tight leading-none mt-0.5">
+                <DialogTitle className="text-2xl font-black text-foreground tracking-tight leading-none mt-0.5">
                   {editedTask.title || task.title}
                 </DialogTitle>
               )}
@@ -475,7 +475,7 @@ export const TaskDetailModal = ({
                   <CheckCircle2 className="w-3.5 h-3.5" />
                   {statusLabels[currentStatus] || "Không xác định"}
                 </div>
-                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-50 text-slate-600 border border-slate-200 text-xs font-bold transition-colors">
+                 <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-muted text-muted-foreground border border-border text-xs font-bold transition-colors">
                   <Flag
                     className={`w-3.5 h-3.5 fill-current transition-colors ${
                       currentPriority === "urgent"
@@ -484,7 +484,7 @@ export const TaskDetailModal = ({
                           ? "text-orange-500"
                           : currentPriority === "normal"
                             ? "text-blue-500"
-                            : "text-slate-400"
+                            : "text-muted-foreground"
                     }`}
                   />
                   {priorityLabels[currentPriority] || "Thường"}
@@ -495,19 +495,19 @@ export const TaskDetailModal = ({
 
           <div className="flex items-center gap-2 shrink-0">
             {isEditing && (
-              <Button
+               <Button
                 variant="outline"
                 size="sm"
                 onClick={handleDiscardEditing}
                 disabled={isUploadingFiles}
-                className="h-10 px-4 font-bold border-slate-200 text-slate-600 hover:bg-slate-100 rounded-xl transition-all shadow-sm disabled:opacity-50"
+                className="h-10 px-4 font-bold border-border text-muted-foreground hover:bg-muted rounded-xl transition-all shadow-sm disabled:opacity-50"
               >
                 Hủy
               </Button>
             )}
 
             {canEnterEditMode && (
-              <Button
+               <Button
                 variant={isEditing ? "default" : "outline"}
                 size="sm"
                 onClick={() =>
@@ -516,8 +516,8 @@ export const TaskDetailModal = ({
                 disabled={isUploadingFiles}
                 className={`h-10 px-4 font-bold rounded-xl transition-all shadow-sm ${
                   isEditing
-                    ? "bg-indigo-600 hover:bg-indigo-700 text-white disabled:opacity-50"
-                    : "text-slate-600 border-slate-200 hover:bg-slate-100 hover:text-slate-900"
+                    ? "bg-primary hover:bg-primary/90 text-primary-foreground disabled:opacity-50"
+                    : "text-muted-foreground border-border hover:bg-muted hover:text-foreground"
                 }`}
               >
                 {isUploadingFiles ? (
@@ -536,26 +536,26 @@ export const TaskDetailModal = ({
             )}
 
             {!isEditing && canDelete && (
-              <Button
+               <Button
                 variant="outline"
                 size="sm"
                 onClick={handleDelete}
                 disabled={deleteTaskMutation.isPending}
-                className="h-10 px-4 font-bold text-red-600 border-red-100 bg-red-50 hover:bg-red-100 hover:text-red-700 rounded-xl transition-colors shadow-sm disabled:opacity-50"
+                className="h-10 px-4 font-bold text-red-600 border-red-500/20 bg-red-500/10 hover:bg-red-500/20 hover:text-red-700 rounded-xl transition-colors shadow-sm disabled:opacity-50"
               >
                 <Trash2 className="w-4 h-4 mr-2" />
                 {deleteTaskMutation.isPending ? "Đang xóa..." : "Xóa"}
               </Button>
             )}
             <DialogClose asChild>
-              <Button
+               <Button
                 variant="ghost"
                 size="icon"
                 disabled={isUploadingFiles}
                 onClick={() => {
                   if (isEditing) handleDiscardEditing();
                 }}
-                className="h-10 w-10 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-xl ml-1 transition-colors disabled:opacity-50"
+                className="h-10 w-10 text-muted-foreground hover:text-foreground hover:bg-muted rounded-xl ml-1 transition-colors disabled:opacity-50"
               >
                 <X className="w-5 h-5" />
               </Button>
@@ -563,13 +563,13 @@ export const TaskDetailModal = ({
           </div>
         </div>
 
-        {/* Content Section */}
-        <div className="flex flex-1 overflow-hidden relative bg-white">
+         {/* Content Section */}
+        <div className="flex flex-1 overflow-hidden relative bg-background">
           {/* Main Content (Left Column) */}
           <div className="flex-[2.2] overflow-y-auto px-8 py-8 space-y-10">
             {/* Description */}
             <div className="space-y-4">
-              <h3 className="text-sm font-extrabold uppercase tracking-widest text-slate-400 flex items-center gap-2">
+              <h3 className="text-sm font-extrabold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
                 Mô tả
               </h3>
               {isEditing ? (
@@ -587,7 +587,7 @@ export const TaskDetailModal = ({
                       handleSave("description", e.target.value);
                     }
                   }}
-                  className={`w-full text-[15px] text-slate-700 leading-relaxed bg-white border border-slate-300 focus:border-indigo-400 focus:ring-4 focus:ring-indigo-50 rounded-xl p-4 transition-all min-h-[120px] resize-none outline-none placeholder:italic placeholder:text-slate-400 ${!canEditMeta ? "opacity-70 cursor-not-allowed" : ""}`}
+                   className={`w-full text-[15px] text-foreground leading-relaxed bg-card border border-border focus:border-primary focus:ring-4 focus:ring-primary/10 rounded-xl p-4 transition-all min-h-[120px] resize-none outline-none placeholder:italic placeholder:text-muted-foreground ${!canEditMeta ? "opacity-70 cursor-not-allowed" : ""}`}
                   placeholder={
                     canEditMeta
                       ? "Thêm mô tả chi tiết cho công việc này..."
@@ -595,11 +595,11 @@ export const TaskDetailModal = ({
                   }
                 />
               ) : (
-                <div className="text-[15px] text-slate-700 leading-relaxed whitespace-pre-wrap">
+                 <div className="text-[15px] text-foreground leading-relaxed whitespace-pre-wrap">
                   {editedTask.description ? (
                     editedTask.description
                   ) : (
-                    <span className="text-slate-400 italic bg-slate-50/50 p-4 rounded-xl border border-dashed border-slate-200 block">
+                    <span className="text-muted-foreground italic bg-muted/50 p-4 rounded-xl border border-dashed border-border block">
                       Chưa có mô tả chi tiết cho công việc này.
                     </span>
                   )}
@@ -607,7 +607,7 @@ export const TaskDetailModal = ({
               )}
             </div>
             {/* Subtasks Section */}
-            <div className="pt-6 border-t border-slate-100">
+            <div className="pt-6 border-t border-border">
               <TaskSubtasks
                 subTasks={currentSubTasks}
                 onChange={(newSubTasks) => handleSave("subTasks", newSubTasks)}
@@ -624,8 +624,8 @@ export const TaskDetailModal = ({
               isEditing={isEditing}
             />
             {/* Comments */}
-            <div className="space-y-6 pt-6 border-t border-slate-100 pb-10">
-              <h3 className="text-sm font-extrabold uppercase tracking-widest text-slate-400 flex items-center gap-2">
+            <div className="space-y-6 pt-6 border-t border-border pb-10">
+              <h3 className="text-sm font-extrabold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
                 <MessageSquare className="w-4 h-4" /> Trao đổi & Bình luận
               </h3>
               {/* Real Comments Module */}
@@ -639,8 +639,8 @@ export const TaskDetailModal = ({
             </div>
 
             {/* Activity Stream */}
-            <div className="space-y-6 pt-6 border-t border-slate-100 pb-10">
-              <h3 className="text-sm font-extrabold uppercase tracking-widest text-slate-400 flex items-center gap-2">
+            <div className="space-y-6 pt-6 border-t border-border pb-10">
+              <h3 className="text-sm font-extrabold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
                 <Activity className="w-4 h-4" /> Lịch sử hoạt động
               </h3>
               <div className="mt-6">
@@ -650,10 +650,10 @@ export const TaskDetailModal = ({
           </div>
 
           {/* Sidebar Metadata (Right Column) */}
-          <div className="flex-1 min-w-[320px] max-w-[360px] bg-slate-50/80 border-l border-slate-100 overflow-y-auto px-8 py-8 space-y-8">
+          <div className="flex-1 min-w-[320px] max-w-[360px] bg-muted/30 border-l border-border overflow-y-auto px-8 py-8 space-y-8">
             {/* Status */}
             <div className="space-y-2.5">
-              <h4 className="text-[11px] font-extrabold uppercase tracking-widest text-slate-400 flex items-center gap-1.5">
+              <h4 className="text-[11px] font-extrabold uppercase tracking-widest text-muted-foreground flex items-center gap-1.5">
                 <CheckCircle2 className="w-3.5 h-3.5" /> Trạng thái
               </h4>
               {isEditing ? (
@@ -661,21 +661,21 @@ export const TaskDetailModal = ({
                   value={currentStatus || ""}
                   disabled={!canEditMeta}
                   onChange={(e) => handleSave("status", e.target.value)}
-                  className={`w-full appearance-none outline-none flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-white border border-slate-300 text-sm font-bold shadow-sm hover:border-indigo-400 focus:border-indigo-400 focus:ring-4 focus:ring-indigo-50 transition-colors cursor-pointer ${!canEditMeta ? "opacity-70 cursor-not-allowed" : ""}`}
+                  className={`w-full appearance-none outline-none flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-card border border-border text-sm font-bold shadow-sm hover:border-primary focus:border-primary focus:ring-4 focus:ring-primary/10 transition-colors cursor-pointer ${!canEditMeta ? "opacity-70 cursor-not-allowed" : ""}`}
                 >
                   <option value="todo">Cần làm</option>
                   <option value="in_progress">Đang làm</option>
                   <option value="done">Hoàn thành</option>
                 </select>
               ) : (
-                <div className="inline-flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-white border border-slate-200 text-sm font-bold shadow-sm w-full">
+                <div className="inline-flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-card border border-border text-sm font-bold shadow-sm w-full">
                   <div
                     className={`w-2 h-2 rounded-full ${
                       currentStatus === "done"
                         ? "bg-green-500"
                         : currentStatus === "in_progress"
                           ? "bg-blue-500"
-                          : "bg-slate-300"
+                          : "bg-muted-foreground/30"
                     }`}
                   />
                   {statusLabels[currentStatus] || "Chưa rõ"}
@@ -685,7 +685,7 @@ export const TaskDetailModal = ({
 
             {/* Priority */}
             <div className="space-y-2.5">
-              <h4 className="text-[11px] font-extrabold uppercase tracking-widest text-slate-400 flex items-center gap-1.5">
+              <h4 className="text-[11px] font-extrabold uppercase tracking-widest text-muted-foreground flex items-center gap-1.5">
                 <Flag className="w-3.5 h-3.5" /> Độ ưu tiên
               </h4>
               {isEditing ? (
@@ -693,7 +693,7 @@ export const TaskDetailModal = ({
                   value={currentPriority || ""}
                   disabled={!canEditMeta}
                   onChange={(e) => handleSave("priority", e.target.value)}
-                  className={`w-full appearance-none outline-none flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-white border border-slate-300 text-sm font-bold shadow-sm hover:border-indigo-400 focus:border-indigo-400 focus:ring-4 focus:ring-indigo-50 transition-colors cursor-pointer ${!canEditMeta ? "opacity-70 cursor-not-allowed" : ""}`}
+                  className={`w-full appearance-none outline-none flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-card border border-border text-sm font-bold shadow-sm hover:border-primary focus:border-primary focus:ring-4 focus:ring-primary/10 transition-colors cursor-pointer ${!canEditMeta ? "opacity-70 cursor-not-allowed" : ""}`}
                 >
                   <option value="urgent">Khẩn cấp</option>
                   <option value="high">Cao</option>
@@ -701,7 +701,7 @@ export const TaskDetailModal = ({
                   <option value="low">Thấp</option>
                 </select>
               ) : (
-                <div className="inline-flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-white border border-slate-200 text-sm font-bold shadow-sm w-full">
+                <div className="inline-flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-card border border-border text-sm font-bold shadow-sm w-full">
                   {priorityLabels[currentPriority] || "Thường"}
                 </div>
               )}
@@ -709,11 +709,11 @@ export const TaskDetailModal = ({
 
             {/* Task Color */}
             <div className="space-y-2.5">
-              <h4 className="text-[11px] font-extrabold uppercase tracking-widest text-slate-400 flex items-center gap-1.5">
+              <h4 className="text-[11px] font-extrabold uppercase tracking-widest text-muted-foreground flex items-center gap-1.5">
                 <Palette className="w-3.5 h-3.5" /> Màu sắc chủ đề
               </h4>
               {isEditing ? (
-                <div className="flex flex-wrap gap-2 p-2 bg-white rounded-xl border border-slate-200">
+                <div className="flex flex-wrap gap-2 p-2 bg-card rounded-xl border border-border">
                   {PRESET_COLORS.map((c) => (
                     <button
                       key={c}
@@ -724,7 +724,7 @@ export const TaskDetailModal = ({
                         handleSave("color", c);
                       }}
                       className={`w-7 h-7 rounded-full border-2 transition-all hover:scale-110 active:scale-95 ${
-                        currentColor === c ? "border-slate-800 ring-2 ring-slate-100 scale-110" : "border-slate-100 hover:border-slate-300"
+                        currentColor === c ? "border-primary ring-2 ring-primary/20 scale-110" : "border-transparent hover:border-muted-foreground/30"
                       }`}
                       style={{ backgroundColor: c }}
                       title={c}
@@ -732,21 +732,21 @@ export const TaskDetailModal = ({
                   ))}
                 </div>
               ) : (
-                <div className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-white border border-slate-200 shadow-sm w-full">
+                <div className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-card border border-border shadow-sm w-full">
                   <div className="w-4 h-4 rounded-full" style={{ backgroundColor: currentColor || '#cbd5e1' }} />
-                  <span className="text-sm font-bold text-slate-700">Màu chủ đề</span>
+                  <span className="text-sm font-bold text-foreground">Màu chủ đề</span>
                 </div>
               )}
             </div>
 
             {/* Date Range (Start/End) */}
             <div className="space-y-2.5">
-              <h4 className="text-[11px] font-extrabold uppercase tracking-widest text-slate-400 flex items-center gap-1.5">
+              <h4 className="text-[11px] font-extrabold uppercase tracking-widest text-muted-foreground flex items-center gap-1.5">
                 <Clock className="w-3.5 h-3.5" /> Khoảng thời gian
               </h4>
               {isEditing ? (
                 <div className="grid grid-cols-2 gap-2">
-                  <div className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white border border-slate-300 focus-within:border-indigo-400 focus-within:ring-4 focus-within:ring-indigo-50 shadow-sm w-full relative transition-all">
+                  <div className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-card border border-border focus-within:border-primary focus-within:ring-4 focus-within:ring-primary/10 shadow-sm w-full relative transition-all">
                     <input
                       type="datetime-local"
                       disabled={!canEditMeta}
@@ -758,10 +758,10 @@ export const TaskDetailModal = ({
                       onChange={(e) => {
                         handleSave("startDate", e.target.value ? new Date(e.target.value).toISOString() : null);
                       }}
-                      className="w-full text-[13px] font-bold text-slate-700 bg-transparent border-none p-0 focus:ring-0 focus:outline-none cursor-pointer"
+                      className="w-full text-[13px] font-bold text-foreground bg-transparent border-none p-0 focus:ring-0 focus:outline-none cursor-pointer"
                     />
                   </div>
-                  <div className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white border border-slate-300 focus-within:border-indigo-400 focus-within:ring-4 focus-within:ring-indigo-50 shadow-sm w-full relative transition-all">
+                  <div className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-card border border-border focus-within:border-primary focus-within:ring-4 focus-within:ring-primary/10 shadow-sm w-full relative transition-all">
                     <input
                       type="datetime-local"
                       disabled={!canEditMeta}
@@ -773,21 +773,21 @@ export const TaskDetailModal = ({
                       onChange={(e) => {
                         handleSave("endDate", e.target.value ? new Date(e.target.value).toISOString() : null);
                       }}
-                      className="w-full text-[13px] font-bold text-slate-700 bg-transparent border-none p-0 focus:ring-0 focus:outline-none cursor-pointer"
+                      className="w-full text-[13px] font-bold text-foreground bg-transparent border-none p-0 focus:ring-0 focus:outline-none cursor-pointer"
                     />
                   </div>
                 </div>
               ) : (
-                <div className="flex flex-col gap-1.5 px-3.5 py-2.5 rounded-xl bg-white border border-slate-200 shadow-sm w-full">
+                <div className="flex flex-col gap-1.5 px-3.5 py-2.5 rounded-xl bg-card border border-border shadow-sm w-full">
                   <div className="flex items-center justify-between text-[13px]">
-                    <span className="text-slate-400">Bắt đầu:</span>
-                    <span className="font-bold text-slate-700">
+                    <span className="text-muted-foreground">Bắt đầu:</span>
+                    <span className="font-bold text-foreground">
                       {editedTask.startDate ? new Date(editedTask.startDate).toLocaleString("vi-VN", { dateStyle: 'short', timeStyle: 'short' }) : "---"}
                     </span>
                   </div>
                   <div className="flex items-center justify-between text-[13px]">
-                    <span className="text-slate-400">Kết thúc:</span>
-                    <span className="font-bold text-slate-700">
+                    <span className="text-muted-foreground">Kết thúc:</span>
+                    <span className="font-bold text-foreground">
                       {editedTask.endDate ? new Date(editedTask.endDate).toLocaleString("vi-VN", { dateStyle: 'short', timeStyle: 'short' }) : "---"}
                     </span>
                   </div>
@@ -797,11 +797,11 @@ export const TaskDetailModal = ({
 
             {/* Due Date */}
             <div className="space-y-2.5">
-              <h4 className="text-[11px] font-extrabold uppercase tracking-widest text-slate-400 flex items-center gap-1.5">
+              <h4 className="text-[11px] font-extrabold uppercase tracking-widest text-muted-foreground flex items-center gap-1.5">
                 <Clock className="w-3.5 h-3.5" /> Hạn chót
               </h4>
               {isEditing ? (
-                <div className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white border border-slate-300 focus-within:border-indigo-400 focus-within:ring-4 focus-within:ring-indigo-50 shadow-sm w-full relative transition-all">
+                <div className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-card border border-border focus-within:border-primary focus-within:ring-4 focus-within:ring-primary/10 shadow-sm w-full relative transition-all">
                   <input
                     type="datetime-local"
                     disabled={!canEditMeta}
@@ -816,12 +816,12 @@ export const TaskDetailModal = ({
                         : null;
                       handleSave("dueDate", newDate);
                     }}
-                    className={`w-full text-[14px] font-bold text-slate-700 bg-transparent border-none p-0 focus:ring-0 focus:outline-none cursor-pointer ${!canEditMeta ? "cursor-not-allowed" : ""}`}
+                    className={`w-full text-[14px] font-bold text-foreground bg-transparent border-none p-0 focus:ring-0 focus:outline-none cursor-pointer ${!canEditMeta ? "cursor-not-allowed" : ""}`}
                   />
                   {editedTask.dueDate && canEditMeta && (
                     <button
                       onClick={() => handleSave("dueDate", null)}
-                      className="absolute right-3 text-slate-400 hover:text-red-500 transition-colors bg-white flex items-center justify-center"
+                      className="absolute right-3 text-muted-foreground hover:text-red-500 transition-colors bg-card flex items-center justify-center"
                       title="Xóa ngày"
                     >
                       <X className="w-4 h-4" />
@@ -829,9 +829,9 @@ export const TaskDetailModal = ({
                   )}
                 </div>
               ) : (
-                <div className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-white border border-slate-200 shadow-sm w-full">
+                <div className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-card border border-border shadow-sm w-full">
                   {editedTask.dueDate ? (
-                    <span className="text-[14px] font-bold text-slate-700">
+                    <span className="text-[14px] font-bold text-foreground">
                       {new Date(editedTask.dueDate).toLocaleDateString(
                         "vi-VN",
                         {
@@ -843,7 +843,7 @@ export const TaskDetailModal = ({
                       )}
                     </span>
                   ) : (
-                    <span className="text-[14px] font-medium text-slate-400 italic">
+                    <span className="text-[14px] font-medium text-muted-foreground italic">
                       Không có hạn chót
                     </span>
                   )}
@@ -853,7 +853,7 @@ export const TaskDetailModal = ({
 
             {/* Assignee */}
             <div className="space-y-2.5">
-              <h4 className="text-[11px] font-extrabold uppercase tracking-widest text-slate-400 flex items-center gap-1.5">
+              <h4 className="text-[11px] font-extrabold uppercase tracking-widest text-muted-foreground flex items-center gap-1.5">
                 <UserIcon className="w-3.5 h-3.5" /> Người thực hiện
               </h4>
               <div className="flex flex-wrap gap-2">
@@ -867,9 +867,9 @@ export const TaskDetailModal = ({
                     return (
                       <div
                         key={assigneeId}
-                        className="flex items-center gap-1.5 bg-white border border-slate-200 shadow-sm px-2 py-1 rounded-full text-xs font-bold text-slate-700"
+                        className="flex items-center gap-1.5 bg-card border border-border shadow-sm px-2 py-1 rounded-full text-xs font-bold text-foreground"
                       >
-                        <div className="w-5 h-5 rounded-full bg-slate-200 overflow-hidden flex items-center justify-center">
+                        <div className="w-5 h-5 rounded-full bg-muted overflow-hidden flex items-center justify-center">
                           {member.avatarUrl ? (
                             <img
                               src={member.avatarUrl}
@@ -877,7 +877,7 @@ export const TaskDetailModal = ({
                               className="w-full h-full object-cover"
                             />
                           ) : (
-                            <UserIcon className="w-3 h-3 text-slate-500" />
+                            <UserIcon className="w-3 h-3 text-muted-foreground" />
                           )}
                         </div>
                         <span className="truncate max-w-[100px]">
@@ -894,7 +894,7 @@ export const TaskDetailModal = ({
                                 )?.filter((id) => id !== assigneeId),
                               )
                             }
-                            className="text-slate-400 hover:text-red-500 ml-0.5"
+                            className="text-muted-foreground hover:text-red-500 ml-0.5"
                           >
                             <X className="w-3 h-3" />
                           </button>
@@ -906,30 +906,30 @@ export const TaskDetailModal = ({
                 {(!editedTask.assignees ||
                   (editedTask.assignees as unknown as string[]).length === 0) &&
                   !isEditing && (
-                    <span className="text-sm font-medium text-slate-400 italic">
+                    <span className="text-sm font-medium text-muted-foreground italic">
                       Chưa giao việc
                     </span>
                   )}
 
-                {isEditing && canEditMeta && (
+                 {isEditing && canEditMeta && (
                   <div className="relative ml-auto" ref={assigneeRef}>
                     <Button
                       type="button"
                       variant="ghost"
-                      className="h-7 px-2 text-slate-500 hover:bg-slate-50 text-xs gap-1 border border-dashed border-slate-300 flex items-center justify-center font-bold"
+                      className="h-7 px-2 text-muted-foreground hover:bg-muted text-xs gap-1 border border-dashed border-border flex items-center justify-center font-bold"
                       onClick={() => setIsAssigneeOpen(!isAssigneeOpen)}
                     >
                       <Plus className="w-3.5 h-3.5" /> Thêm người
                     </Button>
 
                     {isAssigneeOpen && (
-                      <div className="absolute top-full mt-1.5 right-0 w-[240px] bg-white border border-slate-200 rounded-xl shadow-xl z-50 overflow-hidden flex flex-col animate-in fade-in-0 slide-in-from-top-2">
-                        <div className="p-2 border-b border-slate-100 bg-slate-50/50">
+                      <div className="absolute top-full mt-1.5 right-0 w-[240px] bg-card border border-border rounded-xl shadow-xl z-50 overflow-hidden flex flex-col animate-in fade-in-0 slide-in-from-top-2">
+                        <div className="p-2 border-b border-border bg-muted/50">
                           <input
                             placeholder="Tìm kiếm thành viên..."
                             value={searchAssignee}
                             onChange={(e) => setSearchAssignee(e.target.value)}
-                            className="flex h-8 w-full rounded-md border border-slate-200 bg-white px-3 py-1 text-[13px] shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-indigo-400 disabled:cursor-not-allowed disabled:opacity-50"
+                            className="flex h-8 w-full rounded-md border border-border bg-card px-3 py-1 text-[13px] shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary disabled:cursor-not-allowed disabled:opacity-50"
                             autoFocus
                           />
                         </div>
@@ -955,9 +955,9 @@ export const TaskDetailModal = ({
                               );
                             });
 
-                            if (filtered.length === 0) {
+                             if (filtered.length === 0) {
                               return (
-                                <div className="p-4 text-[13px] text-slate-500 text-center italic">
+                                <div className="p-4 text-[13px] text-muted-foreground text-center italic">
                                   Không tìm thấy thành viên
                                 </div>
                               );
@@ -968,7 +968,7 @@ export const TaskDetailModal = ({
                               return (
                                 <div
                                   key={member._id}
-                                  className="flex items-center gap-2.5 px-2.5 py-1.5 hover:bg-slate-100 rounded-lg cursor-pointer transition-colors"
+                                  className="flex items-center gap-2.5 px-2.5 py-1.5 hover:bg-muted rounded-lg cursor-pointer transition-colors"
                                   onClick={() => {
                                     handleSave("assignees", [
                                       ...currentAssignees,
@@ -977,7 +977,7 @@ export const TaskDetailModal = ({
                                     setSearchAssignee("");
                                   }}
                                 >
-                                  <div className="w-6 h-6 rounded-full bg-slate-200 overflow-hidden flex items-center justify-center shrink-0 border border-slate-300/50">
+                                  <div className="w-6 h-6 rounded-full bg-muted overflow-hidden flex items-center justify-center shrink-0 border border-border">
                                     {member.avatarUrl ? (
                                       <img
                                         src={member.avatarUrl}
@@ -985,11 +985,11 @@ export const TaskDetailModal = ({
                                         className="w-full h-full object-cover"
                                       />
                                     ) : (
-                                      <UserIcon className="w-3.5 h-3.5 text-slate-400" />
+                                      <UserIcon className="w-3.5 h-3.5 text-muted-foreground" />
                                     )}
                                   </div>
                                   <div className="flex flex-col text-left overflow-hidden">
-                                    <span className="text-[13px] font-bold text-slate-700 truncate">
+                                    <span className="text-[13px] font-bold text-foreground truncate">
                                       {member.displayName ||
                                         member.email.split("@")[0]}
                                     </span>
@@ -1006,26 +1006,26 @@ export const TaskDetailModal = ({
               </div>
             </div>
 
-            {/* Color Tag */}
+             {/* Color Tag */}
             <div className="space-y-3.5 pt-2">
-              <h4 className="text-[11px] font-extrabold uppercase tracking-widest text-slate-400 flex items-center gap-1.5">
+              <h4 className="text-[11px] font-extrabold uppercase tracking-widest text-muted-foreground flex items-center gap-1.5">
                 <Palette className="w-3.5 h-3.5" /> Màu thẻ nhận diện
               </h4>
 
-              <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+              <div className="bg-card p-4 rounded-2xl border border-border shadow-sm">
                 {isEditing && canEditMeta && (
                   <div className="flex flex-wrap gap-2.5 mb-5">
                     {PRESET_COLORS.map((c, i) => (
                       <div
                         key={`${c}-${i}`}
                         onClick={() => handleSave("color", c)}
-                        className={`w-8 h-8 rounded-xl cursor-pointer transition-all duration-200 hover:scale-110 hover:shadow-md ${currentColor === c ? "ring-2 ring-indigo-500 ring-offset-2 scale-110 shadow-sm" : "border border-black/10"}`}
+                        className={`w-8 h-8 rounded-xl cursor-pointer transition-all duration-200 hover:scale-110 hover:shadow-md ${currentColor === c ? "ring-2 ring-primary ring-offset-2 scale-110 shadow-sm" : "border border-black/10"}`}
                         style={{ backgroundColor: c }}
                         title={c}
                       />
                     ))}
                     <div
-                      className="relative w-8 h-8 rounded-xl border-2 border-dashed border-slate-300 flex items-center justify-center cursor-pointer hover:bg-slate-100 hover:border-slate-400 transition-all text-slate-400 hover:text-slate-600 outline-none"
+                      className="relative w-8 h-8 rounded-xl border-2 border-dashed border-border flex items-center justify-center cursor-pointer hover:bg-muted hover:border-muted-foreground/50 transition-all text-muted-foreground hover:text-foreground outline-none"
                       title="Màu tự chọn"
                     >
                       <input
@@ -1038,20 +1038,20 @@ export const TaskDetailModal = ({
                     </div>
                   </div>
                 )}
-                <div
-                  className={`flex items-center gap-3 ${isEditing ? "pt-3 border-t border-slate-100" : ""}`}
+                 <div
+                  className={`flex items-center gap-3 ${isEditing ? "pt-3 border-t border-border" : ""}`}
                 >
                   {isEditing && (
-                    <span className="text-[13px] font-bold text-slate-500">
+                    <span className="text-[13px] font-bold text-muted-foreground">
                       Mã màu:
                     </span>
                   )}
-                  <div className="flex items-center gap-2 px-2 py-1 bg-slate-50 rounded-lg border border-slate-100">
+                  <div className="flex items-center gap-2 px-2 py-1 bg-muted rounded-lg border border-border">
                     <div
                       className="w-4 h-4 rounded-md shadow-sm border border-black/10"
                       style={{ backgroundColor: currentColor || "#ec4899" }}
                     />
-                    <span className="text-xs font-mono font-semibold text-slate-600 uppercase">
+                    <span className="text-xs font-mono font-semibold text-foreground uppercase">
                       {currentColor || "#ec4899"}
                     </span>
                   </div>

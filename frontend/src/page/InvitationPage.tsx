@@ -44,10 +44,10 @@ const InvitationPage = () => {
 
   if (isLoading) {
     return (
-      <div className="flex flex-col items-center justify-center h-screen bg-slate-50">
-        <div className="bg-white p-8 rounded-2xl shadow-sm flex flex-col items-center border border-slate-100">
-          <Loader2 className="h-10 w-10 animate-spin text-indigo-600 mb-4" />
-          <p className="text-slate-600 font-bold">Đang xác thực lời mời...</p>
+      <div className="flex flex-col items-center justify-center h-screen bg-background">
+        <div className="bg-card p-8 rounded-2xl shadow-sm flex flex-col items-center border border-border">
+          <Loader2 className="h-10 w-10 animate-spin text-primary mb-4" />
+          <p className="text-foreground font-bold">Đang xác thực lời mời...</p>
         </div>
       </div>
     );
@@ -59,17 +59,17 @@ const InvitationPage = () => {
   if (error || !project) {
     const errorMsg = getErrorMessage(error);
     return (
-      <div className="flex flex-col items-center justify-center h-screen bg-slate-50 p-6 text-center">
-        <div className="max-w-md bg-white p-10 rounded-3xl shadow-xl border border-red-50">
-          <div className="w-20 h-20 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-6">
-            <AlertCircle className="h-10 w-10 text-red-500" />
+      <div className="flex flex-col items-center justify-center h-screen bg-background p-6 text-center">
+        <div className="max-w-md bg-card p-10 rounded-3xl shadow-xl border border-border">
+          <div className="w-20 h-20 bg-destructive/10 rounded-full flex items-center justify-center mx-auto mb-6">
+            <AlertCircle className="h-10 w-10 text-destructive" />
           </div>
-          <h2 className="text-2xl font-black text-slate-800 mb-3">
+          <h2 className="text-2xl font-black text-foreground mb-3">
             Lỗi truy cập
           </h2>
-          <p className="text-slate-500 mb-8 leading-relaxed">{errorMsg}</p>
+          <p className="text-muted-foreground mb-8 leading-relaxed">{errorMsg}</p>
           <Button
-            className="w-full h-12 rounded-xl font-bold bg-slate-800 hover:bg-slate-900 shadow-lg shadow-slate-200"
+            className="w-full h-12 rounded-xl font-bold bg-primary hover:bg-primary/90 shadow-lg shadow-primary/10"
             onClick={() => navigate(ROUTES.PROJECTS)}
           >
             Quay lại trang chủ
@@ -93,7 +93,7 @@ const InvitationPage = () => {
                   className="w-full h-full object-cover"
                 />
               ) : (
-                <div className="w-full h-full flex items-center justify-center text-xl font-bold bg-indigo-100 text-indigo-600">
+                <div className="w-full h-full flex items-center justify-center text-xl font-bold bg-primary/10 text-primary">
                   {owner?.displayName?.charAt(0).toUpperCase()}
                 </div>
               )}
@@ -125,12 +125,12 @@ const InvitationPage = () => {
 
         {/* Text Content */}
         <div className="space-y-2">
-          <p className="text-lg">
-            <span className="font-semibold text-foreground">
+          <p className="text-lg text-foreground">
+            <span className="font-semibold">
               {owner?.displayName || "Một thành viên"}
             </span>{" "}
             mời bạn cộng tác vào{" "}
-            <span className="font-semibold text-foreground">
+            <span className="font-semibold italic">
               {project.name}
             </span>
           </p>
@@ -139,7 +139,7 @@ const InvitationPage = () => {
         {/* Action Buttons */}
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
           <Button
-            className="px-8 h-10 bg-[#1f883d] hover:bg-[#1a7f37] text-white font-semibold rounded-md shadow-sm transition-colors border-[#1f883d]"
+            className="px-8 h-10 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-md shadow-sm transition-colors border-green-600"
             onClick={() => respondMutation.mutate("accept")}
             disabled={respondMutation.isPending}
           >
@@ -152,7 +152,7 @@ const InvitationPage = () => {
           </Button>
           <Button
             variant="outline"
-            className="px-8 h-10 bg-[#f6f8fa] hover:bg-[#f3f4f6] text-[#24292f] border-[#d0d7de] font-semibold rounded-md shadow-sm"
+            className="px-8 h-10 bg-muted hover:bg-muted/80 text-foreground border-border font-semibold rounded-md shadow-sm"
             onClick={() => respondMutation.mutate("decline")}
             disabled={respondMutation.isPending}
           >
@@ -166,12 +166,12 @@ const InvitationPage = () => {
         </div>
 
         {/* Info/Permissions Section */}
-        <div className="pt-8 border-t text-left max-w-[400px] mx-auto space-y-6">
+        <div className="pt-8 border-t border-border text-left max-w-[400px] mx-auto space-y-6">
           <div className="space-y-4">
             <div className="flex items-start gap-3">
               <Users className="w-5 h-5 text-muted-foreground mt-0.5" />
               <div className="space-y-1">
-                <p className="text-sm font-semibold">
+                <p className="text-sm font-semibold text-foreground">
                   Chủ sở hữu của dự án có thể thấy:
                 </p>
                 <ul className="text-sm text-muted-foreground space-y-1.5 list-disc list-inside">
@@ -193,8 +193,7 @@ const InvitationPage = () => {
 
         {/* Footer */}
         <div className="pt-12 flex items-center justify-center gap-6 opacity-60 grayscale">
-          {/* Add some dummy logos or app logo if available */}
-          <p className="text-xs font-medium tracking-widest uppercase">
+          <p className="text-xs font-medium tracking-widest uppercase text-muted-foreground">
             ToDoList App &copy; 2025
           </p>
         </div>

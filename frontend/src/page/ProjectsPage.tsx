@@ -52,10 +52,10 @@ const ProjectsPage = () => {
       <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between px-8 py-8 border-b bg-background/80 backdrop-blur-md sticky top-0">
         <div className="mb-4 md:mb-0">
           <h1 className="text-4xl font-black tracking-tight text-foreground bg-clip-text text-transparent bg-gradient-to-r from-foreground to-foreground/70">
-            Projects
+            Dự án
           </h1>
           <p className="text-muted-foreground mt-1.5 font-medium">
-            Manage your workspace and collaborate with your team.
+            Quản lý không gian làm việc và cộng tác với nhóm của bạn.
           </p>
         </div>
         
@@ -65,7 +65,7 @@ const ProjectsPage = () => {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground transition-colors group-focus-within:text-primary" />
             <input
               type="text"
-              placeholder="Search projects..."
+              placeholder="Tìm kiếm dự án..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full h-10 pl-9 pr-9 bg-muted/30 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-300"
@@ -87,7 +87,7 @@ const ProjectsPage = () => {
               onClick={() => setFilter("active")}
               className={`px-4 rounded-lg font-bold transition-all duration-300 ${filter === "active" ? "shadow-sm" : ""}`}
             >
-              Active
+              Đang hoạt động
             </Button>
             <Button
               variant={filter === "pending" ? "secondary" : "ghost"}
@@ -95,7 +95,7 @@ const ProjectsPage = () => {
               onClick={() => setFilter("pending")}
               className={`px-4 rounded-lg font-bold transition-all duration-300 ${filter === "pending" ? "shadow-sm" : ""}`}
             >
-              Invites
+              Lời mời
             </Button>
           </div>
 
@@ -123,7 +123,7 @@ const ProjectsPage = () => {
             onClick={() => setIsCreateModalOpen(true)}
           >
             <Plus className="mr-2 h-5 w-5" />
-            New Project
+            Thêm dự án
           </Button>
         </div>
       </div>
@@ -136,11 +136,11 @@ const ProjectsPage = () => {
               <div className="absolute inset-0 bg-primary/20 rounded-full blur-xl animate-pulse" />
               <Loader2 className="h-12 w-12 animate-spin text-primary relative z-10" />
             </div>
-            <p className="font-bold tracking-widest uppercase text-xs opacity-50">Synchronizing Workspace...</p>
+            <p className="font-bold tracking-widest uppercase text-xs opacity-50">Đang đồng bộ không gian làm việc...</p>
           </div>
         ) : error ? (
           <div className="flex flex-col items-center justify-center h-full text-destructive p-8 border-2 border-destructive/20 border-dashed rounded-3xl bg-destructive/5 m-4">
-            <p className="font-bold">Failed to load projects. Please try again.</p>
+            <p className="font-bold">Không thể tải dự án. Vui lòng thử lại.</p>
           </div>
         ) : projects.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full space-y-6 border-2 border-dashed rounded-[2.5rem] p-16 bg-muted/10 backdrop-blur-sm animate-in zoom-in-95 duration-500">
@@ -150,17 +150,17 @@ const ProjectsPage = () => {
             <div className="text-center max-w-sm">
               <h3 className="text-2xl font-black text-foreground">
                 {searchTerm 
-                  ? "No results found"
+                  ? "Không tìm thấy kết quả"
                   : filter === "active"
-                    ? "No projects yet"
-                    : "No pending invites"}
+                    ? "Chưa có dự án nào"
+                    : "Không có lời mời nào"}
               </h3>
               <p className="text-muted-foreground mt-3 leading-relaxed">
                 {searchTerm
-                  ? `No projects found matching "${searchTerm}". Try using a different search term.`
+                  ? `Không tìm thấy dự án nào khớp với "${searchTerm}". Hãy thử từ khóa khác.`
                   : filter === "active"
-                    ? "Your workspace is empty. Create your first project to start tracking your tasks."
-                    : "Collaborations will appear here once you've been invited to a project."}
+                    ? "Không gian làm việc của bạn đang trống. Hãy tạo dự án đầu tiên để bắt đầu theo dõi công việc."
+                    : "Các cộng tác sẽ xuất hiện ở đây khi bạn được mời tham gia dự án."}
               </p>
             </div>
             {(filter === "active" || searchTerm) && (
@@ -172,7 +172,7 @@ const ProjectsPage = () => {
                 }}
               >
                 {searchTerm ? <X className="mr-2 h-6 w-6" /> : <Plus className="mr-2 h-6 w-6" />}
-                {searchTerm ? "Clear Search" : "Initialize Project"}
+                {searchTerm ? "Xóa tìm kiếm" : "Khởi tạo dự án"}
               </Button>
             )}
           </div>
@@ -187,15 +187,13 @@ const ProjectsPage = () => {
               animate-in slide-in-from-bottom-4 duration-700
             `}
           >
-            {projects.map((project) => {
-              return (
+            {projects.map((project) => (
                 <ProjectItem
                   key={project._id}
                   project={project}
                   viewMode={viewMode}
                 />
-              );
-            })}
+            ))}
           </div>
         )}
       </div>

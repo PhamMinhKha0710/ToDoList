@@ -3,11 +3,15 @@ import type { Kanban } from '@/types/kanban';
 
 export const useKanbanStore = create<Kanban>()((set, get) => ({
   activeProject: null,
+  isActivityOpen: false,
+  isReplayOpen: false,
   columns: [],
   tasks: {},
   members: [],
 
   setActiveProject: (project) => set({ activeProject: project }),
+  setIsActivityOpen: (isOpen) => set({ isActivityOpen: isOpen }),
+  setIsReplayOpen: (isOpen) => set({ isReplayOpen: isOpen }),
   setColumns: (columns) => set({ columns }),
   setMembers: (members) => set({ members }),
 
@@ -170,4 +174,3 @@ export const useKanbanStore = create<Kanban>()((set, get) => ({
 
   handleColumnsReordered: (columns: any[]) => set({ columns }),
 }));
-

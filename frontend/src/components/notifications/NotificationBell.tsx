@@ -42,26 +42,26 @@ export const NotificationBell = () => {
         <Button
           variant="ghost"
           size="icon"
-          className="relative hover:bg-slate-100 rounded-full w-10 h-10 transition-colors focus-visible:ring-0"
+          className="relative hover:bg-accent rounded-full w-10 h-10 transition-colors focus-visible:ring-0"
         >
-          <Bell className="w-5 h-5 text-slate-600" />
+          <Bell className="w-5 h-5 text-muted-foreground" />
           {unreadCount > 0 && (
             <Badge
-              className="absolute -top-1 -right-1 px-1.5 py-0.5 min-w-[18px] h-[18px] flex items-center justify-center bg-red-500 hover:bg-red-600 border-2 border-white text-[10px] font-bold"
+              className="absolute -top-1 -right-1 px-1.5 py-0.5 min-w-[18px] h-[18px] flex items-center justify-center bg-red-500 hover:bg-red-600 border-2 border-background text-[10px] font-bold"
             >
               {unreadCount > 99 ? "99+" : unreadCount}
             </Badge>
           )}
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent className="w-80 p-0 mr-4 mt-2 shadow-xl border-slate-200 rounded-2xl overflow-hidden" align="end">
-        <div className="flex items-center justify-between p-4 border-b border-slate-100 bg-white">
-          <h3 className="font-bold text-slate-900">Thông báo</h3>
+      <DropdownMenuContent className="w-80 p-0 mr-4 mt-2 shadow-xl border-border rounded-2xl overflow-hidden bg-card" align="end">
+        <div className="flex items-center justify-between p-4 border-b border-border bg-card">
+          <h3 className="font-bold text-foreground">Thông báo</h3>
           {unreadCount > 0 && (
             <Button
               variant="ghost"
               size="sm"
-              className="text-xs text-indigo-600 hover:text-indigo-700 font-bold h-auto p-0"
+              className="text-xs text-primary hover:text-primary/80 font-bold h-auto p-0"
               onClick={async (e) => {
                 e.stopPropagation();
                 await notificationService.markAllAsRead();
@@ -75,9 +75,9 @@ export const NotificationBell = () => {
             </Button>
           )}
         </div>
-        <div className="max-h-[400px] overflow-y-auto custom-scrollbar">
+        <div className="max-h-[400px] overflow-y-auto custom-scrollbar bg-card">
           {isLoading ? (
-            <div className="flex items-center justify-center py-10 text-slate-400">
+            <div className="flex items-center justify-center py-10 text-muted-foreground">
               <Loader2 className="w-5 h-5 animate-spin mr-2" />
               Đang tải...
             </div>

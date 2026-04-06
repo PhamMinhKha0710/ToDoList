@@ -484,8 +484,8 @@ export const KanbanBoard = ({ projectId }: KanbanBoardProps) => {
                </div>
             </div>
             <div className="space-y-3 opacity-50">
-               <div className="h-20 w-full bg-slate-100 rounded-lg border border-dashed border-slate-300" />
-               <div className="h-20 w-full bg-slate-100 rounded-lg border border-dashed border-slate-300" />
+               <div className="h-20 w-full bg-muted rounded-lg border border-dashed border-border" />
+               <div className="h-20 w-full bg-muted rounded-lg border border-dashed border-border" />
             </div>
           </div>
         )}

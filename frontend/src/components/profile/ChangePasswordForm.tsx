@@ -95,27 +95,27 @@ export default function ChangePasswordForm() {
   const strength = getPasswordStrength(newPassword);
 
   return (
-    <Card className="shadow-sm border-slate-200">
+    <Card className="shadow-sm border-border bg-card">
       <CardHeader>
-        <CardTitle className="text-xl text-slate-900 flex items-center gap-2">
-          <ShieldCheck className="text-indigo-600" size={24} />
+        <CardTitle className="text-xl flex items-center gap-2 text-foreground">
+          <ShieldCheck className="text-primary" size={24} />
           Tùy chọn Bảo mật
         </CardTitle>
-        <CardDescription>Quản lý mật khẩu và các phương thức xác thực của bạn.</CardDescription>
+        <CardDescription className="text-muted-foreground">Quản lý mật khẩu và các phương thức xác thực của bạn.</CardDescription>
       </CardHeader>
       <CardContent className="space-y-8">
         
         {/* Password Section */}
-        <div className="space-y-4 border rounded-xl p-5 border-slate-100 bg-slate-50/50">
+        <div className="space-y-4 border rounded-xl p-5 border-border bg-muted/30">
           <div className="flex flex-col sm:flex-row gap-4 sm:justify-between sm:items-center">
             <div>
-              <h4 className="font-medium text-slate-900 text-sm">Đổi mật khẩu</h4>
-              <p className="text-sm text-slate-500">Cập nhật mật khẩu tài khoản của bạn</p>
+              <h4 className="font-medium text-foreground text-sm">Đổi mật khẩu</h4>
+              <p className="text-sm text-muted-foreground">Cập nhật mật khẩu tài khoản của bạn</p>
             </div>
             <Button 
               variant="outline" 
               onClick={() => setIsChangingPassword(!isChangingPassword)}
-              className="w-full sm:w-auto bg-white hover:bg-slate-50 text-slate-700"
+              className="w-full sm:w-auto border-border text-foreground hover:bg-muted"
             >
               <KeyRound className="w-4 h-4 mr-2" />
               {isChangingPassword ? "Hủy" : "Đổi mật khẩu"}
@@ -126,23 +126,23 @@ export default function ChangePasswordForm() {
             <div className="overflow-hidden">
               <form onSubmit={handleSubmit(onSubmit)} className="space-y-5 pt-2">
                 <div className="space-y-2">
-                  <Label htmlFor="currentPassword">Mật khẩu hiện tại</Label>
+                  <Label htmlFor="currentPassword" className="text-foreground">Mật khẩu hiện tại</Label>
                   <Input 
                     id="currentPassword" 
                     type="password" 
                     {...register("currentPassword")} 
-                    className="bg-white focus-visible:ring-indigo-500" 
+                    className="focus-visible:ring-primary bg-background border-border text-foreground" 
                   />
                   {errors.currentPassword && <p className="text-xs text-red-500">{errors.currentPassword.message}</p>}
                 </div>
                 
                 <div className="space-y-2">
-                  <Label htmlFor="newPassword">Mật khẩu mới</Label>
+                  <Label htmlFor="newPassword" className="text-foreground">Mật khẩu mới</Label>
                   <Input 
                     id="newPassword" 
                     type="password" 
                     {...register("newPassword")} 
-                    className="bg-white focus-visible:ring-indigo-500" 
+                    className="focus-visible:ring-primary bg-background border-border text-foreground" 
                   />
                   {errors.newPassword && <p className="text-xs text-red-500">{errors.newPassword.message}</p>}
                   
@@ -151,8 +151,8 @@ export default function ChangePasswordForm() {
                     <div className="flex items-center gap-3 mt-2">
                       <div className="flex-1 flex gap-1 h-1.5">
                         <div className={`flex-1 rounded-full ${strength.color}`}></div>
-                        <div className={`flex-1 rounded-full ${strength.label === 'Trung bình' || strength.label === 'Mạnh' ? strength.color : 'bg-slate-200'}`}></div>
-                        <div className={`flex-1 rounded-full ${strength.label === 'Mạnh' ? strength.color : 'bg-slate-200'}`}></div>
+                        <div className={`flex-1 rounded-full ${strength.label === 'Trung bình' || strength.label === 'Mạnh' ? strength.color : 'bg-muted'}`}></div>
+                        <div className={`flex-1 rounded-full ${strength.label === 'Mạnh' ? strength.color : 'bg-muted'}`}></div>
                       </div>
                       <span className={`text-xs font-medium w-max text-right ${strength.text}`}>
                         {strength.label}
@@ -162,18 +162,18 @@ export default function ChangePasswordForm() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="confirmPassword">Xác nhận mật khẩu mới</Label>
+                  <Label htmlFor="confirmPassword" className="text-foreground">Xác nhận mật khẩu mới</Label>
                   <Input 
                     id="confirmPassword" 
                     type="password" 
                     {...register("confirmPassword")} 
-                    className="bg-white focus-visible:ring-indigo-500" 
+                    className="focus-visible:ring-primary bg-background border-border text-foreground" 
                   />
                   {errors.confirmPassword && <p className="text-xs text-red-500">{errors.confirmPassword.message}</p>}
                 </div>
 
                 <div className="pt-2">
-                  <Button type="submit" disabled={isRequestingOtp} className="bg-indigo-600 hover:bg-indigo-700 text-white w-full sm:w-auto">
+                  <Button type="submit" disabled={isRequestingOtp} className="w-full sm:w-auto bg-primary text-primary-foreground hover:bg-primary/90">
                     {isRequestingOtp && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
                     Cập nhật mật khẩu
                   </Button>
@@ -184,13 +184,13 @@ export default function ChangePasswordForm() {
         </div>
 
         {/* 2FA Section */}
-        <div className="flex items-start sm:items-center justify-between gap-4 p-5 rounded-xl border border-slate-100 bg-white shadow-sm">
+        <div className="flex items-start sm:items-center justify-between gap-4 p-5 rounded-xl border border-border bg-card shadow-sm">
           <div className="space-y-1">
-            <h4 className="font-medium text-slate-900 flex items-center gap-2">
+            <h4 className="font-medium text-foreground flex items-center gap-2">
               Xác thực 2 yếu tố (2FA)
-              {is2faActive && <span className="text-[10px] font-bold tracking-wider uppercase bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full">Đang bật</span>}
+              {is2faActive && <span className="text-[10px] font-bold tracking-wider uppercase bg-emerald-500/10 text-emerald-500 px-2 py-0.5 rounded-full">Đang bật</span>}
             </h4>
-            <p className="text-sm text-slate-500">
+            <p className="text-sm text-muted-foreground">
               Thêm một lớp bảo mật bổ sung cho tài khoản của bạn.
             </p>
           </div>
@@ -207,8 +207,8 @@ export default function ChangePasswordForm() {
               }
               setShow2FASetupModal(true);
             }}
-            className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:ring-offset-2 ${
-              is2faActive ? 'bg-indigo-600' : 'bg-slate-200'
+            className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${
+              is2faActive ? 'bg-primary' : 'bg-muted'
             }`}
           >
             <span

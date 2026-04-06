@@ -128,8 +128,7 @@ export const TaskComments = ({
       setReplyingTo(null);
       setMentions([]);
     },
-    onError: (error) => {
-      // toast.error(getErrorMessage(error) || "Lỗi khi gửi bình luận");
+    onError: (error: any) => {
       toast.error(error?.message || "Lỗi khi gửi bình luận");
     },
   });
@@ -196,7 +195,7 @@ export const TaskComments = ({
       <div key={node._id} className="w-full mb-1">
         {isEditing ? (
           <div className="flex gap-2 items-start w-full py-2">
-            <div className="w-8 h-8 shrink-0 rounded-full border border-slate-200 overflow-hidden bg-slate-100 flex items-center justify-center">
+            <div className="w-8 h-8 shrink-0 rounded-full border border-border shadow-sm overflow-hidden flex items-center justify-center bg-muted z-10">
               {node.authorId.avatarUrl ? (
                 <img
                   src={node.authorId.avatarUrl}
@@ -204,14 +203,14 @@ export const TaskComments = ({
                   className="w-full h-full object-cover"
                 />
               ) : (
-                <span className="text-[11px] font-bold text-slate-500 uppercase">
+                <span className="text-[11px] font-bold text-muted-foreground uppercase">
                   {node.authorId.displayName?.charAt(0) || "U"}
                 </span>
               )}
             </div>
-            <div className="flex-1 space-y-2 bg-slate-50 p-3 rounded-xl border border-slate-200">
+            <div className="flex-1 space-y-2 bg-muted p-3 rounded-xl border border-border">
               <textarea
-                className="w-full min-h-[60px] bg-white rounded-lg border border-slate-200 p-2 text-[14px] text-slate-700 outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 transition-all resize-none"
+                className="w-full min-h-[60px] bg-card rounded-lg border border-border p-2 text-[14px] text-foreground outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all resize-none"
                 value={editContent}
                 onChange={(e) => setEditContent(e.target.value)}
                 onKeyDown={(e) => handleKeyDown(e, true, node._id)}
@@ -221,14 +220,14 @@ export const TaskComments = ({
                 <Button
                   size="sm"
                   variant="ghost"
-                  className="h-7 text-xs text-slate-500"
+                  className="h-7 text-xs text-muted-foreground"
                   onClick={() => setEditingId(null)}
                 >
                   Hủy
                 </Button>
                 <Button
                   size="sm"
-                  className="h-7 text-xs font-bold bg-indigo-600 hover:bg-indigo-700 text-white"
+                  className="h-7 text-xs font-bold bg-primary hover:bg-primary/90 text-primary-foreground"
                   onClick={() => handleUpdate(node._id)}
                   disabled={updateMutation.isPending}
                 >
@@ -243,7 +242,7 @@ export const TaskComments = ({
         ) : (
           <div className="flex gap-2 items-start py-1 w-full group">
             {/* Avatar */}
-            <div className="w-8 h-8 shrink-0 rounded-full border border-slate-200 shadow-sm overflow-hidden flex items-center justify-center bg-slate-100 z-10">
+            <div className="w-8 h-8 shrink-0 rounded-full border border-border shadow-sm overflow-hidden flex items-center justify-center bg-muted z-10">
               {node.authorId.avatarUrl ? (
                 <img
                   src={node.authorId.avatarUrl}
@@ -251,7 +250,7 @@ export const TaskComments = ({
                   className="w-full h-full object-cover"
                 />
               ) : (
-                <span className="text-[11px] font-bold text-slate-600 uppercase">
+                <span className="text-[11px] font-bold text-muted-foreground uppercase">
                   {node.authorId.displayName?.charAt(0) || "U"}
                 </span>
               )}
@@ -261,8 +260,8 @@ export const TaskComments = ({
             <div className="flex-1 flex flex-col items-start min-w-0">
               <div className="flex items-start gap-1 max-w-full">
                 {/* Bubble (Facebook Style) */}
-                <div className="bg-slate-100/70 px-3 py-2 rounded-2xl rounded-tl-sm text-[14px] text-slate-800 break-words whitespace-pre-wrap flex flex-col">
-                  <span className="text-[12px] font-bold text-slate-900 mb-0.5">
+                <div className="bg-muted/70 px-3 py-2 rounded-2xl rounded-tl-sm text-[14px] text-foreground break-words whitespace-pre-wrap flex flex-col">
+                  <span className="text-[12px] font-bold text-foreground mb-0.5">
                     {isAuthor
                       ? "Bạn"
                       : node.authorId.displayName || "Người dùng"}
@@ -276,7 +275,7 @@ export const TaskComments = ({
                   {node.content.length > CHAR_LIMIT && (
                     <button
                       onClick={() => toggleContent(node._id)}
-                      className="text-left text-[12px] font-bold text-indigo-600 hover:text-indigo-700 mt-1 transition-colors"
+                      className="text-left text-[12px] font-bold text-primary hover:text-primary/80 mt-1 transition-colors"
                     >
                       {expandedContentIds.has(node._id) ? "Ẩn bớt" : "Xem thêm"}
                     </button>
@@ -291,7 +290,7 @@ export const TaskComments = ({
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-6 w-6 text-slate-400 hover:bg-slate-200/50 rounded-full"
+                          className="h-6 w-6 text-muted-foreground hover:bg-muted rounded-full"
                         >
                           <MoreVertical className="h-3.5 w-3.5" />
                         </Button>
@@ -320,7 +319,7 @@ export const TaskComments = ({
 
               {/* Reply / Time row */}
               <div className="flex items-center gap-3 mt-0.5 ml-1">
-                <span className="text-[11px] font-medium text-slate-400">
+                <span className="text-[11px] font-medium text-muted-foreground">
                   {formatDistanceToNow(new Date(node.createdAt), {
                     addSuffix: true,
                     locale: vi,
@@ -335,7 +334,7 @@ export const TaskComments = ({
                         node.authorId.displayName || "Người dùng",
                       )
                     }
-                    className="text-[11px] font-bold text-slate-500 hover:text-indigo-600 transition-colors"
+                    className="text-[11px] font-bold text-muted-foreground hover:text-primary transition-colors"
                   >
                     Trả lời
                   </button>
@@ -346,7 +345,7 @@ export const TaskComments = ({
               {node.children.length > 0 && (
                 <button
                   onClick={() => toggleReplies(node._id)}
-                  className="flex items-center gap-1.5 mt-2 ml-1 text-[11px] font-bold text-indigo-600 hover:text-indigo-700 transition-colors"
+                  className="flex items-center gap-1.5 mt-2 ml-1 text-[11px] font-bold text-primary hover:text-primary/80 transition-colors"
                 >
                   <MessageSquare className="w-3 h-3" />
                   {expandedReplyIds.has(node._id)
@@ -357,7 +356,7 @@ export const TaskComments = ({
 
               {/* Replies (Children) */}
               {node.children.length > 0 && expandedReplyIds.has(node._id) && (
-                <div className="w-full mt-2 relative before:absolute before:inset-y-0 before:-left-[24px] before:w-px before:bg-slate-200 ml-2">
+                <div className="w-full mt-2 relative before:absolute before:inset-y-0 before:-left-[24px] before:w-px before:bg-border ml-2">
                   <div className="w-full pl-2">
                     {node.children.map(renderCommentNode)}
                   </div>
@@ -371,18 +370,18 @@ export const TaskComments = ({
   };
 
   return (
-    <div className="w-full rounded-2xl border border-slate-200 bg-slate-50 shadow-sm overflow-hidden flex flex-col">
+    <div className="w-full rounded-2xl border border-border bg-muted shadow-sm overflow-hidden flex flex-col">
       {/* Header / Toggle */}
       <button
         onClick={() => setIsExpanded(!isExpanded)}
-        className="w-full h-12 flex items-center justify-between px-4 bg-white hover:bg-slate-50 transition-colors border-b border-slate-200 focus:outline-none shrink-0"
+        className="w-full h-12 flex items-center justify-between px-4 bg-card hover:bg-muted transition-colors border-b border-border focus:outline-none shrink-0"
       >
         <div className="flex items-center gap-2.5">
-          <MessageSquare className="w-4 h-4 text-indigo-500" />
-          <h3 className="text-[14px] font-bold text-slate-800">
+          <MessageSquare className="w-4 h-4 text-primary" />
+          <h3 className="text-[14px] font-bold text-foreground">
             Thảo luận{" "}
             {comments.length > 0 && (
-              <span className="ml-1 text-[11px] font-bold text-white bg-indigo-500 px-1.5 py-0.5 rounded-full">
+              <span className="ml-1 text-[11px] font-bold text-primary-foreground bg-primary px-1.5 py-0.5 rounded-full">
                 {comments.length}
               </span>
             )}
@@ -390,32 +389,32 @@ export const TaskComments = ({
         </div>
         <div>
           {isExpanded ? (
-            <ChevronUp className="w-5 h-5 text-slate-400" />
+            <ChevronUp className="w-5 h-5 text-muted-foreground" />
           ) : (
-            <ChevronDown className="w-5 h-5 text-slate-400" />
+            <ChevronDown className="w-5 h-5 text-muted-foreground" />
           )}
         </div>
       </button>
 
       {/* Body */}
       {isExpanded && (
-        <div className="w-full flex-1 flex flex-col min-h-0 overflow-hidden bg-white">
+        <div className="w-full flex-1 flex flex-col min-h-0 overflow-hidden bg-background">
           {/* Comment List */}
           <div className="flex-1 overflow-y-auto w-full custom-scrollbar p-4 relative min-h-[150px] max-h-[500px]">
             {isLoading ? (
-              <div className="absolute inset-0 flex justify-center items-center text-slate-400 font-medium bg-white/80 z-10">
-                <Loader2 className="w-6 h-6 animate-spin mr-2 text-indigo-500" />{" "}
+              <div className="absolute inset-0 flex justify-center items-center text-muted-foreground font-medium bg-background/80 z-10">
+                <Loader2 className="w-6 h-6 animate-spin mr-2 text-primary" />{" "}
                 Đang tải thảo luận...
               </div>
             ) : commentTree.length === 0 ? (
               <div className="h-full flex flex-col justify-center items-center py-12">
-                <div className="w-12 h-12 bg-slate-50 rounded-full flex items-center justify-center mb-3 shadow-sm border border-slate-100">
-                  <MessageSquare className="w-5 h-5 text-slate-300" />
+                <div className="w-12 h-12 bg-muted rounded-full flex items-center justify-center mb-3 shadow-sm border border-border">
+                  <MessageSquare className="w-5 h-5 text-muted-foreground" />
                 </div>
-                <p className="text-[14px] font-semibold text-slate-600">
+                <p className="text-[14px] font-semibold text-foreground">
                   Chưa có bình luận nào
                 </p>
-                <p className="text-[12px] text-slate-400 mt-1">
+                <p className="text-[12px] text-muted-foreground mt-1">
                   Hãy là người đầu tiên bắt đầu trò chuyện!
                 </p>
               </div>
@@ -428,23 +427,23 @@ export const TaskComments = ({
 
           {/* Input Area */}
           {canInteract ? (
-            <div className="p-4 bg-slate-50 border-t border-slate-200 shrink-0">
+            <div className="p-4 bg-muted border-t border-border shrink-0">
               {replyingTo && (
-                <div className="flex items-center justify-between bg-indigo-50/50 px-3 py-1.5 rounded-t-xl border border-b-0 border-indigo-100/50 mb-[-1px] relative z-0">
-                  <span className="text-[12px] font-medium text-indigo-700 flex items-center">
+                <div className="flex items-center justify-between bg-primary/10 px-3 py-1.5 rounded-t-xl border border-b-0 border-primary/20 mb-[-1px] relative z-0">
+                  <span className="text-[12px] font-medium text-primary flex items-center">
                     <Reply className="w-3.5 h-3.5 mr-1.5" />
                     Đang trả lời <strong>{replyingTo.name}</strong>
                   </span>
                   <button
                     onClick={() => setReplyingTo(null)}
-                    className="p-1 hover:bg-indigo-100 rounded-full text-indigo-500 transition-colors"
+                    className="p-1 hover:bg-primary/20 rounded-full text-primary transition-colors"
                   >
                     <X className="w-3.5 h-3.5" />
                   </button>
                 </div>
               )}
               <div className="flex gap-3 items-end relative z-10">
-                <div className="w-9 h-9 shrink-0 rounded-full border border-slate-200 shadow-sm overflow-hidden bg-slate-100 flex items-center justify-center relative mb-1">
+                <div className="w-9 h-9 shrink-0 rounded-full border border-border shadow-sm overflow-hidden bg-muted flex items-center justify-center relative mb-1">
                   {currentUser?.avatarUrl ? (
                     <img
                       src={currentUser.avatarUrl}
@@ -452,17 +451,17 @@ export const TaskComments = ({
                       className="w-full h-full object-cover"
                     />
                   ) : (
-                    <span className="text-[12px] font-bold text-slate-500 uppercase">
+                    <span className="text-[12px] font-bold text-muted-foreground uppercase">
                       {currentUser?.displayName?.charAt(0) || "U"}
                     </span>
                   )}
                 </div>
                 <div
-                  className={`flex-1 relative group bg-white border border-slate-200 focus-within:border-indigo-400 focus-within:ring-4 focus-within:ring-indigo-100/50 transition-all flex items-end p-1.5 pl-4 overflow-hidden shadow-sm ${replyingTo ? "rounded-b-2xl rounded-tr-2xl" : "rounded-2xl"}`}
+                  className={`flex-1 relative group bg-card border border-border focus-within:border-primary focus-within:ring-4 focus-within:ring-primary/10 transition-all flex items-end p-1.5 pl-4 overflow-hidden shadow-sm ${replyingTo ? "rounded-b-2xl rounded-tr-2xl" : "rounded-2xl"}`}
                 >
                   <textarea
                     ref={inputRef}
-                    className="w-full max-h-[150px] min-h-[38px] bg-transparent text-[14px] text-slate-700 placeholder:text-slate-400 focus:outline-none resize-none py-2 placeholder:font-medium leading-relaxed custom-scrollbar"
+                    className="w-full max-h-[150px] min-h-[38px] bg-transparent text-[14px] text-foreground placeholder:text-muted-foreground focus:outline-none resize-none py-2 placeholder:font-medium leading-relaxed custom-scrollbar"
                     style={{ height: newComment ? "auto" : "38px" }}
                     placeholder={
                       replyingTo
@@ -484,7 +483,7 @@ export const TaskComments = ({
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="shrink-0 w-9 h-9 rounded-xl hover:bg-slate-100 text-slate-400 hover:text-indigo-600 transition-colors ml-2 mb-0.5"
+                        className="shrink-0 w-9 h-9 rounded-xl hover:bg-muted text-muted-foreground hover:text-primary transition-colors ml-2 mb-0.5"
                         disabled={createMutation.isPending}
                         type="button"
                         title="Nhắc đến ai đó"
@@ -508,29 +507,29 @@ export const TaskComments = ({
                             }}
                           >
                             <div className="flex items-center gap-2">
-                              <div className="w-6 h-6 rounded-full bg-slate-200 overflow-hidden flex items-center justify-center">
+                              <div className="w-6 h-6 rounded-full bg-muted overflow-hidden flex items-center justify-center">
                                 {user.avatarUrl ? (
                                   <img src={user.avatarUrl} alt="avatar" className="w-full h-full object-cover" />
                                 ) : (
-                                  <span className="text-[10px] font-bold text-slate-500 uppercase">
+                                  <span className="text-[10px] font-bold text-muted-foreground uppercase">
                                     {user.displayName?.charAt(0) || "U"}
                                   </span>
                                 )}
                               </div>
-                              <span className="text-sm">{user.displayName || user.email}</span>
+                              <span className="text-sm text-foreground">{user.displayName || user.email}</span>
                             </div>
                           </DropdownMenuItem>
                         );
                       })}
                       {projectMembers.filter((m: any) => m.userId && m.userId._id !== currentUser?._id).length === 0 && (
-                        <div className="p-2 text-sm text-center text-slate-500 italic">Không có thành viên khác</div>
+                        <div className="p-2 text-sm text-center text-muted-foreground italic">Không có thành viên khác</div>
                       )}
                     </DropdownMenuContent>
                   </DropdownMenu>
 
                   <Button
                     size="icon"
-                    className="shrink-0 w-9 h-9 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white transition-all shadow-sm disabled:opacity-50 disabled:bg-slate-300 ml-1 mb-0.5"
+                    className="shrink-0 w-9 h-9 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground transition-all shadow-sm disabled:opacity-50 disabled:bg-muted ml-1 mb-0.5"
                     onClick={handleCreate}
                     disabled={!newComment.trim() || createMutation.isPending}
                   >
@@ -543,15 +542,15 @@ export const TaskComments = ({
                 </div>
               </div>
               <div className="text-right mt-2 pr-1">
-                <span className="text-[10px] font-medium text-slate-400">
+                <span className="text-[10px] font-medium text-muted-foreground">
                   <strong>Enter</strong> để gửi, <strong>Shift + Enter</strong>{" "}
                   xuống dòng
                 </span>
               </div>
             </div>
           ) : (
-            <div className="p-4 bg-slate-50 border-t border-slate-200 text-center shrink-0">
-              <span className="text-[13px] font-medium text-slate-400">
+            <div className="p-4 bg-muted border-t border-border text-center shrink-0">
+              <span className="text-[13px] font-medium text-muted-foreground">
                 Bạn không có quyền thảo luận trong dự án này.
               </span>
             </div>

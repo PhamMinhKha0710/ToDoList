@@ -35,34 +35,34 @@ const AdminUsersPage = () => {
   };
 
   return (
-    <div className="p-6">
-      <h1 className="text-2xl font-bold">Quản lý người dùng</h1>
+    <div className="p-6 bg-background">
+      <h1 className="text-2xl font-bold text-foreground">Quản lý người dùng</h1>
       <p className="text-muted-foreground mb-4">Danh sách user (admin only). Có thể khoá hoặc kích hoạt.</p>
 
       <div className="rounded-xl border border-border bg-card p-4 shadow-sm">
         {isLoading ? (
           <div className="text-center py-8 text-muted-foreground">Đang tải...</div>
         ) : (
-          <table className="w-full text-left text-sm">
+          <table className="w-full text-left text-sm text-foreground">
             <thead>
               <tr>
-                <th className="border-b p-2">Email</th>
-                <th className="border-b p-2">Tên</th>
-                <th className="border-b p-2">Role</th>
-                <th className="border-b p-2">Trạng thái</th>
-                <th className="border-b p-2">Hành động</th>
+                <th className="border-b border-border p-2">Email</th>
+                <th className="border-b border-border p-2">Tên</th>
+                <th className="border-b border-border p-2">Role</th>
+                <th className="border-b border-border p-2">Trạng thái</th>
+                <th className="border-b border-border p-2">Hành động</th>
               </tr>
             </thead>
             <tbody>
               {users.map((user) => (
                 <tr key={user._id} className={user.isActive ? '' : 'opacity-70'}>
-                  <td className="border-b p-2">{user.email}</td>
-                  <td className="border-b p-2">{user.displayName || '---'}</td>
-                  <td className="border-b p-2">{user.role}</td>
-                  <td className="border-b p-2">{user.isActive ? 'Active' : 'Blocked'}</td>
-                  <td className="border-b p-2">
+                  <td className="border-b border-border p-2">{user.email}</td>
+                  <td className="border-b border-border p-2">{user.displayName || '---'}</td>
+                  <td className="border-b border-border p-2">{user.role}</td>
+                  <td className="border-b border-border p-2">{user.isActive ? 'Active' : 'Blocked'}</td>
+                  <td className="border-b border-border p-2">
                     <button
-                      className={`rounded-md px-3 py-1 text-xs font-medium ${user.isActive ? 'bg-destructive text-destructive-foreground' : 'bg-primary text-primary-foreground'}`}
+                      className={`rounded-md px-3 py-1 text-xs font-medium transition-colors ${user.isActive ? 'bg-destructive text-destructive-foreground hover:bg-destructive/90' : 'bg-primary text-primary-foreground hover:bg-primary/90'}`}
                       onClick={() => toggleStatus(user)}
                     >
                       {user.isActive ? 'Khoá' : 'Kích hoạt'}

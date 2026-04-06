@@ -41,11 +41,11 @@ export const ProjectItem = ({ project, viewMode }: ProjectItemProps) => {
     >
       <Card
         className={cn(
-          "h-full transition-all duration-500 cursor-pointer overflow-hidden flex flex-col relative border-0 shadow-sm",
+          "h-full transition-all duration-500 cursor-pointer overflow-hidden flex flex-col relative border border-border shadow-sm",
           isGrid 
-            ? "hover:shadow-2xl hover:-translate-y-2 hover:rotate-x-1" 
-            : "hover:shadow-xl hover:translate-x-2",
-          "bg-white/40 dark:bg-slate-900/40 backdrop-blur-xl border border-white/20 dark:border-slate-800/20"
+            ? "hover:shadow-2xl hover:-translate-y-2 hover:rotate-x-1 hover:border-primary/50" 
+            : "hover:shadow-xl hover:translate-x-2 hover:border-primary/50",
+          "bg-card/40 dark:bg-card/40 backdrop-blur-xl"
         )}
       >
         {/* Accent Top Bar / Side Bar Glow */}
@@ -81,7 +81,7 @@ export const ProjectItem = ({ project, viewMode }: ProjectItemProps) => {
               <Avatar
                 className={cn(
                   isGrid ? "h-16 w-16" : "h-12 w-12",
-                  "rounded-2xl border-2 border-white/50 dark:border-white/10 shadow-lg flex-shrink-0 relative z-10 transition-transform duration-500 group-hover:scale-110"
+                  "rounded-2xl border-2 border-background shadow-lg flex-shrink-0 relative z-10 transition-transform duration-500 group-hover:scale-110 bg-background"
                 )}
               >
                 <AvatarImage
@@ -105,7 +105,7 @@ export const ProjectItem = ({ project, viewMode }: ProjectItemProps) => {
                   {project.name}
                 </CardTitle>
                 {isPending && (
-                  <Badge variant="secondary" className="px-2 py-0 text-[10px] uppercase font-black bg-amber-100 text-amber-700 border-amber-200">
+                  <Badge variant="secondary" className="px-2 py-0 text-[10px] uppercase font-black bg-amber-100 text-amber-700 border-amber-200 dark:bg-amber-900/30 dark:text-amber-400 dark:border-amber-900/50">
                     Pending
                   </Badge>
                 )}
@@ -149,7 +149,7 @@ export const ProjectItem = ({ project, viewMode }: ProjectItemProps) => {
                       return (
                         <div key={i} className="group/avatar relative">
                           <Avatar
-                            className="inline-block border-2 border-white dark:border-slate-800 w-7 h-7 rounded-full overflow-hidden shadow-sm transition-all duration-300 group-hover/avatar:-translate-y-1 group-hover/avatar:scale-110"
+                            className="inline-block border-2 border-background w-7 h-7 rounded-full overflow-hidden shadow-sm transition-all duration-300 group-hover/avatar:-translate-y-1 group-hover/avatar:scale-110"
                             style={{ 
                               zIndex: 10 - i,
                               marginLeft: i > 0 ? "-0.625rem" : "0" 
@@ -168,7 +168,7 @@ export const ProjectItem = ({ project, viewMode }: ProjectItemProps) => {
                       );
                     })}
                   {project.members && project.members.length > 4 && (
-                    <div className="flex items-center justify-center w-7 h-7 rounded-full border-2 border-white dark:border-slate-800 bg-muted text-[10px] font-bold text-muted-foreground shadow-sm relative z-0 -ml-2.5">
+                    <div className="flex items-center justify-center w-7 h-7 rounded-full border-2 border-background bg-muted text-[10px] font-bold text-muted-foreground shadow-sm relative z-0 -ml-2.5">
                       +{project.members.length - 4}
                     </div>
                   )}
@@ -189,9 +189,9 @@ export const ProjectItem = ({ project, viewMode }: ProjectItemProps) => {
             <div className="flex items-center gap-6 shrink-0">
               <div className="flex -space-x-2 overflow-hidden">
                 {project.members?.slice(0, 3).map((m, i) => (
-                  <Avatar key={i} className="w-8 h-8 border-2 border-white dark:border-slate-800 rounded-full ring-2 ring-transparent group-hover:ring-primary/20 transition-all">
+                  <Avatar key={i} className="w-8 h-8 border-2 border-background rounded-full ring-2 ring-transparent group-hover:ring-primary/20 transition-all">
                     <AvatarImage src={typeof m.userId === 'object' ? m.userId.avatarUrl : ''} />
-                    <AvatarFallback className="text-[10px] font-bold">{(typeof m.userId === 'object' ? (m.userId.displayName || m.userId.email) : 'U').substring(0, 2)}</AvatarFallback>
+                    <AvatarFallback className="text-[10px] font-bold bg-muted text-muted-foreground">{(typeof m.userId === 'object' ? (m.userId.displayName || m.userId.email) : 'U').substring(0, 2)}</AvatarFallback>
                   </Avatar>
                 ))}
               </div>

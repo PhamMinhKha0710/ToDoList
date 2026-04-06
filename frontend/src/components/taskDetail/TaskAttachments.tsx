@@ -112,14 +112,14 @@ export const TaskAttachments = ({
 
   const AttachmentItem = ({ attachment, type, index }: { attachment: Attachment, type: 'image' | 'file', index?: number }) => (
     <div 
-      className={`group flex items-center gap-3 p-3 rounded-xl border border-slate-200 bg-white hover:border-indigo-200 hover:shadow-sm transition-all relative overflow-hidden ${type === 'image' ? 'cursor-zoom-in' : ''}`}
+      className={`group flex items-center gap-3 p-3 rounded-xl border border-border bg-card hover:border-primary/20 hover:shadow-sm transition-all relative overflow-hidden ${type === 'image' ? 'cursor-zoom-in' : ''}`}
       onClick={() => {
         if (type === 'image' && index !== undefined) {
           setPreviewIndex(index);
         }
       }}
     >
-      <div className="w-10 h-10 shrink-0 rounded-lg bg-slate-50 border border-slate-100 flex items-center justify-center overflow-hidden">
+      <div className="w-10 h-10 shrink-0 rounded-lg bg-muted border border-border flex items-center justify-center overflow-hidden">
         {type === 'image' ? (
           <img
             src={attachment.url}
@@ -127,7 +127,7 @@ export const TaskAttachments = ({
             className="w-full h-full object-cover"
           />
         ) : (
-          <FileText className="w-5 h-5 text-slate-400" />
+          <FileText className="w-5 h-5 text-muted-foreground" />
         )}
       </div>
       <div className="flex-1 min-w-0 pr-6">
@@ -135,12 +135,12 @@ export const TaskAttachments = ({
           href={attachment.url}
           target="_blank"
           rel="noreferrer"
-          className="text-[13px] font-bold text-slate-700 truncate block hover:text-indigo-600 hover:underline"
+          className="text-[13px] font-bold text-foreground truncate block hover:text-primary hover:underline"
           title={attachment.name}
         >
           {attachment.name}
         </a>
-        <span className="text-[11px] text-slate-400 font-medium">
+        <span className="text-[11px] text-muted-foreground font-medium">
           {type === 'image' ? "Hình ảnh" : "Tài liệu"}
         </span>
       </div>
@@ -150,7 +150,7 @@ export const TaskAttachments = ({
           type="button"
           variant="ghost"
           size="icon"
-          className="absolute right-2 top-1/2 -translate-y-1/2 w-7 h-7 bg-white/80 backdrop-blur-sm text-slate-400 opacity-0 group-hover:opacity-100 hover:text-red-500 hover:bg-red-50 transition-all shadow-sm"
+          className="absolute right-2 top-1/2 -translate-y-1/2 w-7 h-7 bg-card/8backdrop-blur-sm text-muted-foreground opacity-0 group-hover:opacity-100 hover:text-red-500 hover:bg-red-500/10 transition-all shadow-sm"
           onClick={(e) => {
             e.preventDefault();
             e.stopPropagation();
@@ -166,7 +166,7 @@ export const TaskAttachments = ({
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h3 className="text-sm font-extrabold uppercase tracking-widest text-slate-400 flex items-center gap-2">
+        <h3 className="text-sm font-extrabold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
           <Paperclip className="w-4 h-4" /> Tệp đính kèm ({attachments.length})
         </h3>
       </div>
@@ -175,7 +175,7 @@ export const TaskAttachments = ({
       {isEditing && (
         <div
           onClick={() => fileInputRef.current?.click()}
-          className="border-2 border-dashed border-slate-200 bg-slate-50/50 hover:bg-indigo-50/50 hover:border-indigo-200 transition-all duration-300 rounded-2xl p-6 flex flex-col items-center justify-center cursor-pointer group"
+          className="border-2 border-dashed border-border bg-muted/50 hover:bg-primary/10 hover:border-primary/50 transition-all duration-300 rounded-2xl p-6 flex flex-col items-center justify-center cursor-pointer group"
         >
           <input
             type="file"
@@ -184,14 +184,14 @@ export const TaskAttachments = ({
             className="hidden"
             accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.zip,.txt" 
           />
-          <div className="w-10 h-10 bg-white rounded-full shadow-sm text-indigo-400 flex items-center justify-center mb-2 group-hover:scale-110 group-hover:text-indigo-500 group-hover:shadow-md transition-all duration-300">
+          <div className="w-10 h-10 bg-card rounded-full shadow-sm text-primary flex items-center justify-center mb-2 group-hover:scale-110 transition-all duration-300 border border-border">
             <UploadCloud className="w-5 h-5" />
           </div>
-          <p className="text-[14px] text-slate-500 font-medium">
+          <p className="text-[14px] text-muted-foreground font-medium">
             Bấm để{" "}
-            <span className="text-indigo-600 font-bold">chọn file</span>
+            <span className="text-primary font-bold">chọn file</span>
           </p>
-          <p className="text-xs text-slate-400 mt-1">
+          <p className="text-xs text-muted-foreground mt-1">
             Hỗ trợ Hình ảnh, PDF, Word, Excel, ZIP (Tối đa 10MB)
           </p>
         </div>
@@ -207,12 +207,12 @@ export const TaskAttachments = ({
               onClick={() => setShowImages(!showImages)}
             >
               <div className="flex items-center gap-2">
-                <div className="w-6 h-6 rounded-md bg-indigo-50 text-indigo-500 flex items-center justify-center">
+                <div className="w-6 h-6 rounded-md bg-primary/10 text-primary flex items-center justify-center">
                   <ImageIcon className="w-3.5 h-3.5" />
                 </div>
-                <span className="text-[13px] font-bold text-slate-600">Hình ảnh ({imageAttachments.length})</span>
+                <span className="text-[13px] font-bold text-foreground">Hình ảnh ({imageAttachments.length})</span>
               </div>
-              <Button variant="ghost" size="sm" className="h-7 px-2 text-slate-400 group-hover/header:text-slate-600 transition-colors">
+              <Button variant="ghost" size="sm" className="h-7 px-2 text-muted-foreground group-hover/header:text-foreground transition-colors">
                 {showImages ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
               </Button>
             </div>
@@ -235,12 +235,12 @@ export const TaskAttachments = ({
               onClick={() => setShowFiles(!showFiles)}
             >
               <div className="flex items-center gap-2">
-                <div className="w-6 h-6 rounded-md bg-amber-50 text-amber-500 flex items-center justify-center">
+                <div className="w-6 h-6 rounded-md bg-amber-500/10 text-amber-500 flex items-center justify-center">
                   <FileText className="w-3.5 h-3.5" />
                 </div>
-                <span className="text-[13px] font-bold text-slate-600">Tài liệu ({fileAttachments.length})</span>
+                <span className="text-[13px] font-bold text-foreground">Tài liệu ({fileAttachments.length})</span>
               </div>
-              <Button variant="ghost" size="sm" className="h-7 px-2 text-slate-400 group-hover/header:text-slate-600 transition-colors">
+              <Button variant="ghost" size="sm" className="h-7 px-2 text-muted-foreground group-hover/header:text-foreground transition-colors">
                 {showFiles ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
               </Button>
             </div>
@@ -256,7 +256,7 @@ export const TaskAttachments = ({
         )}
 
         {attachments.length === 0 && !isEditing && (
-          <span className="text-slate-400 italic bg-slate-50/50 p-4 rounded-xl border border-dashed border-slate-200 block text-[14px]">
+          <span className="text-muted-foreground italic bg-muted/50 p-4 rounded-xl border border-dashed border-border block text-[14px]">
             Chưa có tệp đính kèm nào.
           </span>
         )}
@@ -271,17 +271,17 @@ export const TaskAttachments = ({
           {/* Distilled Top Navigation */}
           <div className="absolute top-0 left-0 right-0 z-50 p-8 flex items-center justify-between pointer-events-none">
             <div className="flex flex-col gap-1 pointer-events-auto">
-              <h2 className="text-[12px] font-bold text-neutral-500 uppercase tracking-[0.2em]">
+              <h2 className="text-[12px] font-bold text-white/50 uppercase tracking-[0.2em]">
                 Project Gallery
               </h2>
-              <p className="text-[15px] font-medium text-neutral-200 truncate max-w-[200px] sm:max-w-xl">
+              <p className="text-[15px] font-medium text-white truncate max-w-[200px] sm:max-w-xl">
                 {previewIndex !== null && imageAttachments[previewIndex]?.name}
               </p>
             </div>
             
             <div className="flex items-center gap-6 pointer-events-auto">
               <button 
-                className="group flex items-center gap-2 text-neutral-400 hover:text-white transition-all duration-300"
+                className="group flex items-center gap-2 text-white/40 hover:text-white transition-all duration-300"
                 onClick={() => {
                   if (previewIndex !== null) {
                     const link = document.createElement('a');
@@ -298,7 +298,7 @@ export const TaskAttachments = ({
               </button>
               
               <button 
-                className="w-10 h-10 flex items-center justify-center rounded-full bg-neutral-800/50 hover:bg-neutral-100 hover:text-neutral-950 transition-all duration-500 text-neutral-400"
+                className="w-10 h-10 flex items-center justify-center rounded-full bg-white/10 hover:bg-white hover:text-neutral-950 transition-all duration-500 text-white/60"
                 onClick={() => setPreviewIndex(null)}
               >
                 <X className="w-5 h-5 stroke-[1.5]" />
@@ -312,14 +312,14 @@ export const TaskAttachments = ({
             {imageAttachments.length > 1 && (
               <>
                 <button
-                  className="absolute left-10 z-50 p-6 text-neutral-600 hover:text-white transition-all duration-500 active:scale-75"
+                  className="absolute left-10 z-50 p-6 text-white/20 hover:text-white transition-all duration-500 active:scale-75"
                   onClick={handlePrev}
                 >
                   <ChevronLeft className="w-12 h-12 stroke-[0.5]" />
                 </button>
 
                 <button
-                  className="absolute right-10 z-50 p-6 text-neutral-600 hover:text-white transition-all duration-500 active:scale-75"
+                  className="absolute right-10 z-50 p-6 text-white/20 hover:text-white transition-all duration-500 active:scale-75"
                   onClick={handleNext}
                 >
                   <ChevronRight className="w-12 h-12 stroke-[0.5]" />
@@ -338,7 +338,7 @@ export const TaskAttachments = ({
                 
                 {/* Minimalist Pager Control */}
                 <div className="absolute -bottom-24 flex flex-col items-center gap-4">
-                  <div className="h-[2px] w-48 bg-neutral-800 relative overflow-hidden rounded-full">
+                  <div className="h-[2px] w-48 bg-white/10 relative overflow-hidden rounded-full">
                     <div 
                       className="absolute h-full bg-white transition-all duration-700 ease-out"
                       style={{ 
@@ -351,8 +351,8 @@ export const TaskAttachments = ({
                      <span className="text-[14px] font-mono font-medium text-white tracking-widest">
                       {String(previewIndex + 1).padStart(2, '0')}
                     </span>
-                    <div className="w-[1px] h-3 bg-neutral-700 mx-1" />
-                    <span className="text-[12px] font-mono font-medium text-neutral-500">
+                    <div className="w-[1px] h-3 bg-white/20 mx-1" />
+                    <span className="text-[12px] font-mono font-medium text-white/40">
                       {String(imageAttachments.length).padStart(2, '0')}
                     </span>
                   </div>

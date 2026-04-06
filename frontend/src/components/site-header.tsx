@@ -20,6 +20,7 @@ import { useSidebar } from "@/components/ui/sidebar"
 import { SiteHeaderProjectInfo } from "@/components/project-detail/SiteHeaderProjectInfo"
 import { ProjectNavbarActions } from "@/components/project-detail/ProjectNavbarActions"
 import { useKanbanStore } from "@/stores/kanban.store"
+import { ThemeToggle } from "@/components/theme-toggle"
 
 export function SiteHeader() {
   const { toggleSidebar } = useSidebar()
@@ -71,6 +72,7 @@ export function SiteHeader() {
               <ProjectNavbarActions project={activeProject} />
             </div>
           )}
+          <ThemeToggle />
           <NotificationBell />
           <Separator orientation="vertical" className="h-4" />
           <SearchForm className="w-full sm:w-auto" />

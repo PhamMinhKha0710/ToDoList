@@ -9,8 +9,14 @@ export interface Kanban {
   tasks: Record<string, Task[]>; // Key là columnId, Value là mảng các task của column đó
   members: ProjectMember[];
   
+  // Real-time panel states
+  isActivityOpen: boolean;
+  isReplayOpen: boolean;
+  
   // Actions
   setActiveProject: (project: Project | null) => void;
+  setIsActivityOpen: (isOpen: boolean) => void;
+  setIsReplayOpen: (isOpen: boolean) => void;
   setColumns: (columns: Column[]) => void;
   addColumn: (column: Column) => void;
   updateColumn: (columnId: string, data: Partial<Column>) => void;

@@ -16,7 +16,7 @@ export const AdminRoute = () => {
       <AppSidebar />
       <SidebarInset className="flex flex-col h-full min-h-0">
         <SiteHeader />
-        <div className="flex flex-1 flex-col gap-4 p-4 overflow-y-auto overflow-x-hidden text-slate-800">
+        <div className="flex flex-1 flex-col gap-4 p-4 overflow-y-auto overflow-x-hidden text-foreground bg-background">
           <Outlet />
         </div>
       </SidebarInset>
