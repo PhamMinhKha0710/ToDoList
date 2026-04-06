@@ -5,8 +5,22 @@ const { getIO } = require('../../config/socket');
 
 class AdminController {
   getAllUsers = catchAsync(async (req, res) => {
-    const users = await adminService.getAllUsers();
-    new ApiResponse(200, 'Danh sách user', users).send(res);
+    const { page, limit, search } = req.query;
+    const users = await adminService.getAllUsers({ page, limit, search });
+    new ApiResponse(200, "Danh sách người dùng", users).send(res);
+  });
+
+  updateRole = catchAsync(async (req, res) => {
+    const { id } = req.params;
+    const { role } = req.body;
+    const user = await adminService.updateUserRole(id, role);
+    new ApiResponse(200, "Cập nhật quyền người dùng thành công", user).send(res);
+  });
+
+  resetPassword = catchAsync(async (req, res) => {
+    const { id } = req.params;
+    await adminService.resetUserPassword(id);
+    new ApiResponse(200, "Yêu cầu khôi phục mật khẩu đã được gửi đến email người dùng").send(res);
   });
 
   setActive = catchAsync(async (req, res) => {

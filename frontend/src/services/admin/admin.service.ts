@@ -4,8 +4,18 @@ import type { Project } from '@/types/project';
 import type { User } from '@/types/user';
 
 export const adminService = {
-  getAdminUsers: async (): Promise<ApiResponse<User[]>> => {
-    const response = await api.get('/admin/users');
+  getAdminUsers: async (params?: { page?: number; limit?: number; search?: string }): Promise<ApiResponse<{ users: User[]; pagination: any }>> => {
+    const response = await api.get('/admin/users', { params });
+    return response.data;
+  },
+
+  updateUserRole: async (id: string, role: string): Promise<ApiResponse<User>> => {
+    const response = await api.patch(`/admin/users/${id}/role`, { role });
+    return response.data;
+  },
+
+  resetUserPassword: async (id: string): Promise<ApiResponse<null>> => {
+    const response = await api.post(`/admin/users/${id}/reset-password`);
     return response.data;
   },
 

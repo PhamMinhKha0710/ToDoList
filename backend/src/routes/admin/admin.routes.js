@@ -12,6 +12,12 @@ const router = Router();
 // GET /api/admin/users
 router.get('/users', authenticate, requireRole('admin'), controller.getAllUsers);
 
+// PATCH /api/admin/users/:id/role
+router.patch('/users/:id/role', authenticate, requireRole('admin'), controller.updateRole);
+
+// POST /api/admin/users/:id/reset-password
+router.post('/users/:id/reset-password', authenticate, requireRole('admin'), controller.resetPassword);
+
 // PATCH /api/admin/users/:id/active
 router.patch('/users/:id/active', authenticate, requireRole('admin'), validate(updateUserStatusSchema), controller.setActive);
 

@@ -40,8 +40,11 @@ api.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
+    const isAuthRoute =
+      originalRequest.url?.includes("/auth/login") ||
+      originalRequest.url?.includes("/auth/register");
 
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    if (error.response?.status === 401 && !originalRequest._retry && !isAuthRoute) {
       if (isRefreshing) {
         return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject });
@@ -85,8 +88,9 @@ api.interceptors.response.use(
       }
     }
 
-    // Hiển thị thông báo lỗi từ backend nếu có (trừ lỗi 401 do đã có logic refresh token xử lý riêng)
-    if (error.response?.status !== 401) {
+    // Hiển thị thông báo lỗi từ backend nếu có
+    // Không hiển thị cho lỗi 401 TRỪ KHI đó là route đăng nhập/đăng ký (vì các route khác đã có logic refresh token xử lý)
+    if (error.response?.status !== 401 || isAuthRoute) {
       const { toast } = await import("sonner");
       const errorMessage =
         error.response?.data?.message ||
