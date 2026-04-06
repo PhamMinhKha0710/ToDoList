@@ -206,6 +206,14 @@ class ProjectController {
     await projectService.joinByInviteCode(req.params.inviteCode, req.user._id);
     new ApiResponse(200, "Gia nhập dự án thành công").send(res);
   });
+
+  /**
+   * GET /api/projects/:projectId/stats
+   */
+  getProjectStats = catchAsync(async (req, res) => {
+    const stats = await projectService.getProjectStats(req.params.projectId);
+    new ApiResponse(200, "Lấy thống kê dự án thành công", stats).send(res);
+  });
 }
 
 module.exports = new ProjectController();

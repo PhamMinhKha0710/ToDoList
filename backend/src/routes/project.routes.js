@@ -92,4 +92,7 @@ router.post("/:projectId/invite-code/regenerate", isProjectManagerOrAbove, proje
 router.get("/invite/code/:inviteCode", projectController.getProjectByInviteCode);
 router.post("/invite/code/:inviteCode/join", projectController.joinByInviteCode);
 
+// Thống kê dự án (Dành cho thành viên)
+router.get("/:projectId/stats", isProjectMember, projectController.getProjectStats);
+
 module.exports = router;

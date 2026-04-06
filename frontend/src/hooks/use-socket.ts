@@ -148,15 +148,18 @@ export const useProjectSocket = (
       addTask(task.columnId, task);
       queryClient.invalidateQueries({ queryKey: ["tasks", task.columnId] });
       queryClient.invalidateQueries({ queryKey: ["all-tasks"] });
+      queryClient.invalidateQueries({ queryKey: ["project-stats", projectId] });
     };
 
     const onTaskUpdated = (task: Task) => {
       console.log('[Socket] Task updated:', task);
       updateTask(task.columnId, task._id, task);
+      queryClient.invalidateQueries({ queryKey: ["project-stats", projectId] });
     };
 
     const onTaskDeleted = ({ taskId, columnId }: TaskDeletedPayload) => {
       deleteTask(columnId, taskId);
+      queryClient.invalidateQueries({ queryKey: ["project-stats", projectId] });
     };
 
     const onTaskMoved = (data: TaskMovedPayload) => {
@@ -164,6 +167,7 @@ export const useProjectSocket = (
       // Sử dụng handleTaskMoved để sync full order của cả 2 column
       const state = useKanbanStore.getState();
       state.handleTaskMoved(data);
+      queryClient.invalidateQueries({ queryKey: ["project-stats", projectId] });
     };
 
     // ─── Column events ────────────────────────────────────────────────────────
@@ -215,6 +219,7 @@ export const useProjectSocket = (
 
     const onProjectMemberUpdated = () => {
       queryClient.invalidateQueries({ queryKey: ['project', projectId] });
+      queryClient.invalidateQueries({ queryKey: ["project-stats", projectId] });
     };
 
     socket.on('column:created', onColumnCreated);

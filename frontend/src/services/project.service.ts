@@ -1,9 +1,14 @@
 import api from '@/lib/axios';
 import type { ApiResponse } from '@/types/api';
-import type { Project } from '@/types/project';
+import type { Project, ProjectStats } from '@/types/project';
 import type { CreateProjectPayload, UpdateProjectPayload } from '@/schemas/project.schema';
 
 export const projectService = {
+  getProjectStats: async (projectId: string): Promise<ApiResponse<ProjectStats>> => {
+    const response = await api.get(`/projects/${projectId}/stats`);
+    return response.data;
+  },
+
   getProjects: async (): Promise<ApiResponse<{ projects: Project[] }>> => {
     const response = await api.get('/projects');
     return response.data;
