@@ -91,7 +91,7 @@ export function ProjectNavbarActions({ project }: ProjectNavbarActionsProps) {
         <div className="flex items-center gap-1 mr-1">
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-primary transition-colors" onClick={() => setIsReplayOpen(true)}>
+              <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-primary transition-colors hover:bg-accent/50" onClick={() => setIsReplayOpen(true)}>
                 <Film className="h-4 w-4" />
               </Button>
             </TooltipTrigger>
@@ -100,7 +100,7 @@ export function ProjectNavbarActions({ project }: ProjectNavbarActionsProps) {
           
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-primary transition-colors" onClick={() => setIsActivityOpen(!isActivityOpen)}>
+              <Button variant="ghost" size="icon" className={`h-8 w-8 transition-colors hover:bg-accent/50 ${isActivityOpen ? 'text-primary' : 'text-muted-foreground hover:text-primary'}`} onClick={() => setIsActivityOpen(!isActivityOpen)}>
                 <History className="h-4 w-4" />
               </Button>
             </TooltipTrigger>
@@ -125,17 +125,17 @@ export function ProjectNavbarActions({ project }: ProjectNavbarActionsProps) {
             return (
               <Avatar
                 key={user._id}
-                className="h-5 w-5 border border-background shadow-xs"
+                className="h-5 w-5 border border-background shadow-sm"
               >
                 <AvatarImage src={user.avatarUrl} alt={name} />
-                <AvatarFallback className="text-[8px]">
+                <AvatarFallback className="text-[8px] bg-muted text-muted-foreground">
                   {name.substring(0, 1).toUpperCase()}
                 </AvatarFallback>
               </Avatar>
             );
           })}
           {remainingMembersCount > 0 && (
-            <Avatar className="h-5 w-5 border border-background shadow-xs">
+            <Avatar className="h-5 w-5 border border-background shadow-sm">
               <AvatarFallback className="text-[8px] bg-muted text-muted-foreground">
                 +{remainingMembersCount}
               </AvatarFallback>
@@ -156,18 +156,18 @@ export function ProjectNavbarActions({ project }: ProjectNavbarActionsProps) {
               <Settings className="h-4 w-4 text-muted-foreground" />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-48">
+          <DropdownMenuContent align="end" className="w-48 bg-card border-border">
             {isOwner && (
-              <DropdownMenuItem onClick={() => setIsEditDialogOpen(true)}>
+              <DropdownMenuItem onClick={() => setIsEditDialogOpen(true)} className="text-foreground focus:bg-muted">
                 <Edit className="h-4 w-4 mr-2" /> Sửa thông tin
               </DropdownMenuItem>
             )}
             {isManager && (
-              <DropdownMenuItem onClick={() => setIsInvitationsDialogOpen(true)}>
+              <DropdownMenuItem onClick={() => setIsInvitationsDialogOpen(true)} className="text-foreground focus:bg-muted">
                 <LinkIcon className="h-4 w-4 mr-2" /> Mã mời tham gia
               </DropdownMenuItem>
             )}
-            {isOwner && <DropdownMenuSeparator />}
+            {isOwner && <DropdownMenuSeparator className="bg-border" />}
             {isOwner && (
               <DropdownMenuItem
                 onClick={() => setIsDeleteDialogOpen(true)}
@@ -210,12 +210,12 @@ export function ProjectNavbarActions({ project }: ProjectNavbarActionsProps) {
 
       {/* Delete Project Confirmation Dialog */}
       <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <DialogContent className="sm:max-w-[400px]">
+        <DialogContent className="sm:max-w-[400px] bg-card border-border">
           <DialogHeader>
             <DialogTitle className="text-destructive flex items-center gap-2">
               <ShieldAlert className="h-5 w-5" /> Xác nhận xóa dự án
             </DialogTitle>
-            <DialogDescription className="py-4">
+            <DialogDescription className="py-4 text-muted-foreground">
               Bạn có chắc chắn muốn xóa dự án
               <span className="font-semibold text-foreground mx-1">
                 {project.name}
@@ -228,6 +228,7 @@ export function ProjectNavbarActions({ project }: ProjectNavbarActionsProps) {
             <Button
               variant="outline"
               onClick={() => setIsDeleteDialogOpen(false)}
+              className="border-border text-foreground hover:bg-muted"
             >
               Hủy
             </Button>

@@ -64,7 +64,7 @@ const JoinProjectPage = () => {
             </p>
           </div>
           <Button 
-            className="w-full h-12 rounded-xl bg-slate-900 hover:bg-slate-800"
+            className="w-full h-12 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90"
             onClick={() => navigate("/projects")}
           >
             Về trang chủ của tôi
@@ -118,19 +118,19 @@ const JoinProjectPage = () => {
             {/* Stats/Owner */}
             <div className="flex items-center gap-6 py-2">
               <div className="flex flex-col items-center gap-1">
-                <span className="text-xs text-slate-400 font-bold uppercase tracking-wider">Chủ dự án</span>
+                <span className="text-xs text-muted-foreground font-bold uppercase tracking-wider">Chủ dự án</span>
                 <div className="flex items-center gap-2">
                    <Avatar className="h-6 w-6">
                      <AvatarImage src={owner?.avatarUrl} />
-                     <AvatarFallback className="text-[10px]">{owner?.displayName?.[0]}</AvatarFallback>
+                     <AvatarFallback className="text-[10px] bg-muted text-muted-foreground">{owner?.displayName?.[0]}</AvatarFallback>
                    </Avatar>
-                   <span className="text-sm font-semibold text-slate-700">{owner?.displayName || "Member"}</span>
+                   <span className="text-sm font-semibold text-foreground/80">{owner?.displayName || "Member"}</span>
                 </div>
               </div>
-              <div className="w-px h-8 bg-slate-100" />
+              <div className="w-px h-8 bg-border" />
               <div className="flex flex-col items-center gap-1">
-                <span className="text-xs text-slate-400 font-bold uppercase tracking-wider">Thành viên</span>
-                <div className="flex items-center gap-1 text-slate-700">
+                <span className="text-xs text-muted-foreground font-bold uppercase tracking-wider">Thành viên</span>
+                <div className="flex items-center gap-1 text-foreground/80">
                   <Users className="h-4 w-4" />
                   <span className="text-sm font-bold">{project.memberCount || 1}</span>
                 </div>

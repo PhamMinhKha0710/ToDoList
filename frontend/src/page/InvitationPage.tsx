@@ -125,12 +125,12 @@ const InvitationPage = () => {
 
         {/* Text Content */}
         <div className="space-y-2">
-          <p className="text-lg">
-            <span className="font-semibold text-foreground">
+          <p className="text-lg text-foreground">
+            <span className="font-semibold">
               {owner?.displayName || "Một thành viên"}
             </span>{" "}
             mời bạn cộng tác vào{" "}
-            <span className="font-semibold text-foreground">
+            <span className="font-semibold italic">
               {project.name}
             </span>
           </p>
@@ -166,12 +166,12 @@ const InvitationPage = () => {
         </div>
 
         {/* Info/Permissions Section */}
-        <div className="pt-8 border-t text-left max-w-[400px] mx-auto space-y-6">
+        <div className="pt-8 border-t border-border text-left max-w-[400px] mx-auto space-y-6">
           <div className="space-y-4">
             <div className="flex items-start gap-3">
               <Users className="w-5 h-5 text-muted-foreground mt-0.5" />
               <div className="space-y-1">
-                <p className="text-sm font-semibold">
+                <p className="text-sm font-semibold text-foreground">
                   Chủ sở hữu của dự án có thể thấy:
                 </p>
                 <ul className="text-sm text-muted-foreground space-y-1.5 list-disc list-inside">
@@ -193,8 +193,7 @@ const InvitationPage = () => {
 
         {/* Footer */}
         <div className="pt-12 flex items-center justify-center gap-6 opacity-60 grayscale">
-          {/* Add some dummy logos or app logo if available */}
-          <p className="text-xs font-medium tracking-widest uppercase">
+          <p className="text-xs font-medium tracking-widest uppercase text-muted-foreground">
             ToDoList App &copy; 2025
           </p>
         </div>

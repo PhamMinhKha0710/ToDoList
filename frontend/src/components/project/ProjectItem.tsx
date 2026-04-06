@@ -41,11 +41,11 @@ export const ProjectItem = ({ project, viewMode }: ProjectItemProps) => {
     >
       <Card
         className={cn(
-          "h-full transition-all duration-300 cursor-pointer overflow-hidden flex flex-col relative shadow-sm",
+          "h-full transition-all duration-500 cursor-pointer overflow-hidden flex flex-col relative border border-border shadow-sm",
           isGrid 
-            ? "hover:shadow-md hover:-translate-y-1 hover:border-primary/50" 
-            : "hover:shadow-sm hover:translate-x-1 hover:border-primary/50",
-          "bg-card text-card-foreground border border-border"
+            ? "hover:shadow-2xl hover:-translate-y-2 hover:rotate-x-1 hover:border-primary/50" 
+            : "hover:shadow-xl hover:translate-x-2 hover:border-primary/50",
+          "bg-card/40 dark:bg-card/40 backdrop-blur-xl"
         )}
       >
         {/* Accent Top Bar / Side Bar Glow */}
@@ -81,7 +81,7 @@ export const ProjectItem = ({ project, viewMode }: ProjectItemProps) => {
               <Avatar
                 className={cn(
                   isGrid ? "h-16 w-16" : "h-12 w-12",
-                  "rounded-2xl border-4 border-background shadow-md flex-shrink-0 relative z-10 transition-transform duration-300 group-hover:scale-105 bg-background"
+                  "rounded-2xl border-2 border-background shadow-lg flex-shrink-0 relative z-10 transition-transform duration-500 group-hover:scale-110 bg-background"
                 )}
               >
                 <AvatarImage
@@ -105,7 +105,7 @@ export const ProjectItem = ({ project, viewMode }: ProjectItemProps) => {
                   {project.name}
                 </CardTitle>
                 {isPending && (
-                  <Badge variant="secondary" className="px-2 py-0 text-[10px] uppercase font-black bg-amber-100 text-amber-700 border-amber-200">
+                  <Badge variant="secondary" className="px-2 py-0 text-[10px] uppercase font-black bg-amber-100 text-amber-700 border-amber-200 dark:bg-amber-900/30 dark:text-amber-400 dark:border-amber-900/50">
                     Pending
                   </Badge>
                 )}
@@ -191,7 +191,7 @@ export const ProjectItem = ({ project, viewMode }: ProjectItemProps) => {
                 {project.members?.slice(0, 3).map((m, i) => (
                   <Avatar key={i} className="w-8 h-8 border-2 border-background rounded-full ring-2 ring-transparent group-hover:ring-primary/20 transition-all">
                     <AvatarImage src={typeof m.userId === 'object' ? m.userId.avatarUrl : ''} />
-                    <AvatarFallback className="text-[10px] font-bold">{(typeof m.userId === 'object' ? (m.userId.displayName || m.userId.email) : 'U').substring(0, 2)}</AvatarFallback>
+                    <AvatarFallback className="text-[10px] font-bold bg-muted text-muted-foreground">{(typeof m.userId === 'object' ? (m.userId.displayName || m.userId.email) : 'U').substring(0, 2)}</AvatarFallback>
                   </Avatar>
                 ))}
               </div>

@@ -11,7 +11,14 @@ import { ProjectActivitySidebar } from "@/components/project-detail/ProjectActiv
 
 const ProjectDetailPage = () => {
   const { id } = useParams<{ id: string }>();
-  const { setMembers, setActiveProject, isActivityOpen, setIsActivityOpen, isReplayOpen, setIsReplayOpen } = useKanbanStore();
+  const { 
+    setMembers, 
+    setActiveProject, 
+    isActivityOpen, 
+    setIsActivityOpen, 
+    isReplayOpen, 
+    setIsReplayOpen 
+  } = useKanbanStore();
 
   const {
     data: response,
@@ -41,7 +48,7 @@ const ProjectDetailPage = () => {
 
   if (isLoading) {
     return (
-      <div className="flex h-full w-full items-center justify-center p-6 bg-accent-foreground/5">
+      <div className="flex h-full w-full items-center justify-center p-6 bg-background">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
@@ -49,7 +56,7 @@ const ProjectDetailPage = () => {
 
   if (error || !project) {
     return (
-      <div className="flex h-full w-full flex-col items-center justify-center p-6 bg-accent-foreground/5 gap-4">
+      <div className="flex h-full w-full flex-col items-center justify-center p-6 bg-background gap-4">
         <h2 className="text-xl font-semibold text-destructive">
           Không thể tải dữ liệu dự án
         </h2>

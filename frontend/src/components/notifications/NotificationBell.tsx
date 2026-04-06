@@ -75,7 +75,7 @@ export const NotificationBell = () => {
             </Button>
           )}
         </div>
-        <div className="max-h-[400px] overflow-y-auto custom-scrollbar">
+        <div className="max-h-[400px] overflow-y-auto custom-scrollbar bg-card">
           {isLoading ? (
             <div className="flex items-center justify-center py-10 text-muted-foreground">
               <Loader2 className="w-5 h-5 animate-spin mr-2" />

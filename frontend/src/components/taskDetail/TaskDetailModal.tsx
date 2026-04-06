@@ -454,7 +454,7 @@ export const TaskDetailModal = ({
                   onKeyDown={(e) => {
                     if (e.key === "Enter") e.currentTarget.blur();
                   }}
-                  className="text-2xl font-black text-foreground tracking-tight leading-none bg-card border border-border focus:border-primary px-3 py-1.5 focus:ring-4 focus:ring-primary/10 w-full outline-none rounded-lg transition-all -ml-3"
+                   className="text-2xl font-black text-foreground tracking-tight leading-none bg-card border border-border focus:border-primary px-3 py-1.5 focus:ring-4 focus:ring-primary/10 w-full outline-none rounded-lg transition-all -ml-3"
                 />
               ) : (
                 <DialogTitle className="text-2xl font-black text-foreground tracking-tight leading-none mt-0.5">
@@ -466,16 +466,16 @@ export const TaskDetailModal = ({
                 <div
                   className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border transition-colors ${
                     currentStatus === "done"
-                      ? "bg-green-500/10 text-green-600 border-green-500/20"
+                      ? "bg-green-50 text-green-700 border-green-200/50"
                       : currentStatus === "in_progress"
-                        ? "bg-blue-500/10 text-blue-600 border-blue-500/20"
-                        : "bg-muted text-muted-foreground border-border"
+                        ? "bg-blue-50 text-blue-700 border-blue-200/50"
+                        : "bg-slate-50 text-slate-600 border-slate-200"
                   }`}
                 >
                   <CheckCircle2 className="w-3.5 h-3.5" />
                   {statusLabels[currentStatus] || "Không xác định"}
                 </div>
-                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-muted text-muted-foreground border border-border text-xs font-bold transition-colors">
+                 <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-muted text-muted-foreground border border-border text-xs font-bold transition-colors">
                   <Flag
                     className={`w-3.5 h-3.5 fill-current transition-colors ${
                       currentPriority === "urgent"
@@ -495,7 +495,7 @@ export const TaskDetailModal = ({
 
           <div className="flex items-center gap-2 shrink-0">
             {isEditing && (
-              <Button
+               <Button
                 variant="outline"
                 size="sm"
                 onClick={handleDiscardEditing}
@@ -507,7 +507,7 @@ export const TaskDetailModal = ({
             )}
 
             {canEnterEditMode && (
-              <Button
+               <Button
                 variant={isEditing ? "default" : "outline"}
                 size="sm"
                 onClick={() =>
@@ -536,7 +536,7 @@ export const TaskDetailModal = ({
             )}
 
             {!isEditing && canDelete && (
-              <Button
+               <Button
                 variant="outline"
                 size="sm"
                 onClick={handleDelete}
@@ -548,7 +548,7 @@ export const TaskDetailModal = ({
               </Button>
             )}
             <DialogClose asChild>
-              <Button
+               <Button
                 variant="ghost"
                 size="icon"
                 disabled={isUploadingFiles}
@@ -563,7 +563,7 @@ export const TaskDetailModal = ({
           </div>
         </div>
 
-        {/* Content Section */}
+         {/* Content Section */}
         <div className="flex flex-1 overflow-hidden relative bg-background">
           {/* Main Content (Left Column) */}
           <div className="flex-[2.2] overflow-y-auto px-8 py-8 space-y-10">
@@ -587,7 +587,7 @@ export const TaskDetailModal = ({
                       handleSave("description", e.target.value);
                     }
                   }}
-                  className={`w-full text-[15px] text-foreground leading-relaxed bg-card border border-border focus:border-primary focus:ring-4 focus:ring-primary/10 rounded-xl p-4 transition-all min-h-[120px] resize-none outline-none placeholder:italic placeholder:text-muted-foreground ${!canEditMeta ? "opacity-70 cursor-not-allowed" : ""}`}
+                   className={`w-full text-[15px] text-foreground leading-relaxed bg-card border border-border focus:border-primary focus:ring-4 focus:ring-primary/10 rounded-xl p-4 transition-all min-h-[120px] resize-none outline-none placeholder:italic placeholder:text-muted-foreground ${!canEditMeta ? "opacity-70 cursor-not-allowed" : ""}`}
                   placeholder={
                     canEditMeta
                       ? "Thêm mô tả chi tiết cho công việc này..."
@@ -595,7 +595,7 @@ export const TaskDetailModal = ({
                   }
                 />
               ) : (
-                <div className="text-[15px] text-foreground leading-relaxed whitespace-pre-wrap">
+                 <div className="text-[15px] text-foreground leading-relaxed whitespace-pre-wrap">
                   {editedTask.description ? (
                     editedTask.description
                   ) : (
@@ -713,7 +713,7 @@ export const TaskDetailModal = ({
                 <Palette className="w-3.5 h-3.5" /> Màu sắc chủ đề
               </h4>
               {isEditing ? (
-                <div className="flex flex-wrap gap-2 p-2 bg-muted/50 rounded-xl border border-border">
+                <div className="flex flex-wrap gap-2 p-2 bg-card rounded-xl border border-border">
                   {PRESET_COLORS.map((c) => (
                     <button
                       key={c}
@@ -724,7 +724,7 @@ export const TaskDetailModal = ({
                         handleSave("color", c);
                       }}
                       className={`w-7 h-7 rounded-full border-2 transition-all hover:scale-110 active:scale-95 ${
-                        currentColor === c ? "border-foreground ring-2 ring-primary/20 scale-110" : "border-border hover:border-muted-foreground/30"
+                        currentColor === c ? "border-primary ring-2 ring-primary/20 scale-110" : "border-transparent hover:border-muted-foreground/30"
                       }`}
                       style={{ backgroundColor: c }}
                       title={c}
@@ -869,7 +869,7 @@ export const TaskDetailModal = ({
                         key={assigneeId}
                         className="flex items-center gap-1.5 bg-card border border-border shadow-sm px-2 py-1 rounded-full text-xs font-bold text-foreground"
                       >
-                        <div className="w-5 h-5 rounded-full bg-muted overflow-hidden flex items-center justify-center border border-border">
+                        <div className="w-5 h-5 rounded-full bg-muted overflow-hidden flex items-center justify-center">
                           {member.avatarUrl ? (
                             <img
                               src={member.avatarUrl}
@@ -894,7 +894,7 @@ export const TaskDetailModal = ({
                                 )?.filter((id) => id !== assigneeId),
                               )
                             }
-                            className="text-slate-400 hover:text-red-500 ml-0.5"
+                            className="text-muted-foreground hover:text-red-500 ml-0.5"
                           >
                             <X className="w-3 h-3" />
                           </button>
@@ -911,12 +911,12 @@ export const TaskDetailModal = ({
                     </span>
                   )}
 
-                {isEditing && canEditMeta && (
+                 {isEditing && canEditMeta && (
                   <div className="relative ml-auto" ref={assigneeRef}>
                     <Button
                       type="button"
                       variant="ghost"
-                      className="h-7 px-2 text-muted-foreground hover:bg-accent text-xs gap-1 border border-dashed border-border flex items-center justify-center font-bold"
+                      className="h-7 px-2 text-muted-foreground hover:bg-muted text-xs gap-1 border border-dashed border-border flex items-center justify-center font-bold"
                       onClick={() => setIsAssigneeOpen(!isAssigneeOpen)}
                     >
                       <Plus className="w-3.5 h-3.5" /> Thêm người
@@ -929,7 +929,7 @@ export const TaskDetailModal = ({
                             placeholder="Tìm kiếm thành viên..."
                             value={searchAssignee}
                             onChange={(e) => setSearchAssignee(e.target.value)}
-                            className="flex h-8 w-full rounded-md border border-border bg-background px-3 py-1 text-[13px] shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary disabled:cursor-not-allowed disabled:opacity-50"
+                            className="flex h-8 w-full rounded-md border border-border bg-card px-3 py-1 text-[13px] shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary disabled:cursor-not-allowed disabled:opacity-50"
                             autoFocus
                           />
                         </div>
@@ -955,7 +955,7 @@ export const TaskDetailModal = ({
                               );
                             });
 
-                            if (filtered.length === 0) {
+                             if (filtered.length === 0) {
                               return (
                                 <div className="p-4 text-[13px] text-muted-foreground text-center italic">
                                   Không tìm thấy thành viên
@@ -968,7 +968,7 @@ export const TaskDetailModal = ({
                               return (
                                 <div
                                   key={member._id}
-                                  className="flex items-center gap-2.5 px-2.5 py-1.5 hover:bg-accent rounded-lg cursor-pointer transition-colors"
+                                  className="flex items-center gap-2.5 px-2.5 py-1.5 hover:bg-muted rounded-lg cursor-pointer transition-colors"
                                   onClick={() => {
                                     handleSave("assignees", [
                                       ...currentAssignees,
@@ -985,7 +985,7 @@ export const TaskDetailModal = ({
                                         className="w-full h-full object-cover"
                                       />
                                     ) : (
-                                      <UserIcon className="w-3.5 h-3.5 text-slate-400" />
+                                      <UserIcon className="w-3.5 h-3.5 text-muted-foreground" />
                                     )}
                                   </div>
                                   <div className="flex flex-col text-left overflow-hidden">
@@ -1006,7 +1006,7 @@ export const TaskDetailModal = ({
               </div>
             </div>
 
-            {/* Color Tag */}
+             {/* Color Tag */}
             <div className="space-y-3.5 pt-2">
               <h4 className="text-[11px] font-extrabold uppercase tracking-widest text-muted-foreground flex items-center gap-1.5">
                 <Palette className="w-3.5 h-3.5" /> Màu thẻ nhận diện
@@ -1019,13 +1019,13 @@ export const TaskDetailModal = ({
                       <div
                         key={`${c}-${i}`}
                         onClick={() => handleSave("color", c)}
-                        className={`w-8 h-8 rounded-xl cursor-pointer transition-all duration-200 hover:scale-110 hover:shadow-md ${currentColor === c ? "ring-2 ring-primary ring-offset-2 ring-offset-background scale-110 shadow-sm" : "border border-foreground/10"}`}
+                        className={`w-8 h-8 rounded-xl cursor-pointer transition-all duration-200 hover:scale-110 hover:shadow-md ${currentColor === c ? "ring-2 ring-primary ring-offset-2 scale-110 shadow-sm" : "border border-black/10"}`}
                         style={{ backgroundColor: c }}
                         title={c}
                       />
                     ))}
                     <div
-                      className="relative w-8 h-8 rounded-xl border-2 border-dashed border-border flex items-center justify-center cursor-pointer hover:bg-accent hover:border-muted-foreground/50 transition-all text-muted-foreground hover:text-foreground outline-none"
+                      className="relative w-8 h-8 rounded-xl border-2 border-dashed border-border flex items-center justify-center cursor-pointer hover:bg-muted hover:border-muted-foreground/50 transition-all text-muted-foreground hover:text-foreground outline-none"
                       title="Màu tự chọn"
                     >
                       <input
@@ -1038,7 +1038,7 @@ export const TaskDetailModal = ({
                     </div>
                   </div>
                 )}
-                <div
+                 <div
                   className={`flex items-center gap-3 ${isEditing ? "pt-3 border-t border-border" : ""}`}
                 >
                   {isEditing && (
@@ -1048,10 +1048,10 @@ export const TaskDetailModal = ({
                   )}
                   <div className="flex items-center gap-2 px-2 py-1 bg-muted rounded-lg border border-border">
                     <div
-                      className="w-4 h-4 rounded-md shadow-sm border border-foreground/10"
+                      className="w-4 h-4 rounded-md shadow-sm border border-black/10"
                       style={{ backgroundColor: currentColor || "#ec4899" }}
                     />
-                    <span className="text-xs font-mono font-semibold text-muted-foreground uppercase">
+                    <span className="text-xs font-mono font-semibold text-foreground uppercase">
                       {currentColor || "#ec4899"}
                     </span>
                   </div>

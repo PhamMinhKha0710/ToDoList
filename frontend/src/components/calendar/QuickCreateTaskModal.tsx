@@ -169,7 +169,7 @@ export const QuickCreateTaskModal = ({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[480px] p-6 shadow-2xl border-border bg-card">
         <DialogHeader>
-          <DialogTitle className="flex justify-between items-center pr-8">
+          <DialogTitle className="flex justify-between items-center pr-8 text-foreground">
             <span>Thêm công việc nhanh</span>
             <div className="flex bg-muted p-1 rounded-lg text-[13px]">
               <button
@@ -195,7 +195,7 @@ export const QuickCreateTaskModal = ({
           {taskType === "project" ? (
             <>
               <div className="grid gap-2">
-                <Label htmlFor="project">Dự án <span className="text-destructive">*</span></Label>
+                <Label htmlFor="project" className="text-foreground">Dự án <span className="text-destructive">*</span></Label>
                 <Select
                   value={selectedProjectId}
                   onValueChange={(val) => {
@@ -203,10 +203,10 @@ export const QuickCreateTaskModal = ({
                     setSelectedColumnId("");
                   }}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="bg-background border-border text-foreground">
                     <SelectValue placeholder={isLoadingProjects ? "Đang tải dự án..." : "Chọn dự án"} />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="bg-popover border-border">
                     {projects.map((project) => (
                       <SelectItem key={project._id} value={project._id}>
                         {project.name}
@@ -217,16 +217,16 @@ export const QuickCreateTaskModal = ({
               </div>
 
               <div className="grid gap-2">
-                <Label htmlFor="column">Cột <span className="text-destructive">*</span></Label>
+                <Label htmlFor="column" className="text-foreground">Cột <span className="text-destructive">*</span></Label>
                 <Select
                   value={selectedColumnId}
                   onValueChange={setSelectedColumnId}
                   disabled={!selectedProjectId || isLoadingColumns}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="bg-background border-border text-foreground">
                     <SelectValue placeholder={isLoadingColumns ? "Đang tải cột..." : "Chọn cột"} />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="bg-popover border-border">
                     {columns.map((column) => (
                       <SelectItem key={column._id} value={column._id}>
                         {column.title}
@@ -237,17 +237,18 @@ export const QuickCreateTaskModal = ({
               </div>
 
               <div className="grid gap-2">
-                <Label htmlFor="title">Tiêu đề <span className="text-destructive">*</span></Label>
+                <Label htmlFor="title" className="text-foreground">Tiêu đề <span className="text-destructive">*</span></Label>
                 <Input
                   id="title"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
                   placeholder="Nhập tiêu đề công việc..."
+                  className="bg-background border-border text-foreground"
                 />
               </div>
 
               <div className="grid gap-2">
-                <Label>Màu sắc</Label>
+                <Label className="text-foreground">Màu sắc</Label>
                 <div className="flex flex-wrap gap-2">
                   {COLOR_PRESETS.map((c) => (
                     <button
@@ -277,7 +278,7 @@ export const QuickCreateTaskModal = ({
                     type="datetime-local"
                     value={startDate}
                     onChange={(e) => setStartDate(e.target.value)}
-                    className="w-full bg-muted/50 border-border focus:bg-background transition-all"
+                    className="w-full bg-muted/50 border-border focus:bg-background transition-all text-foreground"
                   />
                 </div>
                 <div className="grid gap-2 w-full">
@@ -287,35 +288,37 @@ export const QuickCreateTaskModal = ({
                     type="datetime-local"
                     value={endDate}
                     onChange={(e) => setEndDate(e.target.value)}
-                    className="w-full bg-muted/50 border-border focus:bg-background transition-all"
+                    className="w-full bg-muted/50 border-border focus:bg-background transition-all text-foreground"
                   />
                 </div>
               </div>
 
               <div className="grid gap-2">
-                <Label htmlFor="dueDate">Hạn chót</Label>
+                <Label htmlFor="dueDate" className="text-foreground">Hạn chót</Label>
                 <Input
                   id="dueDate"
                   type="datetime-local"
                   value={dueDate}
                   onChange={(e) => setDueDate(e.target.value)}
+                  className="bg-background border-border text-foreground"
                 />
               </div>
             </>
           ) : (
             <>
               <div className="grid gap-2">
-                <Label htmlFor="title-p">Tiêu đề <span className="text-destructive">*</span></Label>
+                <Label htmlFor="title-p" className="text-foreground">Tiêu đề <span className="text-destructive">*</span></Label>
                 <Input
                   id="title-p"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
                   placeholder="Nhập tiêu đề công việc..."
+                  className="bg-background border-border text-foreground"
                 />
               </div>
 
               <div className="grid gap-2">
-                <Label>Màu sắc</Label>
+                <Label className="text-foreground">Màu sắc</Label>
                 <div className="flex flex-wrap gap-2">
                   {COLOR_PRESETS.map((c) => (
                     <button
@@ -345,7 +348,7 @@ export const QuickCreateTaskModal = ({
                     type="datetime-local"
                     value={startDate}
                     onChange={(e) => setStartDate(e.target.value)}
-                    className="w-full bg-muted/50 border-border focus:bg-background transition-all"
+                    className="w-full bg-muted/50 border-border focus:bg-background transition-all text-foreground"
                   />
                 </div>
                 <div className="grid gap-2 w-full">
@@ -355,18 +358,18 @@ export const QuickCreateTaskModal = ({
                     type="datetime-local"
                     value={endDate}
                     onChange={(e) => setEndDate(e.target.value)}
-                    className="w-full bg-muted/50 border-border focus:bg-background transition-all"
+                    className="w-full bg-muted/50 border-border focus:bg-background transition-all text-foreground"
                   />
                 </div>
               </div>
             </>
           )}
         </div>
-        <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
+        <DialogFooter className="gap-2">
+          <Button variant="outline" onClick={() => onOpenChange(false)} className="border-border text-foreground hover:bg-muted">
             Hủy
           </Button>
-          <Button onClick={handleCreate} disabled={isPending}>
+          <Button onClick={handleCreate} disabled={isPending} className="bg-primary text-primary-foreground hover:bg-primary/90">
             {isPending && (
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
             )}

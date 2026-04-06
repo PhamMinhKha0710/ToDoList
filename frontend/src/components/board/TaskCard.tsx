@@ -30,21 +30,21 @@ const getPriorityConfig = (priority: string) => {
       return {
         icon: Flame,
         text: 'URGENT',
-        classes: 'text-red-600 bg-red-50/40 border border-red-200'
+        classes: 'text-red-600 bg-red-50/40 border border-red-200 dark:bg-red-950/20 dark:border-red-800'
       };
 
     case 'high':
       return {
         icon: Flame,
         text: 'HIGH',
-        classes: 'text-orange-600 bg-orange-50/40 border border-orange-200'
+        classes: 'text-orange-600 bg-orange-50/40 border border-orange-200 dark:bg-orange-950/20 dark:border-orange-800'
       };
 
     case 'normal':
       return {
         icon: Gauge,
         text: 'NORMAL',
-        classes: 'text-emerald-600 bg-emerald-50/40 border border-emerald-200'
+        classes: 'text-emerald-600 bg-emerald-50/40 border border-emerald-200 dark:bg-emerald-950/20 dark:border-emerald-800'
       };
 
     case 'low':
@@ -58,7 +58,7 @@ const getPriorityConfig = (priority: string) => {
       return {
         icon: Gauge,
         text: 'NORMAL',
-        classes: 'text-blue-600 bg-blue-50/40 border border-blue-200'
+        classes: 'text-blue-600 bg-blue-50/40 border border-blue-200 dark:bg-blue-950/20 dark:border-blue-800'
       };
   }
 };

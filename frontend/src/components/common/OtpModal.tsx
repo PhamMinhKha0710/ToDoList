@@ -39,7 +39,7 @@ export function OtpModal({ isOpen, onClose, onSubmit, isLoading, email }: OtpMod
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-md bg-card border-border">
         <DialogHeader>
-          <DialogTitle className="text-xl font-bold flex items-center justify-between">
+          <DialogTitle className="text-xl font-bold flex items-center justify-between text-foreground">
             Xác thực tính danh 🛡️
           </DialogTitle>
           <DialogDescription className="text-muted-foreground pt-2">
@@ -57,7 +57,7 @@ export function OtpModal({ isOpen, onClose, onSubmit, isLoading, email }: OtpMod
               value={otp}
               onChange={(e) => setOtp(e.target.value.replace(/[^0-9]/g, ''))}
               placeholder="000000"
-              className="text-center text-4xl font-bold tracking-[0.4em] h-16 w-56 focus-visible:ring-primary bg-muted/50 border-border"
+              className="text-center text-4xl font-bold tracking-[0.4em] h-16 w-56 focus-visible:ring-primary bg-muted/50 border-border text-foreground"
               autoFocus
             />
           </div>
@@ -67,6 +67,7 @@ export function OtpModal({ isOpen, onClose, onSubmit, isLoading, email }: OtpMod
               variant="outline" 
               onClick={onClose} 
               disabled={isLoading} 
+              className="border-border text-foreground hover:bg-muted"
             >
               Hủy
             </Button>
@@ -74,6 +75,7 @@ export function OtpModal({ isOpen, onClose, onSubmit, isLoading, email }: OtpMod
               type="button" 
               onClick={handleConfirmClick}
               disabled={isLoading} 
+              className="bg-primary text-primary-foreground hover:bg-primary/90"
             >
               {isLoading && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
               Xác nhận

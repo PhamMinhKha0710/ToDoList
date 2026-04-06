@@ -174,4 +174,3 @@ export const useKanbanStore = create<Kanban>()((set, get) => ({
 
   handleColumnsReordered: (columns: any[]) => set({ columns }),
 }));
-

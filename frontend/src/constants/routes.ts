@@ -9,6 +9,9 @@ export const ROUTES = {
   CALENDAR: '/calendar',
   MY_TASKS: '/my-tasks',
   PROFILE: '/profile',
+  ADMIN: '/admin',
   ADMIN_USERS: '/admin/users',
   ADMIN_PROJECTS: '/admin/projects',
+  GOOGLE_CALLBACK: '/auth/google/callback',
+  TASK_DETAIL: (id: string) => `/tasks/${id}`,
 } as const

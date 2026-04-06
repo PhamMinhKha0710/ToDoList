@@ -150,7 +150,7 @@ export const TaskAttachments = ({
           type="button"
           variant="ghost"
           size="icon"
-          className="absolute right-2 top-1/2 -translate-y-1/2 w-7 h-7 bg-card/8 backdrop-blur-sm text-muted-foreground opacity-0 group-hover:opacity-100 hover:text-red-500 hover:bg-red-500/10 transition-all shadow-sm"
+          className="absolute right-2 top-1/2 -translate-y-1/2 w-7 h-7 bg-card/8backdrop-blur-sm text-muted-foreground opacity-0 group-hover:opacity-100 hover:text-red-500 hover:bg-red-500/10 transition-all shadow-sm"
           onClick={(e) => {
             e.preventDefault();
             e.stopPropagation();

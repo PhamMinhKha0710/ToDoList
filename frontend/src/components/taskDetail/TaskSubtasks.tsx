@@ -87,7 +87,7 @@ export const TaskSubtasks = ({
               type="button"
               onClick={() => handleToggle(index)}
               className={`shrink-0 transition-colors ${
-                subTask.status === "done" ? "text-green-500" : "text-muted-foreground hover:text-primary"
+                subTask.status === "done" ? "text-primary" : "text-muted-foreground hover:text-primary"
               }`}
             >
               {subTask.status === "done" ? (
@@ -103,12 +103,12 @@ export const TaskSubtasks = ({
                 value={subTask.title}
                 onChange={(e) => handleTitleChange(index, e.target.value)}
                 className={`flex-1 bg-transparent border-none p-0 text-[14px] font-medium outline-none transition-all ${
-                  subTask.status === "done" ? "text-muted-foreground line-through" : "text-foreground"
+                  subTask.status === "done" ? "text-muted-foreground line-through opacity-70" : "text-foreground"
                 }`}
               />
             ) : (
                 <span className={`flex-1 text-[14px] font-medium ${
-                  subTask.status === "done" ? "text-muted-foreground line-through" : "text-foreground"
+                  subTask.status === "done" ? "text-muted-foreground line-through opacity-70" : "text-foreground"
                 }`}>
                   {subTask.title}
                 </span>
@@ -137,7 +137,7 @@ export const TaskSubtasks = ({
               value={newSubTaskTitle}
               onChange={(e) => setNewSubTaskTitle(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handleAdd()}
-              className="w-full pl-10 pr-4 py-2.5 bg-muted border border-border rounded-xl text-sm font-medium focus:bg-card focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none transition-all"
+              className="w-full pl-10 pr-4 py-2.5 bg-muted border border-border rounded-xl text-sm font-medium focus:bg-card focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none transition-all placeholder:text-muted-foreground"
             />
             <Plus className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           </div>
@@ -152,7 +152,7 @@ export const TaskSubtasks = ({
       )}
 
       {subTasks.length === 0 && !isEditing && (
-        <div className="text-center py-8 bg-muted/50 border border-dashed border-border rounded-2xl">
+        <div className="text-center py-8 bg-muted/30 border border-dashed border-border rounded-2xl">
           <p className="text-muted-foreground text-sm italic">Chưa có nhiệm vụ con nào.</p>
         </div>
       )}

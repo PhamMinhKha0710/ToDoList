@@ -128,8 +128,7 @@ export const TaskComments = ({
       setReplyingTo(null);
       setMentions([]);
     },
-    onError: (error) => {
-      // toast.error(getErrorMessage(error) || "Lỗi khi gửi bình luận");
+    onError: (error: any) => {
       toast.error(error?.message || "Lỗi khi gửi bình luận");
     },
   });

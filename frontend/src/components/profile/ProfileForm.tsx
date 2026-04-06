@@ -130,10 +130,10 @@ export default function ProfileForm() {
   };
 
   return (
-    <Card className="shadow-sm border-border">
+    <Card className="shadow-sm border-border bg-card">
       <CardHeader>
-        <CardTitle className="text-xl">Thông tin cơ bản</CardTitle>
-        <CardDescription>Cập nhật ảnh đại diện và chi tiết thông tin cá nhân của bạn.</CardDescription>
+        <CardTitle className="text-xl text-foreground">Thông tin cơ bản</CardTitle>
+        <CardDescription className="text-muted-foreground">Cập nhật ảnh đại diện và chi tiết thông tin cá nhân của bạn.</CardDescription>
       </CardHeader>
       <CardContent className="space-y-8">
 
@@ -142,7 +142,7 @@ export default function ProfileForm() {
           <div className="relative group">
             <div className="w-24 h-24 rounded-full border-4 border-background shadow-xl ring-1 ring-border transition-all duration-300 overflow-hidden flex items-center justify-center bg-muted">
               {isSavingAvatar ? (
-                <Loader2 className="animate-spin w-8 h-8 text-indigo-500" />
+                <Loader2 className="animate-spin w-8 h-8 text-primary" />
               ) : isEmojiUrl(avatarPreview) ? (
                 <span className="text-4xl leading-none select-none">
                   {avatarPreview}
@@ -160,7 +160,7 @@ export default function ProfileForm() {
               type="button"
               size="icon"
               variant="secondary"
-              className="absolute bottom-0 right-0 rounded-full w-8 h-8 shadow-sm border border-border"
+              className="absolute bottom-0 right-0 rounded-full w-8 h-8 shadow-sm border border-border bg-background hover:bg-muted"
               onClick={() => fileInputRef.current?.click()}
               disabled={isSavingAvatar}
             >
@@ -200,29 +200,29 @@ export default function ProfileForm() {
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
-              <Label htmlFor="fullName">Họ và tên</Label>
+              <Label htmlFor="fullName" className="text-foreground">Họ và tên</Label>
               <Input
                 id="fullName"
                 placeholder="Nguyễn Văn A"
                 {...register("fullName")}
-                className="focus-visible:ring-indigo-500 transition-shadow"
+                className="focus-visible:ring-primary transition-shadow bg-background border-border text-foreground"
               />
               {errors.fullName && <p className="text-xs text-red-500">{errors.fullName.message}</p>}
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="displayName">Tên hiển thị</Label>
+              <Label htmlFor="displayName" className="text-foreground">Tên hiển thị</Label>
               <Input
                 id="displayName"
                 placeholder="Văn A"
                 {...register("displayName")}
-                className="focus-visible:ring-primary transition-shadow"
+                className="focus-visible:ring-primary transition-shadow bg-background border-border text-foreground"
               />
               {errors.displayName && <p className="text-xs text-red-500">{errors.displayName.message}</p>}
             </div>
           </div>
 
-          <Button type="submit">
+          <Button type="submit" className="bg-primary text-primary-foreground hover:bg-primary/90">
             Lưu thay đổi
           </Button>
         </form>
@@ -230,7 +230,7 @@ export default function ProfileForm() {
         <div className="pt-6 border-t border-border">
           <div className="space-y-4">
             <div>
-              <Label className="mb-2 block">Địa chỉ Email</Label>
+              <Label className="text-foreground mb-2 block">Địa chỉ Email</Label>
               <div className="flex flex-col sm:flex-row gap-4 sm:items-center">
                 <div className="relative flex-1">
                   <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={16} />
@@ -245,7 +245,7 @@ export default function ProfileForm() {
                   type="button"
                   variant="outline"
                   onClick={() => setIsUpdatingEmail(!isUpdatingEmail)}
-                  className="shrink-0 transition-colors"
+                  className="shrink-0 border-border text-foreground hover:bg-muted"
                 >
                   {isUpdatingEmail ? "Hủy" : "Cập nhật Email"}
                 </Button>
@@ -255,14 +255,14 @@ export default function ProfileForm() {
             {isUpdatingEmail && (
               <div className="bg-muted/30 p-4 rounded-lg border border-border space-y-3 animate-in fade-in zoom-in-95 duration-200">
                 <div className="space-y-2">
-                  <Label htmlFor="newEmail">Địa chỉ Email mới</Label>
+                  <Label htmlFor="newEmail" className="text-foreground">Địa chỉ Email mới</Label>
                   <Input
                     id="newEmail"
                     type="email"
                     value={newEmailValue}
                     onChange={(e) => setNewEmailValue(e.target.value)}
                     placeholder="Nhập email mới"
-                    className="focus-visible:ring-primary"
+                    className="bg-background border-border text-foreground focus-visible:ring-primary"
                   />
                 </div>
                 <Button
@@ -270,7 +270,7 @@ export default function ProfileForm() {
                   size="sm"
                   onClick={handleRequestEmailOtp}
                   disabled={isRequestingEmailOtp || !newEmailValue}
-                  className="w-full sm:w-auto"
+                  className="w-full sm:w-auto bg-primary text-primary-foreground hover:bg-primary/90"
                 >
                   {isRequestingEmailOtp && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
                   Gửi liên kết xác minh

@@ -26,9 +26,12 @@ interface CreateProjectModalProps {
   onOpenChange: (open: boolean) => void;
 }
 
+type AssignableRole = 'admin' | 'member' | 'viewer';
+type ProjectRole = 'owner' | 'admin' | 'member' | 'viewer';
+
 interface SelectedMember {
   user: User;
-  role: 'owner' | 'member';
+  role: ProjectRole;
 }
 
 export const CreateProjectModal = ({ open, onOpenChange }: CreateProjectModalProps) => {
@@ -48,8 +51,8 @@ export const CreateProjectModal = ({ open, onOpenChange }: CreateProjectModalPro
       resetForm();
       onOpenChange(false);
     },
-    onError: (error: any) => {
-      toast.error(error.response?.data?.message || 'Có lỗi xảy ra khi tạo dự án');
+    onError: () => {
+      // Global toast handled
     }
   });
 
@@ -62,7 +65,7 @@ export const CreateProjectModal = ({ open, onOpenChange }: CreateProjectModalPro
     setSelectedMembers([]);
   };
 
-  const handleAddMember = (user: User, role: 'owner' | 'member') => {
+  const handleAddMember = (user: User, role: AssignableRole) => {
     setSelectedMembers((prev) => [...prev, { user, role }]);
     toast.success(`Đã thêm ${user.displayName || user.email} vào danh sách chờ.`);
   };
@@ -239,8 +242,8 @@ export const CreateProjectModal = ({ open, onOpenChange }: CreateProjectModalPro
                           </span>
                         </div>
                         <div className="flex items-center gap-3">
-                          <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-primary/10 text-primary">
-                            {member.role === 'owner' ? 'Owner' : 'Member'}
+                          <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-primary/10 text-primary capitalize">
+                            {member.role}
                           </span>
                           <Button 
                             type="button" 

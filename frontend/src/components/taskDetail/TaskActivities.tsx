@@ -1,4 +1,3 @@
-
 import { useQuery } from '@tanstack/react-query';
 import { formatDistanceToNow } from 'date-fns';
 import { vi } from 'date-fns/locale';
@@ -47,7 +46,7 @@ export const TaskActivities = ({ taskId }: TaskActivitiesProps) => {
 
   return (
     <div className="relative before:absolute before:inset-y-2 before:left-[19px] before:w-[2px] before:bg-border pl-2 space-y-6">
-      {activities.map((activity) => (
+      {activities.map((activity: any) => (
         <div key={activity._id} className="relative flex items-start gap-4">
           <div className="absolute left-[13px] top-1.5 w-3.5 h-3.5 rounded-full bg-card border-2 border-primary z-10" />
           <div className="w-8 h-8 rounded-full border border-border overflow-hidden bg-muted shrink-0 ml-8 relative z-10 flex items-center justify-center">

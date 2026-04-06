@@ -95,13 +95,13 @@ export default function ChangePasswordForm() {
   const strength = getPasswordStrength(newPassword);
 
   return (
-    <Card className="shadow-sm border-border">
+    <Card className="shadow-sm border-border bg-card">
       <CardHeader>
-        <CardTitle className="text-xl flex items-center gap-2">
+        <CardTitle className="text-xl flex items-center gap-2 text-foreground">
           <ShieldCheck className="text-primary" size={24} />
           Tùy chọn Bảo mật
         </CardTitle>
-        <CardDescription>Quản lý mật khẩu và các phương thức xác thực của bạn.</CardDescription>
+        <CardDescription className="text-muted-foreground">Quản lý mật khẩu và các phương thức xác thực của bạn.</CardDescription>
       </CardHeader>
       <CardContent className="space-y-8">
         
@@ -115,7 +115,7 @@ export default function ChangePasswordForm() {
             <Button 
               variant="outline" 
               onClick={() => setIsChangingPassword(!isChangingPassword)}
-              className="w-full sm:w-auto"
+              className="w-full sm:w-auto border-border text-foreground hover:bg-muted"
             >
               <KeyRound className="w-4 h-4 mr-2" />
               {isChangingPassword ? "Hủy" : "Đổi mật khẩu"}
@@ -126,23 +126,23 @@ export default function ChangePasswordForm() {
             <div className="overflow-hidden">
               <form onSubmit={handleSubmit(onSubmit)} className="space-y-5 pt-2">
                 <div className="space-y-2">
-                  <Label htmlFor="currentPassword">Mật khẩu hiện tại</Label>
+                  <Label htmlFor="currentPassword" className="text-foreground">Mật khẩu hiện tại</Label>
                   <Input 
                     id="currentPassword" 
                     type="password" 
                     {...register("currentPassword")} 
-                    className="focus-visible:ring-primary" 
+                    className="focus-visible:ring-primary bg-background border-border text-foreground" 
                   />
                   {errors.currentPassword && <p className="text-xs text-red-500">{errors.currentPassword.message}</p>}
                 </div>
                 
                 <div className="space-y-2">
-                  <Label htmlFor="newPassword">Mật khẩu mới</Label>
+                  <Label htmlFor="newPassword" className="text-foreground">Mật khẩu mới</Label>
                   <Input 
                     id="newPassword" 
                     type="password" 
                     {...register("newPassword")} 
-                    className="focus-visible:ring-primary" 
+                    className="focus-visible:ring-primary bg-background border-border text-foreground" 
                   />
                   {errors.newPassword && <p className="text-xs text-red-500">{errors.newPassword.message}</p>}
                   
@@ -151,8 +151,8 @@ export default function ChangePasswordForm() {
                     <div className="flex items-center gap-3 mt-2">
                       <div className="flex-1 flex gap-1 h-1.5">
                         <div className={`flex-1 rounded-full ${strength.color}`}></div>
-                        <div className={`flex-1 rounded-full ${strength.label === 'Trung bình' || strength.label === 'Mạnh' ? strength.color : 'bg-slate-200'}`}></div>
-                        <div className={`flex-1 rounded-full ${strength.label === 'Mạnh' ? strength.color : 'bg-slate-200'}`}></div>
+                        <div className={`flex-1 rounded-full ${strength.label === 'Trung bình' || strength.label === 'Mạnh' ? strength.color : 'bg-muted'}`}></div>
+                        <div className={`flex-1 rounded-full ${strength.label === 'Mạnh' ? strength.color : 'bg-muted'}`}></div>
                       </div>
                       <span className={`text-xs font-medium w-max text-right ${strength.text}`}>
                         {strength.label}
@@ -162,18 +162,18 @@ export default function ChangePasswordForm() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="confirmPassword">Xác nhận mật khẩu mới</Label>
+                  <Label htmlFor="confirmPassword" className="text-foreground">Xác nhận mật khẩu mới</Label>
                   <Input 
                     id="confirmPassword" 
                     type="password" 
                     {...register("confirmPassword")} 
-                    className="focus-visible:ring-primary" 
+                    className="focus-visible:ring-primary bg-background border-border text-foreground" 
                   />
                   {errors.confirmPassword && <p className="text-xs text-red-500">{errors.confirmPassword.message}</p>}
                 </div>
 
                 <div className="pt-2">
-                  <Button type="submit" disabled={isRequestingOtp} className="w-full sm:w-auto">
+                  <Button type="submit" disabled={isRequestingOtp} className="w-full sm:w-auto bg-primary text-primary-foreground hover:bg-primary/90">
                     {isRequestingOtp && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
                     Cập nhật mật khẩu
                   </Button>

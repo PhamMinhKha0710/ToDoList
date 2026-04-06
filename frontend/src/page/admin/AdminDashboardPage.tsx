@@ -101,28 +101,28 @@ const AdminDashboardPage = () => {
 
   if (isLoading) {
     return (
-      <div className="flex h-full min-h-[400px] items-center justify-center">
+      <div className="flex h-full min-h-[400px] items-center justify-center bg-background">
         <p className="text-muted-foreground">Đang tải biểu đồ dữ liệu...</p>
       </div>
     );
   }
 
   return (
-    <div className="p-6">
+    <div className="p-6 bg-background">
       <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold">Admin Dashboard</h1>
+          <h1 className="text-2xl font-bold text-foreground">Admin Dashboard</h1>
           <p className="text-sm text-muted-foreground">Trực quan hóa dữ liệu dự án và theo dõi tiến độ</p>
         </div>
         <div className="flex items-center gap-2">
           <button
-            className={`rounded-md px-4 py-2 text-sm font-medium ${mode === "week" ? "bg-primary text-primary-foreground" : "bg-muted"}`}
+            className={`rounded-md px-4 py-2 text-sm font-medium transition-all ${mode === "week" ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:bg-muted/80"}`}
             onClick={() => setMode("week")}
           >
             Theo tuần
           </button>
           <button
-            className={`rounded-md px-4 py-2 text-sm font-medium ${mode === "month" ? "bg-primary text-primary-foreground" : "bg-muted"}`}
+            className={`rounded-md px-4 py-2 text-sm font-medium transition-all ${mode === "month" ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:bg-muted/80"}`}
             onClick={() => setMode("month")}
           >
             Theo tháng
@@ -133,28 +133,28 @@ const AdminDashboardPage = () => {
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-6">
         <div className="rounded-xl border border-border bg-card p-4 shadow-sm">
           <p className="text-xs text-muted-foreground">Tổng task</p>
-          <p className="text-2xl font-bold">{taskSummary.total}</p>
+          <p className="text-2xl font-bold text-foreground">{taskSummary.total}</p>
         </div>
         <div className="rounded-xl border border-border bg-card p-4 shadow-sm">
           <p className="text-xs text-muted-foreground">Hoàn thành</p>
-          <p className="text-2xl font-bold">{taskSummary.done}</p>
+          <p className="text-2xl font-bold text-foreground">{taskSummary.done}</p>
         </div>
         <div className="rounded-xl border border-border bg-card p-4 shadow-sm">
           <p className="text-xs text-muted-foreground">Đang thực hiện</p>
-          <p className="text-2xl font-bold">{taskSummary.inProgress}</p>
+          <p className="text-2xl font-bold text-foreground">{taskSummary.inProgress}</p>
         </div>
         <div className="rounded-xl border border-border bg-card p-4 shadow-sm">
           <p className="text-xs text-muted-foreground">Chưa làm</p>
-          <p className="text-2xl font-bold">{taskSummary.todo}</p>
+          <p className="text-2xl font-bold text-foreground">{taskSummary.todo}</p>
         </div>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
         <section className="rounded-xl border border-border bg-card p-5 shadow-sm">
-          <h2 className="mb-4 text-lg font-semibold">Tỉ lệ trạng thái task</h2>
+          <h2 className="mb-4 text-lg font-semibold text-foreground">Tỉ lệ trạng thái task</h2>
           <div className="grid gap-3">
             {Object.entries(taskSummary.statuses).map(([status, count]) => {
-              const percent = Math.round(((count as number) / taskSummary.total) * 100);
+              const percent = Math.round(((count as number) / (taskSummary.total || 1)) * 100);
               const colors: Record<string, string> = {
                 todo: "bg-orange-400",
                 in_progress: "bg-blue-400",
@@ -163,11 +163,11 @@ const AdminDashboardPage = () => {
               return (
                 <div key={status}>
                   <div className="mb-1 flex items-center justify-between text-sm">
-                    <span>{statusLabels[status as TaskStatus]}</span>
-                    <span>{count} ({percent}%)</span>
+                    <span className="text-foreground">{statusLabels[status as TaskStatus]}</span>
+                    <span className="text-muted-foreground">{count} ({percent}%)</span>
                   </div>
-                  <div className="h-2 rounded bg-muted">
-                    <div className={`${colors[status] ?? "bg-primary"} h-full rounded`} style={{ width: `${percent}%` }} />
+                  <div className="h-2 rounded bg-muted overflow-hidden">
+                    <div className={`${colors[status] ?? "bg-primary"} h-full rounded transition-all duration-500`} style={{ width: `${percent}%` }} />
                   </div>
                 </div>
               );
@@ -175,7 +175,7 @@ const AdminDashboardPage = () => {
           </div>
         </section>
         <section className="rounded-xl border border-border bg-card p-5 shadow-sm">
-          <h2 className="mb-4 text-lg font-semibold">Số lượng task mới ({mode === "week" ? "tuần" : "tháng"})</h2>
+          <h2 className="mb-4 text-lg font-semibold text-foreground">Số lượng task mới ({mode === "week" ? "tuần" : "tháng"})</h2>
           <div className="grid gap-2">
             {(mode === "week" ? periodLabels.week : periodLabels.month).map((label, idx) => {
               const count = periodData[idx] || 0;
@@ -186,8 +186,8 @@ const AdminDashboardPage = () => {
                     <span>{label}</span>
                     <span>{count}</span>
                   </div>
-                  <div className="h-3 w-full rounded bg-muted">
-                    <div className="h-full rounded bg-sky-500" style={{ width: `${percent}%` }} />
+                  <div className="h-3 w-full rounded bg-muted overflow-hidden">
+                    <div className="h-full rounded bg-sky-500 transition-all duration-500" style={{ width: `${percent}%` }} />
                   </div>
                 </div>
               );
@@ -197,7 +197,7 @@ const AdminDashboardPage = () => {
       </div>
 
       <section className="mt-6 overflow-hidden rounded-xl border border-border bg-card p-5 shadow-sm">
-        <h2 className="mb-3 text-lg font-semibold">Cập nhật</h2>
+        <h2 className="mb-3 text-lg font-semibold text-foreground">Cập nhật</h2>
         <p className="text-sm text-muted-foreground">Đã sửa lỗi build: xóa requires phụ thuộc Chart.js chưa cài. Nếu bạn cài chart.js/react-chartjs-2, tôi sẽ bật lại biểu đồ dạng canvas dễ thương.</p>
       </section>
     </div>

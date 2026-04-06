@@ -92,7 +92,7 @@ export function TwoFactorSetupModal({ isOpen, onClose, onSuccess }: Props) {
         if (step === 2) e.preventDefault();
       }}>
         <DialogHeader>
-          <DialogTitle className="text-xl font-bold flex items-center gap-2">
+          <DialogTitle className="text-xl font-bold flex items-center gap-2 text-foreground">
             {step === 1 ? "Thiết lập Xác thực 2 bước (2FA)" : "Lưu mã dự phòng"} 🛡️
           </DialogTitle>
           <DialogDescription className="text-muted-foreground">
@@ -133,16 +133,16 @@ export function TwoFactorSetupModal({ isOpen, onClose, onSuccess }: Props) {
                   value={code}
                   onChange={(e) => setCode(e.target.value.replace(/[^0-9]/g, ''))}
                   placeholder="000000"
-                  className="text-center text-3xl font-bold tracking-[0.4em] h-14 w-64 focus-visible:ring-primary border-border bg-muted/30"
+                  className="text-center text-3xl font-bold tracking-[0.4em] h-14 w-64 focus-visible:ring-primary border-border bg-muted/30 text-foreground"
                 />
               </div>
             </div>
 
-            <DialogFooter>
-              <Button variant="outline" onClick={handleClose} disabled={isLoading}>
+            <DialogFooter className="gap-2">
+              <Button variant="outline" onClick={handleClose} disabled={isLoading} className="border-border text-foreground hover:bg-muted">
                 Hủy
               </Button>
-              <Button onClick={handleVerify} disabled={isLoading || code.length !== 6}>
+              <Button onClick={handleVerify} disabled={isLoading || code.length !== 6} className="bg-primary text-primary-foreground hover:bg-primary/90">
                 {isLoading && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
                 Kích hoạt 2FA
               </Button>
@@ -168,12 +168,12 @@ export function TwoFactorSetupModal({ isOpen, onClose, onSuccess }: Props) {
               ))}
             </div>
 
-            <DialogFooter className="mt-6">
-              <Button variant="outline" onClick={copyBackupCodes} className="w-full sm:w-auto">
+            <DialogFooter className="mt-6 gap-2">
+              <Button variant="outline" onClick={copyBackupCodes} className="w-full sm:w-auto border-border text-foreground hover:bg-muted">
                 {isCopied ? <CheckCircle2 className="w-4 h-4 mr-2 text-emerald-500" /> : <Copy className="w-4 h-4 mr-2" />}
                 {isCopied ? "Đã chép mã" : "Sao chép mã"}
               </Button>
-              <Button onClick={handleClose} className="w-full sm:w-auto mt-2 sm:mt-0">
+              <Button onClick={handleClose} className="w-full sm:w-auto mt-2 sm:mt-0 bg-primary text-primary-foreground hover:bg-primary/90">
                 Tôi đã lưu trữ an toàn
               </Button>
             </DialogFooter>
