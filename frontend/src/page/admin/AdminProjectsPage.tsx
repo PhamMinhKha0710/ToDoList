@@ -58,7 +58,7 @@ const AdminProjectsPage = () => {
         adminService.getAdminUsers(),
       ]);
       setProjects(projectsRes.data);
-      setUsers(usersRes.data);
+      setUsers(usersRes.data.users);
     } catch (error: any) {
       toast.error(error.response?.data?.message || 'Lấy dữ liệu thất bại');
     } finally {
