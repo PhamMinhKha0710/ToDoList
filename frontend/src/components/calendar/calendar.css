@@ -1,0 +1,176 @@
+/* Standard CSS for Calendar to avoid Tailwind v4 @apply issues in separate files */
+
+.calendar-container {
+  background-color: hsl(var(--card));
+  border-radius: 1rem;
+  padding: 1rem;
+  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  border: 1px solid hsl(var(--border));
+}
+
+.fc {
+  font-family: inherit;
+  --fc-border-color: hsl(var(--border));
+  --fc-daygrid-event-harness-margin: 2px;
+}
+
+.fc .fc-view-harness {
+    background-color: hsl(var(--card));
+}
+
+.fc th, .fc td {
+    border-style: solid !important;
+    border-width: 1px !important;
+}
+
+.fc .fc-toolbar-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: hsl(var(--foreground));
+}
+
+.fc .fc-button-primary {
+  background-color: hsl(var(--card));
+  border-color: hsl(var(--border));
+  color: hsl(var(--muted-foreground));
+  font-weight: 700;
+  text-transform: capitalize;
+  transition: all 0.2s;
+  border-radius: 0.75rem;
+  border-width: 1px;
+  padding: 0.5rem 1rem;
+  box-shadow: none;
+  outline: none;
+}
+
+.fc .fc-button-primary:hover {
+  background-color: hsl(var(--muted));
+  border-color: hsl(var(--border));
+  color: hsl(var(--foreground));
+}
+
+.fc .fc-button-primary:not(:disabled):active,
+.fc .fc-button-primary:not(:disabled).fc-button-active {
+  background-color: hsl(var(--primary));
+  border-color: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+  box-shadow: none !important;
+}
+
+.fc .fc-button-group > .fc-button {
+    border-radius: 0.75rem;
+    margin: 0 0.125rem;
+}
+
+.fc th {
+  padding: 0.75rem 0;
+  font-size: 0.875rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: hsl(var(--muted-foreground));
+  border-color: hsl(var(--border)) !important;
+}
+
+.fc td {
+  border-color: hsl(var(--border)) !important;
+}
+
+.fc .fc-daygrid-day-frame {
+    min-height: 100px;
+}
+
+.fc .fc-day-today {
+  background-color: hsl(var(--primary) / 0.1) !important;
+}
+
+.fc-event {
+  cursor: pointer;
+  transition: all 0.2s;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  border: none !important;
+}
+
+/* Ensure the title is visible in block events */
+.fc-event-title {
+  padding: 2px 4px;
+}
+
+.fc-event:hover {
+  transform: scale(1.02);
+}
+
+.fc-event:active {
+  transform: scale(0.95);
+}
+
+.fc-daygrid-event-dot {
+  display: none;
+}
+
+.fc-daygrid-day-number {
+    color: hsl(var(--foreground));
+    font-weight: 700;
+    padding: 0.5rem;
+}
+
+.fc-daygrid-day.fc-day-other {
+    background-color: hsl(var(--muted) / 0.5);
+}
+
+/* Specific Dark Mode overrides for internal FullCalendar elements */
+.dark .fc {
+    --fc-page-bg-color: hsl(var(--background));
+    --fc-neutral-bg-color: hsl(var(--muted) / 0.3);
+    --fc-list-event-hover-bg-color: hsl(var(--accent));
+}
+
+.dark .fc .fc-list-day-cushion {
+    background-color: hsl(var(--muted));
+}
+
+/* Fix for unreadable text in month view */
+.fc .fc-col-header-cell-cushion {
+    color: hsl(var(--foreground));
+    padding: 8px;
+    display: inline-block;
+}
+
+.fc .fc-daygrid-day-top {
+    flex-direction: row;
+}
+
+/* Better today highlight */
+.fc .fc-day-today {
+    background-color: hsl(var(--primary) / 0.1) !important;
+}
+
+.dark .fc .fc-day-today {
+    background-color: hsl(var(--primary) / 0.2) !important;
+}
+
+/* Event text color */
+.fc-event-title, .fc-event-time {
+    color: #fff !important; /* Most events have dark backgrounds, so white text is safer */
+    text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+}
+
+/* Ensure borders are visible */
+.fc-theme-standard td, .fc-theme-standard th {
+    border-color: hsl(var(--border)) !important;
+}
+
+/* Toolbar button fixes */
+.fc .fc-button .fc-icon {
+    vertical-align: middle;
+}
+
+.fc .fc-button-primary:disabled {
+    background-color: hsl(var(--muted));
+    border-color: hsl(var(--border));
+    color: hsl(var(--muted-foreground) / 0.5);
+}
+
+
