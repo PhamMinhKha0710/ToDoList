@@ -445,6 +445,106 @@ class ProjectService {
 
     return result;
   }
+
+  async getProjectStats(projectId) {
+    const project = await this.getProjectById(projectId);
+    const Column = require('../entities/Column');
+    const Task = require('../entities/Task');
+
+    // 1. Get all columns of this project
+    const columns = await Column.find({ projectId }).select('_id title').lean();
+    const columnIds = columns.map(c => c._id);
+
+    // 2. Get all tasks in these columns
+    const tasks = await Task.find({ columnId: { $in: columnIds } })
+      .populate('assignees', 'displayName email avatarUrl')
+      .lean();
+
+    const now = new Date();
+
+    // 3. Status Distribution
+    const statusDistribution = {
+      todo: 0,
+      in_progress: 0,
+      done: 0
+    };
+
+    // 4. Priority Distribution
+    const priorityDistribution = {
+      urgent: 0,
+      high: 0,
+      normal: 0,
+      low: 0
+    };
+
+    // 5. Member Task Distribution
+    const memberTasks = {};
+    // Initialize with all current project members (those who are active)
+    project.members.filter(m => m.status === 'active').forEach(m => {
+      const u = m.userId;
+      memberTasks[u._id.toString()] = {
+        userId: u._id,
+        displayName: u.displayName || u.email,
+        email: u.email,
+        avatarUrl: u.avatarUrl,
+        taskCount: 0,
+        completedCount: 0
+      };
+    });
+
+    let overdueCount = 0;
+
+    tasks.forEach(task => {
+      // Status
+      if (statusDistribution[task.status] !== undefined) {
+        statusDistribution[task.status]++;
+      }
+
+      // Priority
+      if (priorityDistribution[task.priority] !== undefined) {
+        priorityDistribution[task.priority]++;
+      }
+
+      // Overdue
+      if (task.status !== 'done' && task.dueDate && new Date(task.dueDate) < now) {
+        overdueCount++;
+      }
+
+      // Assignees
+      if (task.assignees && Array.isArray(task.assignees)) {
+        task.assignees.forEach(assignee => {
+          const uid = assignee._id.toString();
+          if (memberTasks[uid]) {
+            memberTasks[uid].taskCount++;
+            if (task.status === 'done') {
+              memberTasks[uid].completedCount++;
+            }
+          }
+        });
+      }
+    });
+
+    return {
+      summary: {
+        totalTasks: tasks.length,
+        completedTasks: statusDistribution.done,
+        overdueTasks: overdueCount,
+        memberCount: project.members.filter(m => m.status === 'active').length
+      },
+      statusDistribution: [
+        { name: 'Cần làm', value: statusDistribution.todo, color: '#94a3b8' },
+        { name: 'Đang làm', value: statusDistribution.in_progress, color: '#3b82f6' },
+        { name: 'Đã xong', value: statusDistribution.done, color: '#10b981' }
+      ],
+      priorityDistribution: [
+        { name: 'Khẩn cấp', value: priorityDistribution.urgent, color: '#ef4444' },
+        { name: 'Cao', value: priorityDistribution.high, color: '#f59e0b' },
+        { name: 'Thường', value: priorityDistribution.normal, color: '#3b82f6' },
+        { name: 'Thấp', value: priorityDistribution.low, color: '#22c55e' }
+      ],
+      memberDistribution: Object.values(memberTasks).sort((a, b) => b.taskCount - a.taskCount)
+    };
+  }
 }
 
 module.exports = new ProjectService({
