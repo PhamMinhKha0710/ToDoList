@@ -28,8 +28,8 @@ class AdminController {
   });
 
   getDashboardTasks = catchAsync(async (req, res) => {
-    const tasks = await adminService.getDashboardTasks();
-    new ApiResponse(200, 'Thống kê dashboard', tasks).send(res);
+    const stats = await adminService.getDashboardStats();
+    new ApiResponse(200, 'Thống kê dashboard', stats).send(res);
   });
 
   getAllProjects = catchAsync(async (req, res) => {

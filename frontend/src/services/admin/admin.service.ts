@@ -14,7 +14,7 @@ export const adminService = {
     return response.data;
   },
 
-  getDashboardTasks: async (): Promise<ApiResponse<any[]>> => {
+  getDashboardTasks: async (): Promise<ApiResponse<{ tasks: any[]; users: any[] }>> => {
     const response = await api.get('/admin/dashboard/tasks');
     return response.data;
   },

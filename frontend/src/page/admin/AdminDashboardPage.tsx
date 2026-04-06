@@ -1,6 +1,19 @@
 import { useEffect, useMemo, useState } from "react";
 import { adminService } from "@/services/admin/admin.service";
 import { toast } from "sonner";
+import {
+  PieChart,
+  Pie,
+  Cell,
+  Tooltip as RechartsTooltip,
+  ResponsiveContainer,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Legend,
+} from "recharts";
 
 type TaskStatus = "todo" | "in_progress" | "done";
 
@@ -22,23 +35,36 @@ const periodLabels = {
   month: ["6 tháng trước", "5 tháng trước", "4 tháng trước", "3 tháng trước", "2 tháng trước", "Tháng này"],
 };
 
+const STATUS_COLORS: Record<string, string> = {
+  todo: "#fb923c", // orange-400
+  in_progress: "#60a5fa", // blue-400
+  done: "#4ade80", // green-400
+};
+
+interface UserItem {
+  _id: string;
+  createdAt: string;
+}
+
 const AdminDashboardPage = () => {
   const [mode, setMode] = useState<"week" | "month">("week");
   const [tasks, setTasks] = useState<TaskItem[]>([]);
+  const [users, setUsers] = useState<UserItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const fetchTasks = async () => {
+    const fetchStats = async () => {
       try {
         const res = await adminService.getDashboardTasks();
-        setTasks(res.data);
+        setTasks(res.data.tasks);
+        setUsers(res.data.users);
       } catch (error) {
         toast.error("Không thể lấy dữ liệu thống kê");
       } finally {
         setIsLoading(false);
       }
     };
-    fetchTasks();
+    fetchStats();
   }, []);
 
   const taskSummary = useMemo(() => {
@@ -60,9 +86,19 @@ const AdminDashboardPage = () => {
     };
   }, [tasks]);
 
-  const periodData = useMemo(() => {
+  const pieData = useMemo(() => {
+    return Object.entries(taskSummary.statuses).map(([status, count]) => ({
+      name: statusLabels[status as TaskStatus],
+      value: count,
+      color: STATUS_COLORS[status] || "#8884d8",
+    })).filter(item => item.value > 0);
+  }, [taskSummary]);
+
+  const statsData = useMemo(() => {
     const now = new Date();
-    const result: number[] = [];
+    const taskResult: { label: string; count: number }[] = [];
+    const userResult: { label: string; count: number }[] = [];
+    const labels = mode === "week" ? periodLabels.week : periodLabels.month;
 
     if (mode === "week") {
       for (let i = 3; i >= 0; i -= 1) {
@@ -73,31 +109,41 @@ const AdminDashboardPage = () => {
         const weekEnd = new Date(weekStart);
         weekEnd.setDate(weekStart.getDate() + 7);
 
-        const count = tasks.filter((task) => {
+        const taskCount = tasks.filter((task) => {
           const created = new Date(task.createdAt);
           return created >= weekStart && created < weekEnd;
         }).length;
 
-        result.push(count);
+        const userCount = users.filter((user) => {
+          const created = new Date(user.createdAt);
+          return created >= weekStart && created < weekEnd;
+        }).length;
+
+        taskResult.push({ label: labels[3 - i], count: taskCount });
+        userResult.push({ label: labels[3 - i], count: userCount });
       }
     } else {
       for (let i = 5; i >= 0; i -= 1) {
         const monthStart = new Date(now.getFullYear(), now.getMonth() - i, 1, 0, 0, 0, 0);
         const monthEnd = new Date(now.getFullYear(), now.getMonth() - i + 1, 1, 0, 0, 0, 0);
 
-        const count = tasks.filter((task) => {
+        const taskCount = tasks.filter((task) => {
           const created = new Date(task.createdAt);
           return created >= monthStart && created < monthEnd;
         }).length;
 
-        result.push(count);
+        const userCount = users.filter((user) => {
+          const created = new Date(user.createdAt);
+          return created >= monthStart && created < monthEnd;
+        }).length;
+
+        taskResult.push({ label: labels[5 - i], count: taskCount });
+        userResult.push({ label: labels[5 - i], count: userCount });
       }
     }
 
-    return result;
-  }, [mode, tasks]);
-
-  const maxPeriod = Math.max(...periodData, 1);
+    return { tasks: taskResult, users: userResult };
+  }, [mode, tasks, users]);
 
   if (isLoading) {
     return (
@@ -144,62 +190,109 @@ const AdminDashboardPage = () => {
           <p className="text-2xl font-bold text-foreground">{taskSummary.inProgress}</p>
         </div>
         <div className="rounded-xl border border-border bg-card p-4 shadow-sm">
-          <p className="text-xs text-muted-foreground">Chưa làm</p>
-          <p className="text-2xl font-bold text-foreground">{taskSummary.todo}</p>
+          <p className="text-xs text-muted-foreground">Tổng User</p>
+          <p className="text-2xl font-bold text-foreground">{users.length}</p>
         </div>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
-        <section className="rounded-xl border border-border bg-card p-5 shadow-sm">
+        <section className="rounded-xl border border-border bg-card p-5 shadow-sm min-h-[400px] flex flex-col">
           <h2 className="mb-4 text-lg font-semibold text-foreground">Tỉ lệ trạng thái task</h2>
-          <div className="grid gap-3">
-            {Object.entries(taskSummary.statuses).map(([status, count]) => {
-              const percent = Math.round(((count as number) / (taskSummary.total || 1)) * 100);
-              const colors: Record<string, string> = {
-                todo: "bg-orange-400",
-                in_progress: "bg-blue-400",
-                done: "bg-green-400",
-              };
-              return (
-                <div key={status}>
-                  <div className="mb-1 flex items-center justify-between text-sm">
-                    <span className="text-foreground">{statusLabels[status as TaskStatus]}</span>
-                    <span className="text-muted-foreground">{count} ({percent}%)</span>
-                  </div>
-                  <div className="h-2 rounded bg-muted overflow-hidden">
-                    <div className={`${colors[status] ?? "bg-primary"} h-full rounded transition-all duration-500`} style={{ width: `${percent}%` }} />
-                  </div>
-                </div>
-              );
-            })}
+          <div className="flex-1 w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={pieData}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={60}
+                  outerRadius={100}
+                  paddingAngle={5}
+                  dataKey="value"
+                  label={({ name, percent }) => `${name} ${((percent || 0) * 100).toFixed(0)}%`}
+                >
+                  {pieData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.color} />
+                  ))}
+                </Pie>
+                <RechartsTooltip
+                  contentStyle={{ backgroundColor: 'hsl(var(--card))', borderColor: 'hsl(var(--border))', borderRadius: '8px' }}
+                  itemStyle={{ color: 'hsl(var(--foreground))' }}
+                />
+                <Legend verticalAlign="bottom" height={36} />
+              </PieChart>
+            </ResponsiveContainer>
           </div>
         </section>
-        <section className="rounded-xl border border-border bg-card p-5 shadow-sm">
+
+        <section className="rounded-xl border border-border bg-card p-5 shadow-sm min-h-[400px] flex flex-col">
           <h2 className="mb-4 text-lg font-semibold text-foreground">Số lượng task mới ({mode === "week" ? "tuần" : "tháng"})</h2>
-          <div className="grid gap-2">
-            {(mode === "week" ? periodLabels.week : periodLabels.month).map((label, idx) => {
-              const count = periodData[idx] || 0;
-              const percent = Math.round((count / maxPeriod) * 100);
-              return (
-                <div key={label} className="space-y-1">
-                  <div className="flex items-center justify-between text-sm text-muted-foreground">
-                    <span>{label}</span>
-                    <span>{count}</span>
-                  </div>
-                  <div className="h-3 w-full rounded bg-muted overflow-hidden">
-                    <div className="h-full rounded bg-sky-500 transition-all duration-500" style={{ width: `${percent}%` }} />
-                  </div>
-                </div>
-              );
-            })}
+          <div className="flex-1 w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={statsData.tasks}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--muted-foreground) / 0.2)" />
+                <XAxis
+                  dataKey="label"
+                  axisLine={false}
+                  tickLine={false}
+                  tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
+                />
+                <YAxis
+                  axisLine={false}
+                  tickLine={false}
+                  tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
+                />
+                <RechartsTooltip
+                  cursor={{ fill: 'hsl(var(--muted) / 0.4)' }}
+                  contentStyle={{ backgroundColor: 'hsl(var(--card))', borderColor: 'hsl(var(--border))', borderRadius: '8px' }}
+                  itemStyle={{ color: 'hsl(var(--foreground))' }}
+                />
+                <Bar
+                  dataKey="count"
+                  name="Số lượng task"
+                  fill="#0ea5e9" // sky-500
+                  radius={[4, 4, 0, 0]}
+                  barSize={40}
+                />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </section>
+
+        <section className="rounded-xl border border-border bg-card p-5 shadow-sm min-h-[400px] flex flex-col lg:col-span-2">
+          <h2 className="mb-4 text-lg font-semibold text-foreground">Người dùng đăng ký mới ({mode === "week" ? "tuần" : "tháng"})</h2>
+          <div className="flex-1 w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={statsData.users}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--muted-foreground) / 0.2)" />
+                <XAxis
+                  dataKey="label"
+                  axisLine={false}
+                  tickLine={false}
+                  tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
+                />
+                <YAxis
+                  axisLine={false}
+                  tickLine={false}
+                  tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
+                />
+                <RechartsTooltip
+                  cursor={{ fill: 'hsl(var(--muted) / 0.4)' }}
+                  contentStyle={{ backgroundColor: 'hsl(var(--card))', borderColor: 'hsl(var(--border))', borderRadius: '8px' }}
+                  itemStyle={{ color: 'hsl(var(--foreground))' }}
+                />
+                <Bar
+                  dataKey="count"
+                  name="Người dùng mới"
+                  fill="#8b5cf6" // violet-500
+                  radius={[4, 4, 0, 0]}
+                  barSize={60}
+                />
+              </BarChart>
+            </ResponsiveContainer>
           </div>
         </section>
       </div>
-
-      <section className="mt-6 overflow-hidden rounded-xl border border-border bg-card p-5 shadow-sm">
-        <h2 className="mb-3 text-lg font-semibold text-foreground">Cập nhật</h2>
-        <p className="text-sm text-muted-foreground">Đã sửa lỗi build: xóa requires phụ thuộc Chart.js chưa cài. Nếu bạn cài chart.js/react-chartjs-2, tôi sẽ bật lại biểu đồ dạng canvas dễ thương.</p>
-      </section>
     </div>
   );
 };
