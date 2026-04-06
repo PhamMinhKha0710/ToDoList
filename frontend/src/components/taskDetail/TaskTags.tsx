@@ -42,14 +42,14 @@ export const TaskTags = ({ tags, isEditing, onTagsChange }: TaskTagsProps) => {
 
   return (
     <div className="space-y-3.5 pt-2">
-      <h4 className="text-[11px] font-extrabold uppercase tracking-widest text-slate-400 flex items-center gap-1.5">
+      <h4 className="text-[11px] font-extrabold uppercase tracking-widest text-muted-foreground flex items-center gap-1.5">
         <Tag className="w-3.5 h-3.5" /> Phân loại (Tags)
       </h4>
       <div className="flex flex-wrap gap-2">
         {tags.map((tag) => (
           <div 
             key={tag.name} 
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white border border-slate-200 shadow-sm text-slate-700 text-[13px] font-bold"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-card border border-border shadow-sm text-foreground text-[13px] font-bold"
           >
             <div 
               className="w-2.5 h-2.5 rounded-full" 
@@ -59,7 +59,7 @@ export const TaskTags = ({ tags, isEditing, onTagsChange }: TaskTagsProps) => {
             {isEditing && (
               <button 
                 onClick={() => handleRemoveTag(tag.name)} 
-                className="text-slate-400 hover:text-red-500 transition-colors ml-1"
+                className="text-muted-foreground hover:text-red-500 transition-colors ml-1"
               >
                 <X className="w-3.5 h-3.5" />
               </button>
@@ -70,14 +70,14 @@ export const TaskTags = ({ tags, isEditing, onTagsChange }: TaskTagsProps) => {
         {isEditing && !isAddingTag && (
           <button 
             onClick={() => setIsAddingTag(true)} 
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-dashed border-slate-300 bg-transparent text-slate-500 text-[13px] font-bold hover:bg-slate-100 hover:text-slate-800 transition-colors"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-dashed border-border bg-transparent text-muted-foreground text-[13px] font-bold hover:bg-muted hover:text-foreground transition-colors"
           >
             <Plus className="w-4 h-4" /> Thêm Tag
           </button>
         )}
 
         {isEditing && isAddingTag && (
-          <div className="flex items-center gap-1.5 p-1 rounded-xl border border-slate-300 bg-white shadow-sm w-full max-w-[200px]">
+          <div className="flex items-center gap-1.5 p-1 rounded-xl border border-border bg-card shadow-sm w-full max-w-[200px]">
             <input 
               type="text" 
               value={newTagName}
@@ -87,10 +87,10 @@ export const TaskTags = ({ tags, isEditing, onTagsChange }: TaskTagsProps) => {
                 if (e.key === 'Escape') setIsAddingTag(false);
               }}
               placeholder="Nhập tên tag..."
-              className="flex-1 bg-transparent text-[13px] font-bold text-slate-700 outline-none px-2 w-full min-w-0"
+              className="flex-1 bg-transparent text-[13px] font-bold text-foreground outline-none px-2 w-full min-w-0 placeholder:text-muted-foreground"
               autoFocus
             />
-            <div className="relative w-6 h-6 shrink-0 border border-slate-200 rounded-lg overflow-hidden cursor-pointer" title="Chọn màu cho tag">
+            <div className="relative w-6 h-6 shrink-0 border border-border rounded-lg overflow-hidden cursor-pointer" title="Chọn màu cho tag">
               <input 
                 type="color" 
                 value={newTagColor}
@@ -101,7 +101,7 @@ export const TaskTags = ({ tags, isEditing, onTagsChange }: TaskTagsProps) => {
             </div>
             <button 
               onClick={handleAddTag} 
-              className="w-6 h-6 shrink-0 flex items-center justify-center bg-indigo-50 text-indigo-600 rounded-lg hover:bg-indigo-100 transition-colors"
+              className="w-6 h-6 shrink-0 flex items-center justify-center bg-primary/10 text-primary rounded-lg hover:bg-primary/20 transition-colors"
             >
               <Plus className="w-3.5 h-3.5" />
             </button>

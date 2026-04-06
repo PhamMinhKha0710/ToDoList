@@ -130,19 +130,19 @@ export default function ProfileForm() {
   };
 
   return (
-    <Card className="shadow-sm border-slate-200">
+    <Card className="shadow-sm border-border bg-card">
       <CardHeader>
-        <CardTitle className="text-xl text-slate-900">Thông tin cơ bản</CardTitle>
-        <CardDescription>Cập nhật ảnh đại diện và chi tiết thông tin cá nhân của bạn.</CardDescription>
+        <CardTitle className="text-xl text-foreground">Thông tin cơ bản</CardTitle>
+        <CardDescription className="text-muted-foreground">Cập nhật ảnh đại diện và chi tiết thông tin cá nhân của bạn.</CardDescription>
       </CardHeader>
       <CardContent className="space-y-8">
 
         {/* Avatar Section */}
         <div className="flex flex-col sm:flex-row gap-6 items-start sm:items-center">
           <div className="relative group">
-            <div className="w-24 h-24 rounded-full border-4 border-white shadow-xl ring-1 ring-slate-100 transition-all duration-300 overflow-hidden flex items-center justify-center bg-indigo-50">
+            <div className="w-24 h-24 rounded-full border-4 border-background shadow-xl ring-1 ring-border transition-all duration-300 overflow-hidden flex items-center justify-center bg-muted">
               {isSavingAvatar ? (
-                <Loader2 className="animate-spin w-8 h-8 text-indigo-500" />
+                <Loader2 className="animate-spin w-8 h-8 text-primary" />
               ) : isEmojiUrl(avatarPreview) ? (
                 <span className="text-4xl leading-none select-none">
                   {avatarPreview}
@@ -150,7 +150,7 @@ export default function ProfileForm() {
               ) : (
                 <Avatar className="w-full h-full border-0 shadow-none">
                   <AvatarImage src={getAvatarUrl(avatarPreview)} className="object-cover" />
-                  <AvatarFallback className="text-2xl bg-slate-100 text-slate-400 font-bold uppercase tracking-widest border-0">
+                  <AvatarFallback className="text-2xl bg-muted text-muted-foreground font-bold uppercase tracking-widest border-0">
                     {(user?.displayName || "JD").substring(0, 2).toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
@@ -160,11 +160,11 @@ export default function ProfileForm() {
               type="button"
               size="icon"
               variant="secondary"
-              className="absolute bottom-0 right-0 rounded-full w-8 h-8 shadow-sm border border-slate-200 hover:bg-slate-100"
+              className="absolute bottom-0 right-0 rounded-full w-8 h-8 shadow-sm border border-border bg-background hover:bg-muted"
               onClick={() => fileInputRef.current?.click()}
               disabled={isSavingAvatar}
             >
-              <Camera size={14} className="text-slate-600" />
+              <Camera size={14} className="text-muted-foreground" />
             </Button>
             <input
               type="file"
@@ -176,9 +176,9 @@ export default function ProfileForm() {
           </div>
 
           <div className="flex-1 space-y-2">
-            <h4 className="text-sm font-medium text-slate-700 flex items-center gap-2">
+            <h4 className="text-sm font-medium text-foreground flex items-center gap-2">
               Ảnh đại diện mẫu
-              {isSavingAvatar && <span className="text-xs text-indigo-500 font-normal flex items-center gap-1"><Loader2 className="w-3 h-3 animate-spin" /> Đang lưu...</span>}
+              {isSavingAvatar && <span className="text-xs text-primary font-normal flex items-center gap-1"><Loader2 className="w-3 h-3 animate-spin" /> Đang lưu...</span>}
             </h4>
             <div className="flex flex-wrap gap-2">
               {DEFAULT_AVATARS.map((emoji) => (
@@ -186,58 +186,58 @@ export default function ProfileForm() {
                   key={emoji}
                   type="button"
                   onClick={() => handleSelectDefaultAvatar(emoji)}
-                  className={`w-10 h-10 rounded-full flex items-center justify-center text-xl bg-slate-50 border transition-all hover:scale-110 hover:shadow-sm ${avatarPreview === emoji ? 'border-indigo-500 bg-indigo-50 ring-2 ring-indigo-200' : 'border-slate-200 hover:border-slate-300'}`}
+                  className={`w-10 h-10 rounded-full flex items-center justify-center text-xl bg-muted/50 border transition-all hover:scale-110 hover:shadow-sm ${avatarPreview === emoji ? 'border-primary bg-primary/10 ring-2 ring-primary/20' : 'border-border hover:border-muted-foreground/30'}`}
                   disabled={isSavingAvatar}
                 >
                   {emoji}
                 </button>
               ))}
             </div>
-            <p className="text-xs text-slate-500">Hoặc tải lên ảnh tùy chỉnh định dạng .jpg, .png</p>
+            <p className="text-xs text-muted-foreground">Hoặc tải lên ảnh tùy chỉnh định dạng .jpg, .png</p>
           </div>
         </div>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
-              <Label htmlFor="fullName" className="text-slate-700">Họ và tên</Label>
+              <Label htmlFor="fullName" className="text-foreground">Họ và tên</Label>
               <Input
                 id="fullName"
                 placeholder="Nguyễn Văn A"
                 {...register("fullName")}
-                className="focus-visible:ring-indigo-500 transition-shadow"
+                className="focus-visible:ring-primary transition-shadow bg-background border-border text-foreground"
               />
               {errors.fullName && <p className="text-xs text-red-500">{errors.fullName.message}</p>}
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="displayName" className="text-slate-700">Tên hiển thị</Label>
+              <Label htmlFor="displayName" className="text-foreground">Tên hiển thị</Label>
               <Input
                 id="displayName"
                 placeholder="Văn A"
                 {...register("displayName")}
-                className="focus-visible:ring-indigo-500 transition-shadow"
+                className="focus-visible:ring-primary transition-shadow bg-background border-border text-foreground"
               />
               {errors.displayName && <p className="text-xs text-red-500">{errors.displayName.message}</p>}
             </div>
           </div>
 
-          <Button type="submit" className="bg-indigo-600 hover:bg-indigo-700 text-white">
+          <Button type="submit" className="bg-primary text-primary-foreground hover:bg-primary/90">
             Lưu thay đổi
           </Button>
         </form>
 
-        <div className="pt-6 border-t border-slate-100">
+        <div className="pt-6 border-t border-border">
           <div className="space-y-4">
             <div>
-              <Label className="text-slate-700 mb-2 block">Địa chỉ Email</Label>
+              <Label className="text-foreground mb-2 block">Địa chỉ Email</Label>
               <div className="flex flex-col sm:flex-row gap-4 sm:items-center">
                 <div className="relative flex-1">
-                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={16} />
                   <Input
                     value={user?.email || "Chưa có email"}
                     readOnly
-                    className="pl-9 bg-slate-50 text-slate-600 focus-visible:ring-0 border-slate-200 cursor-default"
+                    className="pl-9 bg-muted/50 text-foreground focus-visible:ring-0 border-border cursor-default"
                   />
                   <BadgeCheck className="absolute right-3 top-1/2 -translate-y-1/2 text-emerald-500" size={18} />
                 </div>
@@ -245,7 +245,7 @@ export default function ProfileForm() {
                   type="button"
                   variant="outline"
                   onClick={() => setIsUpdatingEmail(!isUpdatingEmail)}
-                  className="shrink-0 text-slate-700 hover:bg-slate-50"
+                  className="shrink-0 border-border text-foreground hover:bg-muted"
                 >
                   {isUpdatingEmail ? "Hủy" : "Cập nhật Email"}
                 </Button>
@@ -253,16 +253,16 @@ export default function ProfileForm() {
             </div>
 
             {isUpdatingEmail && (
-              <div className="bg-slate-50 p-4 rounded-lg border border-slate-200 space-y-3 animate-in fade-in zoom-in-95 duration-200">
+              <div className="bg-muted/30 p-4 rounded-lg border border-border space-y-3 animate-in fade-in zoom-in-95 duration-200">
                 <div className="space-y-2">
-                  <Label htmlFor="newEmail" className="text-slate-700">Địa chỉ Email mới</Label>
+                  <Label htmlFor="newEmail" className="text-foreground">Địa chỉ Email mới</Label>
                   <Input
                     id="newEmail"
                     type="email"
                     value={newEmailValue}
                     onChange={(e) => setNewEmailValue(e.target.value)}
                     placeholder="Nhập email mới"
-                    className="bg-white focus-visible:ring-indigo-500"
+                    className="bg-background border-border text-foreground focus-visible:ring-primary"
                   />
                 </div>
                 <Button
@@ -270,7 +270,7 @@ export default function ProfileForm() {
                   size="sm"
                   onClick={handleRequestEmailOtp}
                   disabled={isRequestingEmailOtp || !newEmailValue}
-                  className="bg-indigo-600 hover:bg-indigo-700 text-white"
+                  className="w-full sm:w-auto bg-primary text-primary-foreground hover:bg-primary/90"
                 >
                   {isRequestingEmailOtp && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
                   Gửi liên kết xác minh

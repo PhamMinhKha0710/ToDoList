@@ -41,8 +41,12 @@ export function NavMain({
             <SidebarMenuItem>
               <SidebarMenuButton asChild tooltip={item.title}>
                 <NavLink to={item.url}>
-                  <item.icon />
-                  <span>{item.title}</span>
+                  {({ isActive }) => (
+                    <>
+                      <item.icon />
+                      <span className={isActive ? "font-bold" : ""}>{item.title}</span>
+                    </>
+                  )}
                 </NavLink>
               </SidebarMenuButton>
               {item.items?.length ? (
@@ -59,7 +63,9 @@ export function NavMain({
                         <SidebarMenuSubItem key={subItem.title}>
                           <SidebarMenuSubButton asChild>
                             <NavLink to={subItem.url}>
-                              <span>{subItem.title}</span>
+                              {({ isActive }) => (
+                                <span className={isActive ? "font-bold text-primary" : ""}>{subItem.title}</span>
+                              )}
                             </NavLink>
                           </SidebarMenuSubButton>
                         </SidebarMenuSubItem>

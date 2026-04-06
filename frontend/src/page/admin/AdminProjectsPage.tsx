@@ -183,20 +183,20 @@ const AdminProjectsPage = () => {
   const COLORS = ['#3b82f6', '#10b981', '#ef4444', '#f59e0b', '#8b5cf6', '#ec4899', '#6b7280'];
 
   return (
-    <div className="p-6 space-y-6">
-      <div className="flex justify-between items-center">
+    <div className="p-6 space-y-6 bg-background">
+      <div className="flex justify-between items-center text-foreground">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Quản lý Dự án</h1>
           <p className="text-muted-foreground">Xem và quản lý tất cả các dự án trong hệ thống.</p>
         </div>
-        <Button onClick={openCreateModal} className="bg-[#0f172a] hover:bg-[#1e293b]">
+        <Button onClick={openCreateModal} className="bg-primary text-primary-foreground hover:bg-primary/90">
           <Plus className="mr-2 h-4 w-4" /> Thêm Dự án
         </Button>
       </div>
 
       <Card className="overflow-hidden border-border bg-card shadow-sm">
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm">
+          <table className="w-full text-left text-sm text-foreground">
             <thead className="bg-muted/50 border-b border-border">
               <tr>
                 <th className="px-4 py-3 font-medium text-muted-foreground">Dự án</th>
@@ -235,7 +235,7 @@ const AdminProjectsPage = () => {
                           </div>
                         )}
                         <div>
-                          <p className="font-semibold">{project.name}</p>
+                          <p className="font-semibold text-foreground">{project.name}</p>
                           <p className="text-xs text-muted-foreground line-clamp-1 max-w-[200px]">
                             {project.description || 'Không có mô tả'}
                           </p>
@@ -246,11 +246,11 @@ const AdminProjectsPage = () => {
                       <div className="flex items-center gap-2">
                         <Avatar className="h-7 w-7">
                           <AvatarImage src={getOwnerAvatar(project) || undefined} />
-                          <AvatarFallback className="text-[10px]">
+                          <AvatarFallback className="text-[10px] bg-muted text-muted-foreground">
                             {getOwner(project).substring(0, 2).toUpperCase()}
                           </AvatarFallback>
                         </Avatar>
-                        <span className="text-sm">{getOwner(project)}</span>
+                        <span className="text-sm text-foreground">{getOwner(project)}</span>
                       </div>
                     </td>
                     <td className="px-4 py-4 text-center">
@@ -262,7 +262,7 @@ const AdminProjectsPage = () => {
                     <td className="px-4 py-4 text-center">
                       <Badge 
                         variant={project.isActive ? "default" : "destructive"}
-                        className={`cursor-pointer hover:opacity-80 rounded-full px-4 ${project.isActive ? 'bg-blue-100 text-blue-700 hover:bg-blue-200' : ''}`}
+                        className={`cursor-pointer hover:opacity-80 rounded-full px-4 ${project.isActive ? 'bg-primary/10 text-primary hover:bg-primary/20' : ''}`}
                         onClick={() => toggleStatus(project)}
                       >
                         {project.isActive ? 'Hoạt động' : 'Vô hiệu hóa'}
@@ -271,23 +271,23 @@ const AdminProjectsPage = () => {
                     <td className="px-4 py-4 text-right">
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon">
+                          <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground">
                             <MoreVertical className="h-4 w-4" />
                           </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => openEditModal(project)}>
+                        <DropdownMenuContent align="end" className="bg-card border-border">
+                          <DropdownMenuItem onClick={() => openEditModal(project)} className="text-foreground focus:bg-muted">
                             <Pencil className="mr-2 h-4 w-4" /> Sửa
                           </DropdownMenuItem>
                           <DropdownMenuItem 
                             onClick={() => toggleStatus(project)}
-                            className={project.isActive ? 'text-orange-500' : 'text-green-500'}
+                            className={project.isActive ? 'text-orange-500 focus:bg-muted' : 'text-green-500 focus:bg-muted'}
                           >
                             <Activity className="mr-2 h-4 w-4" /> {project.isActive ? 'Vô hiệu hóa' : 'Kích hoạt'}
                           </DropdownMenuItem>
                           <DropdownMenuItem 
                             onClick={() => handleDelete(project._id)}
-                            className="text-destructive focus:text-destructive"
+                            className="text-destructive focus:text-destructive focus:bg-muted"
                           >
                             <Trash2 className="mr-2 h-4 w-4" /> Xóa
                           </DropdownMenuItem>
@@ -304,38 +304,38 @@ const AdminProjectsPage = () => {
 
       {/* Create Modal */}
       <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
-        <DialogContent className="max-w-[550px] p-6">
+        <DialogContent className="max-w-[550px] p-6 bg-card border-border">
           <DialogHeader className="mb-4">
-            <DialogTitle className="text-xl font-bold">Tạo dự án mới</DialogTitle>
+            <DialogTitle className="text-xl font-bold text-foreground">Tạo dự án mới</DialogTitle>
             <p className="text-sm text-muted-foreground mt-1">
               Thiết lập không gian làm việc mới và mời các thành viên tham gia.
             </p>
           </DialogHeader>
           <div className="space-y-4">
             <div className="space-y-1.5">
-              <Label htmlFor="name" className="text-sm font-semibold">Tên dự án *</Label>
+              <Label htmlFor="name" className="text-sm font-semibold text-foreground">Tên dự án *</Label>
               <Input 
                 id="name" 
                 placeholder="Ví dụ: Phát triển tính năng Z" 
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                className="h-10 text-sm border-gray-200"
+                className="h-10 text-sm border-border bg-background text-foreground focus-visible:ring-primary"
               />
             </div>
             
             <div className="space-y-1.5 relative">
-              <Label htmlFor="owner" className="text-sm font-semibold">Người sở hữu</Label>
+              <Label htmlFor="owner" className="text-sm font-semibold text-foreground">Người sở hữu</Label>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button 
                     variant="outline" 
-                    className="w-full h-10 justify-start px-3 text-sm font-normal border-gray-200 bg-white hover:bg-gray-50"
+                    className="w-full h-10 justify-start px-3 text-sm font-normal border-border bg-background text-foreground hover:bg-muted"
                   >
                     {formData.ownerId ? (
                       <div className="flex items-center gap-2 overflow-hidden">
                         <Avatar className="h-5 w-5">
                           <AvatarImage src={users.find(u => u._id === formData.ownerId)?.avatarUrl || undefined} />
-                          <AvatarFallback className="text-[8px]">
+                          <AvatarFallback className="text-[8px] bg-muted text-muted-foreground">
                             {users.find(u => u._id === formData.ownerId)?.displayName?.substring(0, 2).toUpperCase() || 'U'}
                           </AvatarFallback>
                         </Avatar>
@@ -348,20 +348,20 @@ const AdminProjectsPage = () => {
                     )}
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-[300px] p-0" align="start">
-                  <div className="p-2 border-b">
+                <DropdownMenuContent className="w-[300px] p-0 bg-card border-border shadow-xl" align="start">
+                  <div className="p-2 border-b border-border bg-card">
                     <div className="relative">
                       <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                       <Input 
                         placeholder="Tìm người sở hữu..." 
-                        className="pl-9 h-9 text-sm border-none focus-visible:ring-0 shadow-none"
+                        className="pl-9 h-9 text-sm border-none bg-transparent focus-visible:ring-0 shadow-none text-foreground"
                         autoFocus
                         value={userSearchQuery}
                         onChange={(e) => setUserSearchQuery(e.target.value)}
                       />
                     </div>
                   </div>
-                  <div className="max-h-[300px] overflow-y-auto overflow-x-hidden p-1">
+                  <div className="max-h-[300px] overflow-y-auto overflow-x-hidden p-1 bg-card">
                     {users
                       .filter(user => 
                         user.displayName?.toLowerCase().includes(userSearchQuery.toLowerCase()) || 
@@ -370,7 +370,7 @@ const AdminProjectsPage = () => {
                       .map((user) => (
                         <button
                           key={user._id}
-                          className="user-item w-full flex items-center gap-3 p-2 rounded-md hover:bg-muted text-sm transition-colors cursor-pointer text-left"
+                          className="user-item w-full flex items-center gap-3 p-2 rounded-md hover:bg-muted text-sm transition-colors cursor-pointer text-left text-foreground"
                           onClick={() => {
                             setFormData({ ...formData, ownerId: user._id });
                             setUserSearchQuery('');
@@ -378,7 +378,7 @@ const AdminProjectsPage = () => {
                         >
                           <Avatar className="h-8 w-8">
                             <AvatarImage src={user.avatarUrl || undefined} />
-                            <AvatarFallback className="text-xs">
+                            <AvatarFallback className="text-xs bg-muted text-muted-foreground">
                               {user.displayName?.substring(0, 2).toUpperCase() || user.email.substring(0, 2).toUpperCase()}
                             </AvatarFallback>
                           </Avatar>
@@ -387,7 +387,7 @@ const AdminProjectsPage = () => {
                             <p className="text-xs text-muted-foreground truncate">{user.email}</p>
                           </div>
                           {formData.ownerId === user._id && (
-                            <div className="w-2 h-2 rounded-full bg-blue-500 shrink-0" />
+                            <div className="w-2 h-2 rounded-full bg-primary shrink-0" />
                           )}
                         </button>
                       ))}
@@ -403,24 +403,24 @@ const AdminProjectsPage = () => {
             </div>
 
             <div className="space-y-1.5">
-              <Label htmlFor="description" className="text-sm font-semibold">Mô tả chi tiết</Label>
+              <Label htmlFor="description" className="text-sm font-semibold text-foreground">Mô tả chi tiết</Label>
               <Textarea 
                 id="description" 
                 placeholder="Mô tả mục tiêu và phạm vi của dự án..." 
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                className="min-h-[100px] text-sm border-gray-200 resize-none"
+                className="min-h-[100px] text-sm border-border bg-background text-foreground focus-visible:ring-primary resize-none"
               />
             </div>
 
             <div className="grid grid-cols-2 gap-4 items-start py-1">
               <div className="space-y-2">
-                <Label className="text-sm font-semibold">Màu sắc chủ đạo</Label>
+                <Label className="text-sm font-semibold text-foreground">Màu sắc chủ đạo</Label>
                 <div className="flex flex-wrap gap-2">
                   {COLORS.map((c) => (
                     <button
                       key={c}
-                      className={`w-8 h-8 rounded-full border-2 transition-all hover:scale-110 ${formData.color === c ? 'border-blue-100 shadow-sm ring-2 ring-blue-500' : 'border-transparent'}`}
+                      className={`w-8 h-8 rounded-full border-2 transition-all hover:scale-110 ${formData.color === c ? 'border-primary/20 shadow-sm ring-2 ring-primary' : 'border-transparent'}`}
                       style={{ backgroundColor: c }}
                       onClick={() => setFormData({ ...formData, color: c })}
                     />
@@ -429,10 +429,10 @@ const AdminProjectsPage = () => {
               </div>
               
               <div className="space-y-2">
-                <Label className="text-sm font-semibold">Ảnh đại diện nội bộ</Label>
+                <Label className="text-sm font-semibold text-foreground">Ảnh đại diện nội bộ</Label>
                 <div className="flex items-center gap-3">
                   <div 
-                    className="w-12 h-12 rounded-lg flex items-center justify-center text-white shrink-0 overflow-hidden bg-blue-500"
+                    className="w-12 h-12 rounded-lg flex items-center justify-center text-white shrink-0 overflow-hidden"
                     style={{ backgroundColor: !formData.imageUrl ? formData.color : 'transparent' }}
                   >
                     {formData.imageUrl ? (
@@ -451,14 +451,14 @@ const AdminProjectsPage = () => {
                     />
                     <Button 
                       variant="outline" 
-                      className="h-10 px-4 border-gray-200 text-xs"
+                      className="h-10 px-4 border-border text-xs text-foreground bg-background hover:bg-muted"
                       onClick={() => fileInputRef.current?.click()}
                       disabled={isUploading}
                     >
                       {isUploading ? <Loader2 className="h-3 w-3 animate-spin" /> : 'Tải ảnh lên...'}
                     </Button>
                     {formData.imageUrl && (
-                      <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setFormData(prev => ({...prev, imageUrl: ''}))}>
+                      <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground" onClick={() => setFormData(prev => ({...prev, imageUrl: ''}))}>
                         <X className="h-4 w-4" />
                       </Button>
                     )}
@@ -467,47 +467,47 @@ const AdminProjectsPage = () => {
               </div>
             </div>
           </div>
-          <DialogFooter className="mt-6 pt-5 border-t flex flex-row justify-between items-center bg-white">
+          <DialogFooter className="mt-6 pt-5 border-border flex flex-row justify-between items-center bg-card border-t">
             <Button variant="ghost" className="text-sm text-gray-500 hover:bg-transparent" onClick={() => setIsCreateModalOpen(false)}>Hủy</Button>
-            <Button className="h-10 px-8 bg-[#0f172a] hover:bg-[#1e293b] text-sm font-medium rounded-md" onClick={handleCreate}>Khởi tạo dự án</Button>
+            <Button className="h-10 px-8 bg-primary text-primary-foreground hover:bg-primary/90 text-sm font-medium rounded-md" onClick={handleCreate}>Khởi tạo dự án</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* Edit Modal - similar refinement */}
+      {/* Edit Modal */}
       <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
-        <DialogContent className="max-w-[550px] p-6">
+        <DialogContent className="max-w-[550px] p-6 bg-card border-border">
           <DialogHeader className="mb-4">
-            <DialogTitle className="text-xl font-bold">Chỉnh sửa Dự án</DialogTitle>
+            <DialogTitle className="text-xl font-bold text-foreground">Chỉnh sửa Dự án</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div className="space-y-1.5">
-              <Label htmlFor="edit-name" className="text-sm font-semibold">Tên dự án</Label>
+              <Label htmlFor="edit-name" className="text-sm font-semibold text-foreground">Tên dự án</Label>
               <Input 
                 id="edit-name" 
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                className="h-10 text-sm border-gray-200"
+                className="h-10 text-sm border-border bg-background text-foreground focus-visible:ring-primary"
               />
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="edit-description" className="text-sm font-semibold">Mô tả chi tiết</Label>
+              <Label htmlFor="edit-description" className="text-sm font-semibold text-foreground">Mô tả chi tiết</Label>
               <Textarea 
                 id="edit-description" 
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                className="min-h-[100px] text-sm border-gray-200 resize-none"
+                className="min-h-[100px] text-sm border-border bg-background text-foreground focus-visible:ring-primary resize-none"
               />
             </div>
             
             <div className="grid grid-cols-2 gap-4 items-start py-1">
               <div className="space-y-2">
-                <Label className="text-sm font-semibold">Màu sắc chủ đạo</Label>
+                <Label className="text-sm font-semibold text-foreground">Màu sắc chủ đạo</Label>
                 <div className="flex flex-wrap gap-2">
                   {COLORS.map((c) => (
                     <button
                       key={c}
-                      className={`w-8 h-8 rounded-full border-2 transition-all hover:scale-110 ${formData.color === c ? 'border-blue-100 shadow-sm ring-2 ring-blue-500' : 'border-transparent'}`}
+                      className={`w-8 h-8 rounded-full border-2 transition-all hover:scale-110 ${formData.color === c ? 'border-primary/20 shadow-sm ring-2 ring-primary' : 'border-transparent'}`}
                       style={{ backgroundColor: c }}
                       onClick={() => setFormData({ ...formData, color: c })}
                     />
@@ -516,10 +516,10 @@ const AdminProjectsPage = () => {
               </div>
               
               <div className="space-y-2">
-                <Label className="text-sm font-semibold">Ảnh đại diện nội bộ</Label>
+                <Label className="text-sm font-semibold text-foreground">Ảnh đại diện nội bộ</Label>
                 <div className="flex items-center gap-3">
                   <div 
-                    className="w-12 h-12 rounded-lg flex items-center justify-center text-white shrink-0 overflow-hidden bg-blue-500"
+                    className="w-12 h-12 rounded-lg flex items-center justify-center text-white shrink-0 overflow-hidden"
                     style={{ backgroundColor: !formData.imageUrl ? formData.color : 'transparent' }}
                   >
                     {formData.imageUrl ? (
@@ -538,14 +538,14 @@ const AdminProjectsPage = () => {
                     />
                     <Button 
                       variant="outline" 
-                      className="h-10 px-4 border-gray-200 text-xs"
+                      className="h-10 px-4 border-border text-xs text-foreground bg-background hover:bg-muted"
                       onClick={() => fileInputRef.current?.click()}
                       disabled={isUploading}
                     >
                       {isUploading ? <Loader2 className="h-3 w-3 animate-spin" /> : 'Thay đổi ảnh...'}
                     </Button>
                     {formData.imageUrl && (
-                      <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setFormData(prev => ({...prev, imageUrl: ''}))}>
+                      <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground" onClick={() => setFormData(prev => ({...prev, imageUrl: ''}))}>
                         <X className="h-4 w-4" />
                       </Button>
                     )}
@@ -554,9 +554,9 @@ const AdminProjectsPage = () => {
               </div>
             </div>
           </div>
-          <DialogFooter className="mt-6 pt-5 border-t flex flex-row justify-between items-center bg-white">
+          <DialogFooter className="mt-6 pt-5 border-border flex flex-row justify-between items-center bg-card border-t">
             <Button variant="ghost" className="text-sm text-gray-500 hover:bg-transparent" onClick={() => setIsEditModalOpen(false)}>Hủy</Button>
-            <Button className="h-10 px-8 bg-[#0f172a] hover:bg-[#1e293b] text-sm font-medium rounded-md" onClick={handleEdit}>Lưu thay đổi</Button>
+            <Button className="h-10 px-8 bg-primary text-primary-foreground hover:bg-primary/90 text-sm font-medium rounded-md" onClick={handleEdit}>Lưu thay đổi</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

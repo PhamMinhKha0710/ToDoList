@@ -43,10 +43,14 @@ export function NavProjects({
       <SidebarMenu>
         {projects.map((item) => (
           <SidebarMenuItem key={item.name}>
-            <SidebarMenuButton asChild>
+            <SidebarMenuButton asChild isActive={false}>
               <NavLink to={item.url}>
-                <item.icon />
-                <span>{item.name}</span>
+                {({ isActive }) => (
+                  <>
+                    <item.icon className={isActive ? "text-primary" : ""} />
+                    <span className={isActive ? "font-bold" : ""}>{item.name}</span>
+                  </>
+                )}
               </NavLink>
             </SidebarMenuButton>
             <DropdownMenu>

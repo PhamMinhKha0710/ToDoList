@@ -217,13 +217,13 @@ export const AddTaskModal = ({
         onOpenChange(isOpen);
       }}
     >
-      <DialogContent className="sm:max-w-[700px] md:max-w-[800px] lg:max-w-[900px] max-h-[90vh] overflow-y-auto w-full p-0">
+      <DialogContent className="sm:max-w-[700px] md:max-w-[800px] lg:max-w-[900px] max-h-[90vh] overflow-y-auto w-full p-0 bg-card border-border">
         <div className="p-6 sm:p-8">
           <DialogHeader>
-            <DialogTitle className="text-2xl font-black text-slate-800">
+            <DialogTitle className="text-2xl font-black text-foreground">
               Thêm công việc mới
             </DialogTitle>
-            <DialogDescription>
+            <DialogDescription className="text-muted-foreground">
               Nhập chi tiết công việc bạn muốn thêm vào cột này.
             </DialogDescription>
           </DialogHeader>
@@ -270,18 +270,18 @@ export const AddTaskModal = ({
                 <div className="grid grid-cols-2 gap-4">
                   {/* Multi-Select Assignees */}
                   <div className="space-y-2 col-span-2">
-                    <Label className="text-sm font-semibold">Người thực hiện</Label>
-                    <div className="border border-slate-200 rounded-md p-2 flex flex-wrap gap-2 min-h-[42px]">
+                    <Label className="text-sm font-semibold text-foreground">Người thực hiện</Label>
+                    <div className="border border-border rounded-md p-2 flex flex-wrap gap-2 min-h-[42px] bg-muted/30">
                       {watch("assignees")?.map((assigneeId) => {
                         const member = (projectMembers as ProjectMember[]).find((m) => ((m.userId as User)._id || m.userId) === assigneeId)?.userId as User;
                         if (!member) return null;
                         return (
-                          <div key={assigneeId} className="flex items-center gap-1.5 bg-slate-100 px-2 py-1 rounded-full text-xs font-medium">
-                            <div className="w-5 h-5 rounded-full bg-slate-300 overflow-hidden flex items-center justify-center">
-                              {member.avatarUrl ? <img src={member.avatarUrl} alt="avatar" /> : <UserIcon className="w-3 h-3 text-slate-500"/>}
+                          <div key={assigneeId} className="flex items-center gap-1.5 bg-card border border-border px-2 py-1 rounded-full text-xs font-bold text-foreground">
+                            <div className="w-5 h-5 rounded-full bg-muted overflow-hidden flex items-center justify-center">
+                              {member.avatarUrl ? <img src={member.avatarUrl} alt="avatar" /> : <UserIcon className="w-3 h-3 text-muted-foreground"/>}
                             </div>
                             <span className="max-w-[100px] truncate">{member.displayName || member.email}</span>
-                            <button type="button" onClick={() => setValue("assignees", watch("assignees")?.filter((id) => id !== assigneeId))} className="text-slate-400 hover:text-red-500">
+                            <button type="button" onClick={() => setValue("assignees", watch("assignees")?.filter((id) => id !== assigneeId))} className="text-muted-foreground hover:text-red-500">
                               <X className="w-3 h-3"/>
                             </button>
                           </div>
@@ -292,20 +292,20 @@ export const AddTaskModal = ({
                         <Button
                           type="button"
                           variant="ghost"
-                          className="h-7 px-2 text-slate-500 hover:bg-slate-50 text-xs gap-1 border border-dashed border-slate-300 flex items-center justify-center font-bold"
+                          className="h-7 px-2 text-muted-foreground hover:bg-muted text-xs gap-1 border border-dashed border-border flex items-center justify-center font-bold"
                           onClick={() => setIsAssigneeOpen(!isAssigneeOpen)}
                         >
                           <Plus className="w-3.5 h-3.5" /> Thêm người
                         </Button>
 
                         {isAssigneeOpen && (
-                          <div className="absolute top-full mt-1.5 right-0 w-[240px] bg-white border border-slate-200 rounded-xl shadow-xl z-50 overflow-hidden flex flex-col animate-in fade-in-0 slide-in-from-top-2">
-                            <div className="p-2 border-b border-slate-100 bg-slate-50/50">
+                          <div className="absolute top-full mt-1.5 right-0 w-[240px] bg-card border border-border rounded-xl shadow-xl z-50 overflow-hidden flex flex-col animate-in fade-in-0 slide-in-from-top-2">
+                            <div className="p-2 border-b border-border bg-muted/50">
                                <Input 
                                  placeholder="Tìm kiếm thành viên..." 
                                  value={searchAssignee}
                                  onChange={(e) => setSearchAssignee(e.target.value)}
-                                 className="h-8 text-[13px] bg-white border-slate-200 focus-visible:ring-1 focus-visible:ring-offset-0 focus-visible:ring-indigo-400"
+                                 className="h-8 text-[13px] bg-card border-border focus-visible:ring-1 focus-visible:ring-offset-0 focus-visible:ring-primary"
                                  autoFocus
                                />
                             </div>
@@ -320,7 +320,7 @@ export const AddTaskModal = ({
                                 });
 
                                 if (filtered.length === 0) {
-                                  return <div className="p-4 text-[13px] text-slate-500 text-center italic">Không tìm thấy thành viên</div>;
+                                  return <div className="p-4 text-[13px] text-muted-foreground text-center italic">Không tìm thấy thành viên</div>;
                                 }
 
                                   return filtered.map((memberWrap: ProjectMember) => {
@@ -328,18 +328,18 @@ export const AddTaskModal = ({
                                     return (
                                       <div 
                                         key={member._id}
-                                        className="flex items-center gap-2.5 px-2.5 py-1.5 hover:bg-slate-100 rounded-lg cursor-pointer transition-colors"
+                                        className="flex items-center gap-2.5 px-2.5 py-1.5 hover:bg-muted rounded-lg cursor-pointer transition-colors"
                                         onClick={() => {
                                           const currentAssignees = watch("assignees") || [];
                                           setValue("assignees", [...currentAssignees, member._id]);
                                           setSearchAssignee("");
                                         }}
                                       >
-                                        <div className="w-6 h-6 rounded-full bg-slate-200 overflow-hidden flex items-center justify-center shrink-0 border border-slate-300/50">
-                                          {member.avatarUrl ? <img src={member.avatarUrl} alt="avatar" className="w-full h-full object-cover" /> : <UserIcon className="w-3.5 h-3.5 text-slate-400"/>}
+                                        <div className="w-6 h-6 rounded-full bg-muted overflow-hidden flex items-center justify-center shrink-0 border border-border">
+                                          {member.avatarUrl ? <img src={member.avatarUrl} alt="avatar" className="w-full h-full object-cover" /> : <UserIcon className="w-3.5 h-3.5 text-muted-foreground"/>}
                                         </div>
                                         <div className="flex flex-col text-left overflow-hidden">
-                                          <span className="text-[13px] font-bold text-slate-700 truncate">{member.displayName || member.email.split('@')[0]}</span>
+                                          <span className="text-[13px] font-bold text-foreground truncate">{member.displayName || member.email.split('@')[0]}</span>
                                         </div>
                                       </div>
                                     );
@@ -353,17 +353,17 @@ export const AddTaskModal = ({
                   </div>
 
                   <div className="space-y-2">
-                    <Label className="text-sm font-semibold flex items-center gap-1.5">
+                    <Label className="text-sm font-semibold flex items-center gap-1.5 text-foreground">
                       <Flag className="w-3.5 h-3.5" /> Độ ưu tiên
                     </Label>
                     <Select
                       value={selectedPriority}
                       onValueChange={(val: TaskPriorityType) => setValue("priority", val)}
                     >
-                      <SelectTrigger className="w-full">
+                      <SelectTrigger className="w-full bg-card border-border">
                         <SelectValue placeholder="Chọn độ ưu tiên" />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent className="bg-card border-border">
                         <SelectItem value={TaskPriority.URGENT}>
                           <div className="flex items-center gap-2">
                             <Flag className="h-4 w-4 text-destructive fill-destructive" />
@@ -393,24 +393,24 @@ export const AddTaskModal = ({
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="dueDate" className="text-sm font-semibold flex items-center gap-1.5 uppercase tracking-tighter text-slate-500">
+                    <Label htmlFor="dueDate" className="text-sm font-semibold flex items-center gap-1.5 uppercase tracking-tighter text-muted-foreground">
                       <Clock className="w-3.5 h-3.5" /> Hạn chót
                     </Label>
-                    <Input id="dueDate" type="datetime-local" {...register("dueDate")} className="w-full" />
+                    <Input id="dueDate" type="datetime-local" {...register("dueDate")} className="w-full bg-card border-border" />
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="startDate" className="text-sm font-semibold text-blue-600 flex items-center gap-1.5">
+                    <Label htmlFor="startDate" className="text-sm font-semibold text-primary flex items-center gap-1.5">
                       Bắt đầu
                     </Label>
-                    <Input id="startDate" type="datetime-local" {...register("startDate")} className="bg-blue-50/30 border-blue-100 focus-visible:ring-blue-400" />
+                    <Input id="startDate" type="datetime-local" {...register("startDate")} className="bg-primary/5 border-primary/20 focus-visible:ring-primary/30" />
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="endDate" className="text-sm font-semibold text-green-600 flex items-center gap-1.5">
+                    <Label htmlFor="endDate" className="text-sm font-semibold text-emerald-500 flex items-center gap-1.5">
                       Kết thúc
                     </Label>
-                    <Input id="endDate" type="datetime-local" {...register("endDate")} className="bg-green-50/30 border-green-100 focus-visible:ring-green-400" />
+                    <Input id="endDate" type="datetime-local" {...register("endDate")} className="bg-emerald-500/5 border-emerald-500/20 focus-visible:ring-emerald-500/30" />
                   </div>
                 </div>
 
@@ -426,7 +426,7 @@ export const AddTaskModal = ({
                       {tags.map((tag) => (
                         <div
                           key={tag.name}
-                          className="flex items-center gap-1.5 px-2.5 py-1 rounded-md border border-slate-200 shadow-sm text-xs font-bold text-slate-700 bg-white"
+                          className="flex items-center gap-1.5 px-2.5 py-1 rounded-md border border-border shadow-sm text-xs font-bold text-foreground bg-card"
                         >
                           <div
                             className="w-2.5 h-2.5 rounded-full"
@@ -436,7 +436,7 @@ export const AddTaskModal = ({
                           <button
                             type="button"
                             onClick={() => handleRemoveTag(tag.name)}
-                            className="text-slate-400 hover:text-red-500 transition-colors ml-0.5"
+                            className="text-muted-foreground hover:text-red-500 transition-colors ml-0.5"
                           >
                             <X className="w-3.5 h-3.5" />
                           </button>
@@ -491,7 +491,7 @@ export const AddTaskModal = ({
               </div>
 
               {/* Right Column (Attachments & Settings) */}
-              <div className="md:col-span-2 space-y-6 bg-slate-50/50 p-5 rounded-2xl border border-slate-100 h-fit">
+              <div className="md:col-span-2 space-y-6 bg-muted/30 p-5 rounded-2xl border border-border h-fit">
                 <TaskAttachments
                   attachments={attachments}
                   onChange={(newAtt) => setValue("attachments", newAtt)}
@@ -532,7 +532,7 @@ export const AddTaskModal = ({
               </div>
             </div>
 
-            <DialogFooter className="gap-2 sm:gap-0 pt-4 border-t border-slate-100 flex-shrink-0 mt-2">
+            <DialogFooter className="gap-2 sm:gap-0 pt-4 border-t border-border flex-shrink-0 mt-2">
               <Button
                 type="button"
                 variant="outline"

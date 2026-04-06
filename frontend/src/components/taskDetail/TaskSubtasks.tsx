@@ -57,11 +57,11 @@ export const TaskSubtasks = ({
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h3 className="text-sm font-extrabold uppercase tracking-widest text-slate-400 flex items-center gap-2">
+        <h3 className="text-sm font-extrabold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
           <ListTodo className="w-4 h-4" /> Danh sách công việc con ({subTasks.length})
         </h3>
         {subTasks.length > 0 && (
-          <span className="text-xs font-bold text-slate-500 bg-slate-100 px-2 py-1 rounded-md">
+          <span className="text-xs font-bold text-muted-foreground bg-muted px-2 py-1 rounded-md">
             {completedCount}/{subTasks.length} Hoàn thành
           </span>
         )}
@@ -69,11 +69,11 @@ export const TaskSubtasks = ({
 
       {subTasks.length > 0 && (
         <div className="space-y-2">
-          <div className="flex items-center justify-between text-[11px] font-bold text-slate-400 uppercase tracking-tighter">
+          <div className="flex items-center justify-between text-[11px] font-bold text-muted-foreground uppercase tracking-tighter">
             <span>Tiến độ</span>
             <span>{Math.round(progress)}%</span>
           </div>
-          <Progress value={progress} className="h-1.5 bg-slate-100" />
+          <Progress value={progress} className="h-1.5 bg-muted" />
         </div>
       )}
 
@@ -81,17 +81,17 @@ export const TaskSubtasks = ({
         {subTasks.map((subTask, index) => (
           <div
             key={subTask._id || index}
-            className="group flex items-center gap-3 p-3 rounded-xl border border-slate-100 bg-white hover:border-indigo-100 hover:shadow-sm transition-all"
+            className="group flex items-center gap-3 p-3 rounded-xl border border-border bg-card hover:border-primary/50 hover:shadow-sm transition-all"
           >
             <button
               type="button"
               onClick={() => handleToggle(index)}
               className={`shrink-0 transition-colors ${
-                subTask.status === "done" ? "text-green-500" : "text-slate-300 hover:text-indigo-400"
+                subTask.status === "done" ? "text-primary" : "text-muted-foreground hover:text-primary"
               }`}
             >
               {subTask.status === "done" ? (
-                <CheckCircle2 className="w-5 h-5 fill-green-50" />
+                <CheckCircle2 className="w-5 h-5 fill-primary/10" />
               ) : (
                 <Circle className="w-5 h-5" />
               )}
@@ -103,12 +103,12 @@ export const TaskSubtasks = ({
                 value={subTask.title}
                 onChange={(e) => handleTitleChange(index, e.target.value)}
                 className={`flex-1 bg-transparent border-none p-0 text-[14px] font-medium outline-none transition-all ${
-                  subTask.status === "done" ? "text-slate-400 line-through" : "text-slate-700"
+                  subTask.status === "done" ? "text-muted-foreground line-through opacity-70" : "text-foreground"
                 }`}
               />
             ) : (
                 <span className={`flex-1 text-[14px] font-medium ${
-                  subTask.status === "done" ? "text-slate-400 line-through" : "text-slate-700"
+                  subTask.status === "done" ? "text-muted-foreground line-through opacity-70" : "text-foreground"
                 }`}>
                   {subTask.title}
                 </span>
@@ -119,7 +119,7 @@ export const TaskSubtasks = ({
                 variant="ghost"
                 size="icon"
                 onClick={() => handleRemove(index)}
-                className="w-8 h-8 text-slate-300 hover:text-red-500 hover:bg-red-50 opacity-0 group-hover:opacity-100 transition-all"
+                className="w-8 h-8 text-muted-foreground hover:text-red-500 hover:bg-red-500/10 opacity-0 group-hover:opacity-100 transition-all"
               >
                 <Trash2 className="w-4 h-4" />
               </Button>
@@ -137,14 +137,14 @@ export const TaskSubtasks = ({
               value={newSubTaskTitle}
               onChange={(e) => setNewSubTaskTitle(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handleAdd()}
-              className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:bg-white focus:border-indigo-400 focus:ring-4 focus:ring-indigo-50 outline-none transition-all"
+              className="w-full pl-10 pr-4 py-2.5 bg-muted border border-border rounded-xl text-sm font-medium focus:bg-card focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none transition-all placeholder:text-muted-foreground"
             />
-            <Plus className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+            <Plus className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           </div>
           <Button
             onClick={handleAdd}
             disabled={!newSubTaskTitle.trim()}
-            className="h-10 px-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold shadow-sm disabled:opacity-50 transition-all"
+            className="h-10 px-4 bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl font-bold shadow-sm disabled:opacity-50 transition-all"
           >
             Thêm
           </Button>
@@ -152,8 +152,8 @@ export const TaskSubtasks = ({
       )}
 
       {subTasks.length === 0 && !isEditing && (
-        <div className="text-center py-8 bg-slate-50/50 border border-dashed border-slate-200 rounded-2xl">
-          <p className="text-slate-400 text-sm italic">Chưa có nhiệm vụ con nào.</p>
+        <div className="text-center py-8 bg-muted/30 border border-dashed border-border rounded-2xl">
+          <p className="text-muted-foreground text-sm italic">Chưa có nhiệm vụ con nào.</p>
         </div>
       )}
     </div>

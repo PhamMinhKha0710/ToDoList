@@ -27,7 +27,7 @@ const getIcon = (type: NotificationType) => {
     case 'task_update': return <ClipboardList className="w-4 h-4 text-blue-500" />;
     case 'member_joined': return <UserCheck className="w-4 h-4 text-green-600" />;
     case 'member_declined': return <UserX className="w-4 h-4 text-red-500" />;
-    default: return <AlertCircle className="w-4 h-4 text-slate-500" />;
+    default: return <AlertCircle className="w-4 h-4 text-muted-foreground" />;
   }
 };
 
@@ -38,10 +38,10 @@ export const NotificationList = ({ notifications, onClose }: NotificationListPro
   if (notifications.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
-        <div className="w-12 h-12 bg-slate-50 rounded-full flex items-center justify-center mb-3">
-          <AlertCircle className="w-6 h-6 text-slate-300" />
+        <div className="w-12 h-12 bg-muted rounded-full flex items-center justify-center mb-3">
+          <AlertCircle className="w-6 h-6 text-muted-foreground/50" />
         </div>
-        <p className="text-[14px] font-medium text-slate-500">Không có thông báo nào</p>
+        <p className="text-[14px] font-medium text-muted-foreground">Không có thông báo nào</p>
       </div>
     );
   }
@@ -70,29 +70,29 @@ export const NotificationList = ({ notifications, onClose }: NotificationListPro
           key={notif._id}
           onClick={() => handleNotificationClick(notif)}
           className={cn(
-            "flex items-start gap-4 p-4 text-left border-b border-slate-50 transition-colors last:border-0 hover:bg-slate-50",
-            !notif.read && "bg-indigo-50/30 hover:bg-indigo-50/50"
+            "flex items-start gap-4 p-4 text-left border-b border-border transition-colors last:border-0 hover:bg-accent/50",
+            !notif.read && "bg-primary/5 hover:bg-primary/10"
           )}
         >
-          <div className="mt-1 shrink-0 w-8 h-8 rounded-full bg-white shadow-sm border border-slate-100 flex items-center justify-center">
+          <div className="mt-1 shrink-0 w-8 h-8 rounded-full bg-background shadow-sm border border-border flex items-center justify-center">
             {getIcon(notif.type)}
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-center justify-between gap-2 mb-1">
-              <span className="text-[14px] font-bold text-slate-900 truncate">
+              <span className="text-[14px] font-bold text-foreground truncate">
                 {notif.title}
               </span>
-              <span className="text-[10px] font-medium text-slate-400 whitespace-nowrap">
+              <span className="text-[10px] font-medium text-muted-foreground whitespace-nowrap">
                 {formatDistanceToNow(new Date(notif.createdAt), { addSuffix: true, locale: vi })}
               </span>
             </div>
-            <p className="text-[13px] text-slate-600 line-clamp-2 leading-relaxed">
+            <p className="text-[13px] text-muted-foreground/90 line-clamp-2 leading-relaxed">
               {notif.message}
             </p>
             {!notif.read && (
               <div className="mt-2 flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-indigo-500" />
-                <span className="text-[11px] font-bold text-indigo-600 uppercase tracking-wider">Mới</span>
+                <span className="w-2 h-2 rounded-full bg-primary" />
+                <span className="text-[11px] font-bold text-primary uppercase tracking-wider">Mới</span>
               </div>
             )}
           </div>
