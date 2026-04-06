@@ -20,9 +20,12 @@ class AdminService {
     return user;
   }
 
-  async getDashboardTasks() {
-    // Return only the fields needed for the dashboard charts to save bandwidth
-    return await this.Task.find({}, '_id title status createdAt').lean();
+  async getDashboardStats() {
+    const [tasks, users] = await Promise.all([
+      this.Task.find({}, "_id title status createdAt").lean(),
+      this.User.find({ role: "user" }, "_id createdAt").lean(),
+    ]);
+    return { tasks, users };
   }
 
   async getAllProjects() {
