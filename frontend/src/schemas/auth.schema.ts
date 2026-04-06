@@ -22,3 +22,21 @@ export const loginSchema = z.object({
 
 export type LoginInput = z.infer<typeof loginSchema>
 
+export const forgotPasswordSchema = z.object({
+  email: z.string().email('Email không hợp lệ'),
+})
+
+export type ForgotPasswordInput = z.infer<typeof forgotPasswordSchema>
+
+export const resetPasswordSchema = z.object({
+  email: z.string().email('Email không hợp lệ'),
+  otp: z.string().length(6, 'Mã OTP phải có đúng 6 ký tự'),
+  newPassword: z.string().min(6, 'Mật khẩu mới phải có ít nhất 6 ký tự'),
+  confirmPassword: z.string(),
+}).refine((data) => data.newPassword === data.confirmPassword, {
+  message: 'Mật khẩu nhập lại không khớp',
+  path: ['confirmPassword'],
+})
+
+export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>
+

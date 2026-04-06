@@ -21,16 +21,18 @@ class AuthService {
   }
 
   register = async ({ email, password, displayName }) => {
-    const existing = await this.User.findOne({ email });
+    const normalizedEmail = email.toLowerCase();
+    const existing = await this.User.findOne({ email: normalizedEmail });
     if (existing) throw new this.ApiError(409, "Email đã được sử dụng");
 
     const passwordHash = await this.bcrypt.hash(password, 10);
-    const user = await this.User.create({ email, passwordHash, displayName });
+    const user = await this.User.create({ email: normalizedEmail, passwordHash, displayName });
     return this.userResponseModel(user);
   };
 
   login = async ({ email, password }) => {
-    const user = await this.User.findOne({ email });
+    const normalizedEmail = email.toLowerCase();
+    const user = await this.User.findOne({ email: normalizedEmail });
     if (!user) throw new this.ApiError(401, "Email hoặc mật khẩu không đúng");
 
     if (user.isActive === false) {
@@ -77,7 +79,8 @@ class AuthService {
   };
 
   forgotPassword = async ({ email }) => {
-    const user = await this.User.findOne({ email });
+    const normalizedEmail = email.toLowerCase();
+    const user = await this.User.findOne({ email: normalizedEmail });
     if (!user) return;
 
     const otp = this.crypto.randomInt(100000, 999999).toString();
@@ -85,11 +88,15 @@ class AuthService {
     user.otpExpires = new Date(Date.now() + 10 * 60 * 1000);
     await user.save();
 
-    await this.mailService.sendOtpEmail(email, otp, 'Khôi phục mật khẩu');
+    const { CLIENT_URL } = require('../config/env');
+    const resetUrl = `${CLIENT_URL}/reset-password?email=${encodeURIComponent(email)}&otp=${otp}`;
+
+    await this.mailService.sendResetPasswordEmail(email, otp, resetUrl);
   };
 
   resetPassword = async ({ email, otp, newPassword }) => {
-    const user = await this.User.findOne({ email });
+    const normalizedEmail = email.toLowerCase();
+    const user = await this.User.findOne({ email: normalizedEmail });
     if (!user) throw new this.ApiError(400, "Email không tồn tại");
     if (!user.otpCode || user.otpCode !== otp)
       throw new this.ApiError(400, "OTP không hợp lệ");
@@ -102,14 +109,16 @@ class AuthService {
   };
 
   requestOtp = async ({ email, action }) => {
+    const normalizedEmail = email.toLowerCase();
     const otpCode = this.crypto.randomInt(100000, 999999).toString();
-    await this.Otp.deleteMany({ email, action });
-    await this.Otp.create({ email, otp: otpCode, action });
-    await this.mailService.sendOtpEmail(email, otpCode, action);
+    await this.Otp.deleteMany({ email: normalizedEmail, action });
+    await this.Otp.create({ email: normalizedEmail, otp: otpCode, action });
+    await this.mailService.sendOtpEmail(normalizedEmail, otpCode, action);
   };
 
   verifyOtp = async ({ email, otp, action }) => {
-    const record = await this.Otp.findOne({ email, otp, action });
+    const normalizedEmail = email.toLowerCase();
+    const record = await this.Otp.findOne({ email: normalizedEmail, otp, action });
     if (!record) {
       throw new this.ApiError(400, "Mã OTP không hợp lệ hoặc đã hết hạn");
     }
@@ -192,6 +201,7 @@ module.exports = new AuthService({
   },
   mailService: {
     sendOtpEmail: mailService.sendOtpEmail,
+    sendResetPasswordEmail: mailService.sendResetPasswordEmail,
   },
   encryption: require('../utils/encryption'),
   userResponseModel: require("../models/users/userResponse.model"),
