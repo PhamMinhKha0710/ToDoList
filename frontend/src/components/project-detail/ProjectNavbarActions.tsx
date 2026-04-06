@@ -13,6 +13,7 @@ import {
   Link as LinkIcon,
   Film,
   History,
+  BarChart3,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -30,6 +31,7 @@ import {
 import { EditProjectDialog } from "./EditProjectDialog";
 import { ProjectMembersDialog } from "./ProjectMembersDialog";
 import { ProjectInvitationsDialog } from "./ProjectInvitationsDialog";
+import { ProjectStatisticsDialog } from "./ProjectStatisticsDialog";
 import { useAuthStore } from "@/stores/auth.store";
 import { useKanbanStore } from "@/stores/kanban.store";
 import {
@@ -58,6 +60,7 @@ export function ProjectNavbarActions({ project }: ProjectNavbarActionsProps) {
   const [isMembersDialogOpen, setIsMembersDialogOpen] = useState(false);
   const [isInvitationsDialogOpen, setIsInvitationsDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isStatsDialogOpen, setIsStatsDialogOpen] = useState(false);
 
   // Determine current user's role
   const currentMember = project.members.find(
@@ -105,6 +108,20 @@ export function ProjectNavbarActions({ project }: ProjectNavbarActionsProps) {
               </Button>
             </TooltipTrigger>
             <TooltipContent>Lịch sử hoạt động</TooltipContent>
+          </Tooltip>
+
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className={`h-8 w-8 transition-colors hover:bg-accent/50 ${isStatsDialogOpen ? 'text-primary bg-accent/30' : 'text-muted-foreground hover:text-primary'}`} 
+                onClick={() => setIsStatsDialogOpen(true)}
+              >
+                <BarChart3 className="h-4 w-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Thống kê dự án</TooltipContent>
           </Tooltip>
         </div>
       </TooltipProvider>
@@ -205,6 +222,15 @@ export function ProjectNavbarActions({ project }: ProjectNavbarActionsProps) {
           project={project}
           open={isInvitationsDialogOpen}
           onOpenChange={setIsInvitationsDialogOpen}
+        />
+      )}
+
+      {isStatsDialogOpen && (
+        <ProjectStatisticsDialog
+          projectId={project._id}
+          projectName={project.name}
+          open={isStatsDialogOpen}
+          onOpenChange={setIsStatsDialogOpen}
         />
       )}
 

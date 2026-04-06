@@ -20,3 +20,36 @@ export interface Project {
   createdAt: string;
   updatedAt: string;
 }
+
+export interface StatusDistribution {
+  name: string;
+  value: number;
+  color: string;
+}
+
+export interface PriorityDistribution {
+  name: string;
+  value: number;
+  color: string;
+}
+
+export interface MemberDistribution {
+  userId: string;
+  displayName: string;
+  email: string;
+  avatarUrl?: string;
+  taskCount: number;
+  completedCount: number;
+}
+
+export interface ProjectStats {
+  summary: {
+    totalTasks: number;
+    completedTasks: number;
+    overdueTasks: number;
+    memberCount: number;
+  };
+  statusDistribution: StatusDistribution[];
+  priorityDistribution: PriorityDistribution[];
+  memberDistribution: MemberDistribution[];
+}
