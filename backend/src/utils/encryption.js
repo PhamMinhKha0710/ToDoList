@@ -1,7 +1,7 @@
 const crypto = require('crypto');
 
 const ALGORITHM = 'aes-256-cbc';
-const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY || 'todo_minh_kha_todo_minh_kha_256_'; // Must be exactly 32 bytes
+const { ENCRYPTION_KEY } = require('../config/env'); // Must be exactly 32 bytes
 const IV_LENGTH = 16;
 
 /**

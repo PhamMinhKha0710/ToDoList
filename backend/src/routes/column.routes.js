@@ -1,16 +1,14 @@
 const express = require('express');
-const columnController = require('../controllers/column.controller');
+const { columnController } = require('../container');
 const columnValidator = require('../validators/column.validator');
 const { validate } = require('../middlewares/validate.middleware');
 const { authenticate } = require('../middlewares/auth.middleware');
 const { requireColumnOwner, requireProjectOwnerFromBody } = require('../middlewares/column.middleware');
+const { isProjectMember } = require('../middlewares/project.middleware');
 
 const router = express.Router();
 
 router.use(authenticate);
-
-// Import middleware check project member từ thư mục middleware của project
-const { isProjectMember } = require('../middlewares/project.middleware');
 
 router.route('/project/:projectId')
   .get(isProjectMember, columnController.getProjectColumns);
@@ -20,7 +18,7 @@ router.route('/project/:projectId/reorder')
 
 router.route('/')
   .post(validate(columnValidator.createColumnSchema), requireProjectOwnerFromBody, columnController.createColumn);
- 
+
 router.route('/:columnId')
   .get(columnController.getColumnById)
   .put(validate(columnValidator.updateColumnSchema), requireColumnOwner, columnController.updateColumn)

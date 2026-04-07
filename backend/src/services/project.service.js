@@ -1,557 +1,291 @@
-const crypto = require('crypto');
+const eventBus = require('../utils/eventBus');
 
 class ProjectService {
-  constructor({ projectRepository, User, ApiError, notificationService, getIO, activityService }) {
+  constructor({ projectRepository, User, ApiError }) {
     this.projectRepository = projectRepository;
     this.User = User;
     this.ApiError = ApiError;
-    this.notificationService = notificationService;
-    this.getIO = getIO;
-    this.activityService = activityService;
-  }
-
-  _notifyOwnerOnResponse(project, userId, action) {
-    return (async () => {
-      const owner = project.members.find(m => m.role === 'owner');
-      if (!owner) return;
-
-      const ownerId = owner.userId._id || owner.userId;
-      if (ownerId.toString() === userId.toString()) return;
-
-      const respondingUser = await this.User.findById(userId).select('displayName email').lean();
-      const userName = respondingUser?.displayName || respondingUser?.email || 'Một người dùng';
-
-      const isAccept = action === 'accept';
-      await this.notificationService.createNotification({
-        recipientId: ownerId,
-        type: isAccept ? 'member_joined' : 'member_declined',
-        title: isAccept ? 'Thành viên mới' : 'Từ chối lời mời',
-        message: isAccept
-          ? `${userName} đã chấp nhận lời mời vào dự án "${project.name}"`
-          : `${userName} đã từ chối lời mời vào dự án "${project.name}"`,
-        metadata: { projectId: project._id, projectName: project.name },
-      });
-    })();
-  }
-
-  _emitMemberUpdated(projectId) {
-    try {
-      this.getIO().to(projectId.toString()).emit('project:member_updated', { projectId: projectId.toString() });
-    } catch (error) {
-      console.error('[Socket] Failed to emit project:member_updated', error);
-    }
-  }
-
-  async createProject(userId, projectData) {
-    const members = projectData.members || [];
-    const existingOwnerIndex = members.findIndex(m => m.userId.toString() === userId.toString());
-    if (existingOwnerIndex === -1) {
-      members.push({ userId, role: 'owner', status: 'active' });
-    } else {
-      members[existingOwnerIndex].role = 'owner';
-      members[existingOwnerIndex].status = 'active';
-    }
-
-    const newProjectData = {
-      ...projectData,
-      members,
-    };
-    const project = await this.projectRepository.create(newProjectData);
-
-    await this.activityService.createActivityLog({
-      projectId: project._id,
-      userId,
-      action: 'PROJECT_CREATED',
-      entityType: 'project',
-      entityId: project._id,
-      detail: { name: project.name }
-    });
-
-    return project;
   }
 
   async getUserProjects(userId) {
-    return this.projectRepository.findByUserId(userId);
+    return await this.projectRepository.getProjectsByUserId(userId);
+  }
+
+  async createProject(projectData, userId) {
+    const members = [{ userId, role: 'owner', status: 'active' }];
+
+    if (projectData.members && Array.isArray(projectData.members)) {
+      for (const m of projectData.members) {
+        if (m.userId !== userId.toString()) {
+          members.push({ userId: m.userId, role: m.role || 'member', status: 'pending' });
+        }
+      }
+    }
+
+    const project = await this.projectRepository.createProject({
+      ...projectData,
+      members,
+    });
+
+    const populated = await this.projectRepository.getProjectById(project._id);
+
+    eventBus.emitAsync('project.created', {
+      project: populated,
+      userId,
+    });
+
+    return populated;
   }
 
   async getProjectById(projectId) {
-    const project = await this.projectRepository.findById(projectId);
-    if (!project) {
-      throw new this.ApiError(404, 'Không tìm thấy dự án');
-    }
+    const project = await this.projectRepository.getProjectById(projectId);
+    if (!project) throw new this.ApiError(404, 'Không tìm thấy dự án');
     return project;
   }
 
-  async updateProject(projectId, updateData, userId) {
-    const project = await this.getProjectById(projectId);
-    const updated = await this.projectRepository.updateById(projectId, updateData);
+  async updateProject(projectId, updateData) {
+    const project = await this.projectRepository.updateProject(projectId, updateData);
+    if (!project) throw new this.ApiError(404, 'Không tìm thấy dự án');
 
-    const differences = {};
-    const fields = Object.keys(updateData);
-    fields.forEach(key => {
-      if (updateData[key] !== undefined && JSON.stringify(project[key]) !== JSON.stringify(updateData[key])) {
-        differences[key] = {
-          old: project[key],
-          new: updateData[key]
-        };
-      }
-    });
+    eventBus.emitAsync('project.updated', { project });
 
-    await this.activityService.createActivityLog({
-      projectId: updated._id,
-      userId,
-      action: 'PROJECT_UPDATED',
-      entityType: 'project',
-      entityId: updated._id,
-      detail: { differences }
-    });
-
-    return updated;
+    return project;
   }
 
   async deleteProject(projectId, userId) {
-    const project = await this.getProjectById(projectId);
-    await this.projectRepository.deleteById(projectId);
+    const project = await this.projectRepository.getProjectById(projectId);
+    if (!project) throw new this.ApiError(404, 'Không tìm thấy dự án');
 
-    // Note: Project deletion activity log is tricky if the project is gone, 
-    // but we can log it with the projectId before it is deleted or keep it 
-    // since the activity log references the projectId (which remains as an ID in logs).
-    await this.activityService.createActivityLog({
-       projectId,
-       userId,
-       action: 'PROJECT_DELETED',
-       entityType: 'project',
-       entityId: projectId,
-       detail: { name: project.name }
-    });
+    await this.projectRepository.deleteProject(projectId);
 
-    return null;
+    eventBus.emitAsync('project.deleted', { projectId, project, userId });
   }
 
-  async addMember(projectId, email, role = 'member', inviterId) {
-    const project = await this.getProjectById(projectId);
+  async addMember(projectId, email, role, inviterId) {
+    const user = await this.User.findOne({ email: email.toLowerCase() });
+    if (!user) throw new this.ApiError(404, 'Không tìm thấy người dùng với email này');
 
-    const userToAdd = await this.User.findOne({ email });
-    if (!userToAdd) {
-      throw new this.ApiError(404, 'Không tìm thấy người dùng với email này');
+    const project = await this.projectRepository.getProjectById(projectId);
+    if (!project) throw new this.ApiError(404, 'Không tìm thấy dự án');
+
+    const existing = project.members.find((m) => {
+      const mUserId = m.userId._id ? m.userId._id.toString() : m.userId.toString();
+      return mUserId === user._id.toString();
+    });
+
+    if (existing) {
+      if (existing.status === 'active') {
+        throw new this.ApiError(409, 'Người dùng đã là thành viên dự án');
+      }
+      throw new this.ApiError(409, 'Người dùng đã được mời và đang chờ phản hồi');
     }
 
-    const isMember = project.members.some(
-      (m) => m.userId._id.toString() === userToAdd._id.toString()
-    );
-
-    if (isMember) {
-      throw new this.ApiError(400, 'Người dùng này đã là thành viên của dự án');
-    }
-
-    const memberData = {
-      userId: userToAdd._id,
-      role,
+    project.members.push({
+      userId: user._id,
+      role: role || 'member',
       status: 'pending',
-    };
+    });
+    await project.save();
 
-    const result = await this.projectRepository.addMember(projectId, memberData);
+    const populated = await this.projectRepository.getProjectById(projectId);
 
-    await this.notificationService.createNotification({
-      recipientId: userToAdd._id,
-      type: 'project_invite',
-      title: 'Lời mời vào dự án',
-      message: `Bạn được mời tham gia vào dự án "${project.name}"`,
-      metadata: { projectId: project._id, projectName: project.name }
+    eventBus.emitAsync('member.invited', {
+      project: populated,
+      invitedUser: user,
+      inviterId,
+      role: role || 'member',
     });
 
-    this._emitMemberUpdated(projectId);
-
-    await this.activityService.createActivityLog({
-      projectId,
-      userId: inviterId,
-      action: 'MEMBER_INVITED',
-      entityType: 'user',
-      entityId: userToAdd._id,
-      detail: { email, role }
-    });
-
-    return result;
+    return populated;
   }
 
-  async removeMember(projectId, userIdToRemove, actorId) {
-    const project = await this.getProjectById(projectId);
+  async removeMember(projectId, memberId, removerId) {
+    const project = await this.projectRepository.getProjectById(projectId);
+    if (!project) throw new this.ApiError(404, 'Không tìm thấy dự án');
 
-    const memberToRemove = project.members.find(
-      (m) => m.userId._id.toString() === userIdToRemove
-    );
-
-    if (!memberToRemove) {
-      throw new this.ApiError(404, 'Thành viên không tồn tại trong dự án');
-    }
-
-    if (memberToRemove.role === 'owner') {
-      throw new this.ApiError(400, 'Không thể xóa owner khỏi dự án. Vui lòng chuyển quyền hoặc xóa dự án.');
-    }
-
-    const result = await this.projectRepository.removeMember(projectId, userIdToRemove);
-    this._emitMemberUpdated(projectId);
-
-    await this.activityService.createActivityLog({
-      projectId,
-      userId: actorId,
-      action: 'MEMBER_REMOVED',
-      entityType: 'user',
-      entityId: userIdToRemove,
-      detail: { email: memberToRemove.userId.email }
+    const memberIndex = project.members.findIndex((m) => {
+      const mUserId = m.userId._id ? m.userId._id.toString() : m.userId.toString();
+      return mUserId === memberId;
     });
 
-    return result;
-  }
+    if (memberIndex === -1) throw new this.ApiError(404, 'Thành viên không tồn tại trong dự án');
 
-  async updateMemberRole(projectId, userIdToUpdate, newRole, actorId) {
-    const project = await this.getProjectById(projectId);
-
-    const memberToUpdate = project.members.find(
-      (m) => m.userId._id.toString() === userIdToUpdate
-    );
-
-    if (!memberToUpdate) {
-      throw new this.ApiError(404, 'Thành viên không tồn tại trong dự án');
+    const removedMember = project.members[memberIndex];
+    if (removedMember.role === 'owner') {
+      throw new this.ApiError(403, 'Không thể xóa chủ sở hữu dự án');
     }
 
-    if (memberToUpdate.role === 'owner' && newRole !== 'owner') {
-      const ownerCount = project.members.filter((m) => m.role === 'owner').length;
-      if (ownerCount <= 1) {
-        throw new this.ApiError(400, 'Dự án phải có ít nhất 1 Owner. Không thể hạ quyền Owner duy nhất.');
-      }
-    }
+    project.members.splice(memberIndex, 1);
+    await project.save();
 
-    const result = await this.projectRepository.updateMemberRole(projectId, userIdToUpdate, newRole);
-    this._emitMemberUpdated(projectId);
+    const populated = await this.projectRepository.getProjectById(projectId);
 
-    await this.activityService.createActivityLog({
-      projectId,
-      userId: actorId,
-      action: 'MEMBER_ROLE_UPDATED',
-      entityType: 'user',
-      entityId: userIdToUpdate,
-      detail: { 
-        oldRole: memberToUpdate.role,
-        newRole 
-      }
+    eventBus.emitAsync('member.removed', {
+      project: populated,
+      memberId,
+      removerId,
     });
 
-    return result;
+    return populated;
   }
 
-  async getInvitationDetails(projectId, userId) {
-    const project = await this.getProjectById(projectId);
+  async updateMemberRole(projectId, memberId, newRole, updaterId) {
+    const project = await this.projectRepository.getProjectById(projectId);
+    if (!project) throw new this.ApiError(404, 'Không tìm thấy dự án');
 
-    const member = project.members.find(
-      (m) => m.userId._id.toString() === userId.toString() || m.userId.toString() === userId.toString()
-    );
+    const member = project.members.find((m) => {
+      const mUserId = m.userId._id ? m.userId._id.toString() : m.userId.toString();
+      return mUserId === memberId;
+    });
 
-    if (!member) {
-      throw new this.ApiError(403, 'Bạn không được mời tham gia dự án này');
-    }
+    if (!member) throw new this.ApiError(404, 'Thành viên không tồn tại trong dự án');
 
-    if (member.status === 'active') {
-      throw new this.ApiError(400, 'Bạn đã là thành viên chính thức của dự án này');
-    }
+    const oldRole = member.role;
+    member.role = newRole;
+    await project.save();
 
-    const owner = project.members.find(m => m.role === 'owner')?.userId;
-    const activeMembersCount = project.members.filter(m => m.status === 'active').length;
+    const populated = await this.projectRepository.getProjectById(projectId);
 
-    return {
-      _id: project._id,
-      name: project.name,
-      description: project.description,
-      imageUrl: project.imageUrl,
-      color: project.color,
-      owner: owner ? {
-        _id: owner._id,
-        displayName: owner.displayName,
-        email: owner.email,
-        avatarUrl: owner.avatarUrl
-      } : null,
-      memberCount: activeMembersCount,
-    };
+    eventBus.emitAsync('member.roleUpdated', {
+      project: populated,
+      memberId,
+      oldRole,
+      newRole,
+      updaterId,
+    });
+
+    return populated;
+  }
+
+  async getInvitationDetails(projectId) {
+    const project = await this.projectRepository.getProjectById(projectId);
+    if (!project) throw new this.ApiError(404, 'Không tìm thấy dự án');
+    return project;
   }
 
   async respondToInvitation(projectId, userId, action) {
-    const project = await this.getProjectById(projectId);
+    const project = await this.projectRepository.getProjectById(projectId);
+    if (!project) throw new this.ApiError(404, 'Không tìm thấy dự án');
 
-    const memberIndex = project.members.findIndex(
-      (m) => m.userId._id.toString() === userId.toString() || m.userId.toString() === userId.toString()
-    );
+    const member = project.members.find((m) => {
+      const mUserId = m.userId._id ? m.userId._id.toString() : m.userId.toString();
+      return mUserId === userId.toString();
+    });
 
-    if (memberIndex === -1) {
-      throw new this.ApiError(403, 'Bạn không được mời tham gia dự án này');
-    }
-
-    const member = project.members[memberIndex];
-
-    if (member.status === 'active') {
-      throw new this.ApiError(400, 'Bạn đã là thành viên chính thức của dự án này');
-    }
+    if (!member) throw new this.ApiError(404, 'Bạn không có lời mời tham gia dự án này');
+    if (member.status === 'active') throw new this.ApiError(400, 'Bạn đã là thành viên dự án');
 
     if (action === 'accept') {
-      project.members[memberIndex].status = 'active';
+      member.status = 'active';
       await project.save();
-      this._emitMemberUpdated(projectId);
-      await this._notifyOwnerOnResponse(project, userId, 'accept');
-
-      await this.activityService.createActivityLog({
-        projectId,
-        userId,
-        action: 'MEMBER_JOINED',
-        entityType: 'user',
-        entityId: userId,
-        detail: { method: 'invitation_accept' }
-      });
-
-      return project;
     } else if (action === 'decline') {
-      await this._notifyOwnerOnResponse(project, userId, 'decline');
-      const result = await this.projectRepository.removeMember(projectId, userId);
-      this._emitMemberUpdated(projectId);
-      return result;
-    } else {
-      throw new this.ApiError(400, 'Hành động không hợp lệ');
+      project.members = project.members.filter((m) => {
+        const mUserId = m.userId._id ? m.userId._id.toString() : m.userId.toString();
+        return mUserId !== userId.toString();
+      });
+      await project.save();
     }
+
+    const populated = await this.projectRepository.getProjectById(projectId);
+
+    eventBus.emitAsync('invitation.responded', {
+      project: populated,
+      userId,
+      action,
+    });
+
+    return populated;
   }
 
+  // ─── Invite Code ────────────────────────────────────────────────────────────
+
   async getInviteCode(projectId) {
-    let project = await this.getProjectById(projectId);
-    // Return null if no code exists (Manager must manually generate/regenerate)
-    if (!project.inviteCode) {
-      return {
-        code: null,
-        expiresAt: null
-      };
+    const project = await this.projectRepository.getProjectById(projectId);
+    if (!project) throw new this.ApiError(404, 'Không tìm thấy dự án');
+
+    if (!project.inviteCode || (project.inviteCodeExpiresAt && project.inviteCodeExpiresAt < new Date())) {
+      return await this._generateInviteCode(project);
     }
+
     return {
-      code: project.inviteCode,
-      expiresAt: project.inviteCodeExpiresAt
+      inviteCode: project.inviteCode,
+      expiresAt: project.inviteCodeExpiresAt,
     };
   }
 
   async regenerateInviteCode(projectId) {
-    const project = await this.getProjectById(projectId);
-    const now = new Date();
-    project.inviteCode = crypto.randomBytes(5).toString('hex');
-    project.inviteCodeExpiresAt = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
-    await project.save();
-    return {
-      code: project.inviteCode,
-      expiresAt: project.inviteCodeExpiresAt
-    };
+    const project = await this.projectRepository.getProjectById(projectId);
+    if (!project) throw new this.ApiError(404, 'Không tìm thấy dự án');
+    return await this._generateInviteCode(project);
   }
 
   async deleteInviteCode(projectId) {
-    const project = await this.getProjectById(projectId);
+    const project = await this.projectRepository.getProjectById(projectId);
+    if (!project) throw new this.ApiError(404, 'Không tìm thấy dự án');
     project.inviteCode = undefined;
     project.inviteCodeExpiresAt = undefined;
     await project.save();
-    return true;
   }
 
   async getProjectByInviteCode(inviteCode) {
-    const project = await this.projectRepository.findByInviteCode(inviteCode);
-    if (!project) {
-      throw new this.ApiError(404, 'Mã mời không lệ hoặc đã hết hạn');
+    const project = await this.projectRepository.getProjectByInviteCode(inviteCode);
+    if (!project) throw new this.ApiError(404, 'Mã mời không hợp lệ hoặc đã hết hạn');
+    if (project.inviteCodeExpiresAt && project.inviteCodeExpiresAt < new Date()) {
+      throw new this.ApiError(400, 'Mã mời đã hết hạn');
     }
-
-    // Check expiration
-    if (project.inviteCodeExpiresAt && new Date() > project.inviteCodeExpiresAt) {
-      throw new this.ApiError(400, 'Mã mời này đã hết hạn (hiệu lực 7 ngày)');
-    }
-
-    const owner = project.members.find(m => m.role === 'owner')?.userId;
-    const activeMembersCount = project.members.filter(m => m.status === 'active').length;
-
-    return {
-      _id: project._id,
-      name: project.name,
-      description: project.description,
-      imageUrl: project.imageUrl,
-      color: project.color,
-      owner: owner ? {
-        _id: owner._id,
-        displayName: owner.displayName,
-        email: owner.email,
-        avatarUrl: owner.avatarUrl
-      } : null,
-      memberCount: activeMembersCount,
-    };
+    return project;
   }
 
   async joinByInviteCode(inviteCode, userId) {
-    const project = await this.projectRepository.findByInviteCode(inviteCode);
-    if (!project) {
-      throw new this.ApiError(404, 'Mã mời không lệ hoặc đã hết hạn');
+    const project = await this.projectRepository.getProjectByInviteCode(inviteCode);
+    if (!project) throw new this.ApiError(404, 'Mã mời không hợp lệ hoặc đã hết hạn');
+    if (project.inviteCodeExpiresAt && project.inviteCodeExpiresAt < new Date()) {
+      throw new this.ApiError(400, 'Mã mời đã hết hạn');
     }
 
-    // Check expiration
-    if (project.inviteCodeExpiresAt && new Date() > project.inviteCodeExpiresAt) {
-      throw new this.ApiError(400, 'Mã mời này đã hết hạn (hiệu lực 7 ngày)');
-    }
-
-    const isMember = project.members.some(
-      (m) => m.userId._id.toString() === userId.toString() || m.userId.toString() === userId.toString()
-    );
-
-    if (isMember) {
-      // Find the member to check status
-      const existingMember = project.members.find(
-        (m) => m.userId._id.toString() === userId.toString() || m.userId.toString() === userId.toString()
-      );
-      
-      if (existingMember.status === 'active') {
-        return project;
-      }
-
-      // If pending, activate it
-      existingMember.status = 'active';
-      await project.save();
-      this._emitMemberUpdated(project._id);
-
-      await this.activityService.createActivityLog({
-        projectId: project._id,
-        userId,
-        action: 'MEMBER_JOINED',
-        entityType: 'user',
-        entityId: userId,
-        detail: { method: 'invite_code_reactivate' }
-      });
-
-      return project;
-    }
-
-    const memberData = {
-      userId: userId,
-      role: 'member',
-      status: 'active',
-    };
-
-    const result = await this.projectRepository.addMember(project._id, memberData);
-    this._emitMemberUpdated(project._id);
-    await this._notifyOwnerOnResponse(project, userId, 'accept');
-
-    await this.activityService.createActivityLog({
-      projectId: project._id,
-      userId,
-      action: 'MEMBER_JOINED',
-      entityType: 'user',
-      entityId: userId,
-      detail: { method: 'invite_code_join' }
+    const existing = project.members.find((m) => {
+      const mUserId = m.userId._id ? m.userId._id.toString() : m.userId.toString();
+      return mUserId === userId.toString();
     });
 
-    return result;
+    if (existing && existing.status === 'active') {
+      throw new this.ApiError(409, 'Bạn đã là thành viên dự án');
+    }
+
+    if (existing && existing.status === 'pending') {
+      existing.status = 'active';
+    } else {
+      project.members.push({ userId, role: 'member', status: 'active' });
+    }
+    await project.save();
+
+    const populated = await this.projectRepository.getProjectById(project._id);
+
+    eventBus.emitAsync('member.joined', {
+      project: populated,
+      userId,
+    });
+
+    return populated;
   }
 
   async getProjectStats(projectId) {
-    const project = await this.getProjectById(projectId);
-    const Column = require('../entities/Column');
-    const Task = require('../entities/Task');
+    return await this.projectRepository.getProjectStats(projectId);
+  }
 
-    // 1. Get all columns of this project
-    const columns = await Column.find({ projectId }).select('_id title').lean();
-    const columnIds = columns.map(c => c._id);
+  // ─── Private ────────────────────────────────────────────────────────────────
 
-    // 2. Get all tasks in these columns
-    const tasks = await Task.find({ columnId: { $in: columnIds } })
-      .populate('assignees', 'displayName email avatarUrl')
-      .lean();
+  async _generateInviteCode(project) {
+    const crypto = require('crypto');
+    const inviteCode = crypto.randomBytes(6).toString('hex');
+    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
 
-    const now = new Date();
+    project.inviteCode = inviteCode;
+    project.inviteCodeExpiresAt = expiresAt;
+    await project.save();
 
-    // 3. Status Distribution
-    const statusDistribution = {
-      todo: 0,
-      in_progress: 0,
-      done: 0
-    };
-
-    // 4. Priority Distribution
-    const priorityDistribution = {
-      urgent: 0,
-      high: 0,
-      normal: 0,
-      low: 0
-    };
-
-    // 5. Member Task Distribution
-    const memberTasks = {};
-    // Initialize with all current project members (those who are active)
-    project.members.filter(m => m.status === 'active').forEach(m => {
-      const u = m.userId;
-      memberTasks[u._id.toString()] = {
-        userId: u._id,
-        displayName: u.displayName || u.email,
-        email: u.email,
-        avatarUrl: u.avatarUrl,
-        taskCount: 0,
-        completedCount: 0
-      };
-    });
-
-    let overdueCount = 0;
-
-    tasks.forEach(task => {
-      // Status
-      if (statusDistribution[task.status] !== undefined) {
-        statusDistribution[task.status]++;
-      }
-
-      // Priority
-      if (priorityDistribution[task.priority] !== undefined) {
-        priorityDistribution[task.priority]++;
-      }
-
-      // Overdue
-      if (task.status !== 'done' && task.dueDate && new Date(task.dueDate) < now) {
-        overdueCount++;
-      }
-
-      // Assignees
-      if (task.assignees && Array.isArray(task.assignees)) {
-        task.assignees.forEach(assignee => {
-          const uid = assignee._id.toString();
-          if (memberTasks[uid]) {
-            memberTasks[uid].taskCount++;
-            if (task.status === 'done') {
-              memberTasks[uid].completedCount++;
-            }
-          }
-        });
-      }
-    });
-
-    return {
-      summary: {
-        totalTasks: tasks.length,
-        completedTasks: statusDistribution.done,
-        overdueTasks: overdueCount,
-        memberCount: project.members.filter(m => m.status === 'active').length
-      },
-      statusDistribution: [
-        { name: 'Cần làm', value: statusDistribution.todo, color: '#94a3b8' },
-        { name: 'Đang làm', value: statusDistribution.in_progress, color: '#3b82f6' },
-        { name: 'Đã xong', value: statusDistribution.done, color: '#10b981' }
-      ],
-      priorityDistribution: [
-        { name: 'Khẩn cấp', value: priorityDistribution.urgent, color: '#ef4444' },
-        { name: 'Cao', value: priorityDistribution.high, color: '#f59e0b' },
-        { name: 'Thường', value: priorityDistribution.normal, color: '#3b82f6' },
-        { name: 'Thấp', value: priorityDistribution.low, color: '#22c55e' }
-      ],
-      memberDistribution: Object.values(memberTasks).sort((a, b) => b.taskCount - a.taskCount)
-    };
+    return { inviteCode, expiresAt };
   }
 }
 
-module.exports = new ProjectService({
-  projectRepository: require('../repositories/project.repository'),
-  User: require('../entities/User'),
-  ApiError: require('../utils/ApiError'),
-  notificationService: require('./notification.service'),
-  getIO: require('../config/socket').getIO,
-  activityService: require('./activity.service'),
-});
+module.exports = ProjectService;

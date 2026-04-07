@@ -1,9 +1,11 @@
-const projectService = require('../services/project.service');
 const catchAsync = require('../utils/catchAsync');
 const ApiError = require('../utils/ApiError');
 const Task = require('../entities/Task');
 const Column = require('../entities/Column');
 const PersonalTask = require('../entities/PersonalTask');
+
+// Lazy import to avoid circular dependency (container → routes → middleware → container)
+const getProjectService = () => require('../container').projectService;
 
 // Helper: lấy role của user hiện tại trong project
 const getUserRole = (project, userId) => {
@@ -24,7 +26,7 @@ const getUserRole = (project, userId) => {
 // ✅ Tất cả thành viên đều được xem (owner, admin, member, viewer)
 const isProjectMember = catchAsync(async (req, res, next) => {
   const projectId = req.params.projectId;
-  const project = await projectService.getProjectById(projectId);
+  const project = await getProjectService().getProjectById(projectId);
 
   const role = getUserRole(project, req.user._id);
   if (!role) {
@@ -43,7 +45,7 @@ const isProjectMember = catchAsync(async (req, res, next) => {
 // ✅ Chỉ Owner mới được: đổi role, xóa board, đổi owner
 const isProjectOwner = catchAsync(async (req, res, next) => {
   const projectId = req.params.projectId;
-  const project = await projectService.getProjectById(projectId);
+  const project = await getProjectService().getProjectById(projectId);
 
   const role = getUserRole(project, req.user._id);
   if (role !== 'owner') {
@@ -65,7 +67,7 @@ const isProjectManagerOrAbove = catchAsync(async (req, res, next) => {
   console.log('User ID:', req.user._id);
   console.log('Project ID:', req.params.projectId);
   const projectId = req.params.projectId;
-  const project = await projectService.getProjectById(projectId);
+  const project = await getProjectService().getProjectById(projectId);
   console.log('Project found:', project ? project._id : 'No project');
 
   const role = getUserRole(project, req.user._id);
@@ -94,7 +96,7 @@ const canWriteTask = catchAsync(async (req, res, next) => {
   const column = await Column.findById(columnId);
   if (!column) throw new ApiError(404, 'Không tìm thấy cột');
 
-  const project = await projectService.getProjectById(column.projectId);
+  const project = await getProjectService().getProjectById(column.projectId);
   const role = getUserRole(project, req.user._id);
 
   if (!role) throw new ApiError(403, 'Bạn không phải thành viên của dự án này');
@@ -135,7 +137,7 @@ const canModifyTask = catchAsync(async (req, res, next) => {
     const column = await Column.findById(task.columnId);
     if (!column) throw new ApiError(404, 'Không tìm thấy cột tương ứng của task');
 
-    const project = await projectService.getProjectById(column.projectId);
+    const project = await getProjectService().getProjectById(column.projectId);
     const role = getUserRole(project, req.user._id);
 
     if (!role) throw new ApiError(403, 'Bạn không phải thành viên của dự án');

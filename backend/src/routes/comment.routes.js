@@ -1,5 +1,5 @@
 const express = require('express');
-const commentController = require('../controllers/comment.controller');
+const { commentController } = require('../container');
 const commentValidator = require('../validators/comment.validator');
 const { validate } = require('../middlewares/validate.middleware');
 const { authenticate } = require('../middlewares/auth.middleware');

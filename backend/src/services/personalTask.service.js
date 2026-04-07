@@ -20,9 +20,7 @@ class PersonalTaskService {
 
   async getPersonalTaskById(taskId, userId) {
     const task = await this.personalTaskRepository.findById(taskId);
-    if (!task) {
-      throw new this.ApiError(404, 'Không tìm thấy công việc cá nhân');
-    }
+    if (!task) throw new this.ApiError(404, 'Không tìm thấy công việc cá nhân');
     if (task.userId.toString() !== userId.toString()) {
       throw new this.ApiError(403, 'Bạn không có quyền truy cập công việc này');
     }
@@ -31,9 +29,7 @@ class PersonalTaskService {
 
   async updatePersonalTask(taskId, updateData, userId) {
     const task = await this.personalTaskRepository.findById(taskId);
-    if (!task) {
-      throw new this.ApiError(404, 'Không tìm thấy công việc cá nhân');
-    }
+    if (!task) throw new this.ApiError(404, 'Không tìm thấy công việc cá nhân');
     if (task.userId.toString() !== userId.toString()) {
       throw new this.ApiError(403, 'Bạn không có quyền chỉnh sửa công việc này');
     }
@@ -44,9 +40,7 @@ class PersonalTaskService {
 
   async deletePersonalTask(taskId, userId) {
     const task = await this.personalTaskRepository.findById(taskId);
-    if (!task) {
-      throw new this.ApiError(404, 'Không tìm thấy công việc cá nhân');
-    }
+    if (!task) throw new this.ApiError(404, 'Không tìm thấy công việc cá nhân');
     if (task.userId.toString() !== userId.toString()) {
       throw new this.ApiError(403, 'Bạn không có quyền xóa công việc này');
     }
@@ -61,4 +55,3 @@ module.exports = new PersonalTaskService({
   ApiError: require('../utils/ApiError'),
   emitDashboardUpdated: require('../sockets/task.socket').emitDashboardUpdated,
 });
-

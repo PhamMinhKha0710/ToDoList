@@ -27,18 +27,16 @@ export const ProjectItem = ({ project, viewMode }: ProjectItemProps) => {
   const accentColor = project.color || "#3b82f6";
   const initials = project.name.substring(0, 2).toUpperCase();
 
-  // Tìm status của user hiện tại
   const member = project.members.find(
-    (m) => (typeof m.userId === "string" ? m.userId : (m.userId as User)._id) === currentUser?._id
+    (m) =>
+      (typeof m.userId === "string" ? m.userId : (m.userId as User)._id) ===
+      currentUser?._id,
   );
   const isPending = member?.status === "pending";
   const targetUrl = isPending ? `/projects/${project._id}/invite` : `/projects/${project._id}`;
 
   return (
-    <Link
-      to={targetUrl}
-      className={`block h-full outline-none group ${isGrid ? "perspective-1000" : ""}`}
-    >
+    <Link to={targetUrl} className={cn("block outline-none group", isGrid ? "" : "")}>
       <Card
         className={cn(
           "h-full transition-all duration-500 cursor-pointer overflow-hidden flex flex-col relative border border-border shadow-sm",
@@ -51,8 +49,8 @@ export const ProjectItem = ({ project, viewMode }: ProjectItemProps) => {
         {/* Accent Top Bar / Side Bar Glow */}
         <div
           className={cn(
-            "absolute transition-all duration-500",
-            isGrid ? "top-0 left-0 right-0 h-1.5" : "top-0 left-0 bottom-0 w-1.5"
+            "bg-primary shrink-0",
+            isGrid ? "h-1.5 w-full" : "h-full w-1.5",
           )}
           style={{
             backgroundColor: accentColor,
@@ -60,11 +58,11 @@ export const ProjectItem = ({ project, viewMode }: ProjectItemProps) => {
           }}
         />
 
-        {/* Content Area */}
+        {/* Content */}
         <div
           className={cn(
             "relative z-10",
-            isGrid ? "p-6 flex-1 flex flex-col" : "p-4 flex-1 flex flex-row items-center gap-6"
+            isGrid ? "p-5 flex-1 flex flex-col" : "p-4 flex-1 flex flex-row items-center gap-4",
           )}
         >
           <div
@@ -129,7 +127,7 @@ export const ProjectItem = ({ project, viewMode }: ProjectItemProps) => {
             </div>
           </div>
 
-          {/* Grid View Date & Footer */}
+          {/* Grid: footer info */}
           {isGrid && (
             <div className="mt-6 flex flex-col gap-4 w-full">
               <div className="flex items-center gap-1.5 text-[10px] font-semibold text-muted-foreground/60 uppercase tracking-[0.15em]">
@@ -184,14 +182,26 @@ export const ProjectItem = ({ project, viewMode }: ProjectItemProps) => {
             </div>
           )}
 
-          {/* List View Members Stack */}
+          {/* List: members */}
           {!isGrid && (
-            <div className="flex items-center gap-6 shrink-0">
+            <div className="flex items-center gap-2 shrink-0">
               <div className="flex -space-x-2 overflow-hidden">
                 {project.members?.slice(0, 3).map((m, i) => (
-                  <Avatar key={i} className="w-8 h-8 border-2 border-background rounded-full ring-2 ring-transparent group-hover:ring-primary/20 transition-all">
-                    <AvatarImage src={typeof m.userId === 'object' ? m.userId.avatarUrl : ''} />
-                    <AvatarFallback className="text-[10px] font-bold bg-muted text-muted-foreground">{(typeof m.userId === 'object' ? (m.userId.displayName || m.userId.email) : 'U').substring(0, 2)}</AvatarFallback>
+                  <Avatar
+                    key={i}
+                    className="w-8 h-8 border-2 border-background rounded-full"
+                  >
+                    <AvatarImage
+                      src={typeof m.userId === "object" ? m.userId.avatarUrl : ""}
+                    />
+                    <AvatarFallback className="text-[10px] font-bold bg-muted text-muted-foreground">
+                      {(typeof m.userId === "object"
+                        ? m.userId.displayName || m.userId.email
+                        : "U"
+                      )
+                        .substring(0, 2)
+                        .toUpperCase()}
+                    </AvatarFallback>
                   </Avatar>
                 ))}
               </div>

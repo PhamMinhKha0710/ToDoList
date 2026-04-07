@@ -1,5 +1,5 @@
 const express = require('express');
-const activityController = require('../controllers/activity.controller');
+const { activityController } = require('../container');
 const { authenticate } = require('../middlewares/auth.middleware');
 
 const router = express.Router();

@@ -1,51 +1,30 @@
 const { Router } = require('express');
-const controller = require('../controllers/auth.controller');
+const { authController } = require('../container');
 const { validate } = require('../middlewares/validate.middleware');
 const { otpLimiter } = require('../middlewares/rateLimiter.middleware');
 const passport = require('../config/passport');
 const {
-  registerSchema,
-  loginSchema,
-  forgotPasswordSchema,
-  resetPasswordSchema,
-  requestOtpSchema,
-  verifyOtpSchema,
+  registerSchema, loginSchema, forgotPasswordSchema,
+  resetPasswordSchema, requestOtpSchema, verifyOtpSchema,
 } = require('../validators/auth.validator');
+const { CLIENT_URL } = require('../config/env');
 
 const router = Router();
 
-// POST /api/v1/auth/register
-router.post('/register', validate(registerSchema), controller.register);
+router.post('/register', validate(registerSchema), authController.register);
+router.post('/login', validate(loginSchema), authController.login);
+router.post('/logout', authController.logout);
+router.post('/refresh-token', authController.refreshToken);
+router.post('/forgot-password', validate(forgotPasswordSchema), authController.forgotPassword);
+router.post('/reset-password', validate(resetPasswordSchema), authController.resetPassword);
+router.post('/request-otp', otpLimiter, validate(requestOtpSchema), authController.requestOtp);
+router.post('/verify-otp', validate(verifyOtpSchema), authController.verifyOtp);
 
-// POST /api/v1/auth/login
-router.post('/login', validate(loginSchema), controller.login);
-
-// POST /api/v1/auth/logout
-router.post('/logout', controller.logout);
-
-// POST /api/v1/auth/refresh-token
-router.post('/refresh-token', controller.refreshToken);
-
-// POST /api/v1/auth/forgot-password
-router.post('/forgot-password', validate(forgotPasswordSchema), controller.forgotPassword);
-
-// POST /api/v1/auth/reset-password
-router.post('/reset-password', validate(resetPasswordSchema), controller.resetPassword);
-
-// POST /api/v1/auth/request-otp
-router.post('/request-otp', otpLimiter, validate(requestOtpSchema), controller.requestOtp);
-
-// POST /api/auth/verify-otp
-router.post('/verify-otp', validate(verifyOtpSchema), controller.verifyOtp);
-
-// GET /api/auth/google  — chuyển hướng sang trang chọn tài khoản Google
 router.get('/google', passport.authenticate('google', { scope: ['profile', 'email'], session: false }));
-
-// GET /api/auth/google/callback  — Google redirect về đây sau khi người dùng chọn TK
 router.get(
   '/google/callback',
-  passport.authenticate('google', { failureRedirect: `${process.env.CLIENT_URL}/login?error=google_failed`, session: false }),
-  controller.googleCallback
+  passport.authenticate('google', { failureRedirect: `${CLIENT_URL}/login?error=google_failed`, session: false }),
+  authController.googleCallback
 );
 
 module.exports = router;

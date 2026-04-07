@@ -1,5 +1,7 @@
+const eventBus = require('../utils/eventBus');
+
 class AttachmentService {
-  constructor({ fs, path, attachmentRepository, Task, PersonalTask, Column, ApiError, activityService, CLIENT_URL }) {
+  constructor({ fs, path, attachmentRepository, Task, PersonalTask, Column, ApiError }) {
     this.fs = fs;
     this.path = path;
     this.attachmentRepository = attachmentRepository;
@@ -7,8 +9,6 @@ class AttachmentService {
     this.PersonalTask = PersonalTask;
     this.Column = Column;
     this.ApiError = ApiError;
-    this.activityService = activityService;
-    this.CLIENT_URL = CLIENT_URL;
   }
 
   _taskExists = async (taskId) => {
@@ -21,41 +21,28 @@ class AttachmentService {
   uploadAttachment = async (taskId, file, userId) => {
     const task = await this.Task.findById(taskId).select('title columnId').lean();
     if (!task) {
-      if (file && file.path) {
-        this.fs.unlinkSync(file.path);
-      }
+      if (file && file.path) this.fs.unlinkSync(file.path);
       throw new this.ApiError(404, 'Không tìm thấy Task để đính kèm file');
     }
 
-    if (!file) {
-      throw new this.ApiError(400, 'Không tìm thấy file tải lên');
-    }
+    if (!file) throw new this.ApiError(400, 'Không tìm thấy file tải lên');
 
     const fileUrl = `/uploads/${file.filename}`;
-
-    const attachmentData = {
+    const attachment = await this.attachmentRepository.createAttachment({
       taskId,
       fileName: file.originalname,
-      fileUrl: fileUrl,
-    };
+      fileUrl,
+    });
 
-    const attachment = await this.attachmentRepository.createAttachment(attachmentData);
-
-    // Logging Activity
     const column = await this.Column.findById(task.columnId).select('projectId').lean();
     if (column) {
-      await this.activityService.createActivityLog({
-        projectId: column.projectId,
+      eventBus.emitAsync('attachment.uploaded', {
+        projectId: column.projectId.toString(),
         userId,
-        action: 'FILE_ATTACHED',
-        entityType: 'task',
-        entityId: taskId,
-        detail: {
-          taskTitle: task.title,
-          fileName: file.originalname,
-          fileUrl: fileUrl,
-          isImage: /\.(jpg|jpeg|png|gif)$/i.test(file.originalname)
-        }
+        taskId,
+        taskTitle: task.title,
+        fileName: file.originalname,
+        fileUrl,
       });
     }
 
@@ -64,33 +51,24 @@ class AttachmentService {
 
   getTaskAttachments = async (taskId) => {
     const taskExists = await this._taskExists(taskId);
-    if (!taskExists) {
-      throw new this.ApiError(404, 'Không tìm thấy Task');
-    }
-
+    if (!taskExists) throw new this.ApiError(404, 'Không tìm thấy Task');
     return await this.attachmentRepository.getAttachmentsByTaskId(taskId);
   };
 
   deleteAttachment = async (attachmentId, userId) => {
     const attachment = await this.attachmentRepository.getAttachmentById(attachmentId);
-    if (!attachment) {
-      throw new this.ApiError(404, 'Không tìm thấy file đính kèm');
-    }
+    if (!attachment) throw new this.ApiError(404, 'Không tìm thấy file đính kèm');
 
     const task = await this.Task.findById(attachment.taskId).select('title columnId').lean();
     if (task) {
       const column = await this.Column.findById(task.columnId).select('projectId').lean();
       if (column) {
-        await this.activityService.createActivityLog({
-          projectId: column.projectId,
+        eventBus.emitAsync('attachment.deleted', {
+          projectId: column.projectId.toString(),
           userId,
-          action: 'FILE_REMOVED',
-          entityType: 'task',
-          entityId: attachment.taskId,
-          detail: {
-            taskTitle: task.title,
-            fileName: attachment.fileName
-          }
+          taskId: attachment.taskId,
+          taskTitle: task.title,
+          fileName: attachment.fileName,
         });
       }
     }
@@ -99,26 +77,14 @@ class AttachmentService {
       const filename = attachment.fileUrl.split('/uploads/')[1];
       if (filename) {
         const filePath = this.path.join(__dirname, '../../public/uploads', filename);
-        if (this.fs.existsSync(filePath)) {
-          this.fs.unlinkSync(filePath);
-        }
+        if (this.fs.existsSync(filePath)) this.fs.unlinkSync(filePath);
       }
     } catch (error) {
-      console.error('Lỗi khi xóa file vật lý:', error);
+      // Silently handle file deletion errors
     }
 
     await this.attachmentRepository.deleteAttachment(attachmentId);
   };
 }
 
-module.exports = new AttachmentService({
-  fs: require('fs'),
-  path: require('path'),
-  attachmentRepository: require('../repositories/attachment.repository'),
-  Task: require('../entities/Task'),
-  PersonalTask: require('../entities/PersonalTask'),
-  Column: require('../entities/Column'),
-  ApiError: require('../utils/ApiError'),
-  activityService: require('./activity.service'),
-  CLIENT_URL: require('../config/env').CLIENT_URL,
-});
+module.exports = AttachmentService;

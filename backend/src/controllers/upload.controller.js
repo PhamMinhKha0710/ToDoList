@@ -1,9 +1,12 @@
 const catchAsync = require('../utils/catchAsync');
-const uploadService = require('../services/upload.service');
 const ApiResponse = require('../utils/ApiResponse');
 const ApiError = require('../utils/ApiError');
-
 class UploadController {
+  constructor({ uploadService, ApiError, ApiResponse, catchAsync }) {
+    this.uploadService = uploadService;
+
+  }
+
   /**
    * POST /api/upload
    */
@@ -12,10 +15,10 @@ class UploadController {
       throw new ApiError(400, 'Vui lòng chọn một file hình ảnh để tải lên');
     }
 
-    const imageUrl = uploadService.handleUpload(req.file);
+    const imageUrl = this.uploadService.handleUpload(req.file);
 
-    res.status(200).json(new ApiResponse(200, 'Tải ảnh lên thành công', { imageUrl }));
+    new ApiResponse(200, 'Tải ảnh lên thành công', { imageUrl }).send(res);
   });
 }
 
-module.exports = new UploadController();
+module.exports = UploadController;

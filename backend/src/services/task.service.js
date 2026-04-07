@@ -1,441 +1,183 @@
+const eventBus = require('../utils/eventBus');
+
 class TaskService {
-  constructor({
-    taskRepository,
-    Column,
-    Task,
-    PersonalTask,
-    ApiError,
-    attachmentRepository,
-    notificationService,
-    activityService,
-    taskSocket,
-  }) {
+  constructor({ taskRepository, Task, Column, ApiError, mongoose }) {
     this.taskRepository = taskRepository;
-    this.Column = Column;
     this.Task = Task;
-    this.PersonalTask = PersonalTask;
+    this.Column = Column;
     this.ApiError = ApiError;
-    this.attachmentRepository = attachmentRepository;
-    this.notificationService = notificationService;
-    this.activityService = activityService;
-    this.taskSocket = taskSocket;
+    this.mongoose = mongoose;
   }
 
-  createTask = async (taskData, files) => {
+  async createTask(taskData, files) {
     const column = await this.Column.findById(taskData.columnId);
-    if (!column) {
-      throw new this.ApiError(404, "Không tìm thấy cột tương ứng");
-    }
+    if (!column) throw new this.ApiError(404, 'Không tìm thấy cột');
 
-    const task = await this.taskRepository.createTask(taskData, files);
+    const count = await this.Task.countDocuments({ columnId: taskData.columnId });
+    taskData.position = count;
 
-    this.taskSocket.emitTaskCreated(column.projectId.toString(), task);
-    
-    // Notify creator and assignees for dashboard
-    this.taskSocket.emitDashboardUpdated(taskData.creatorId.toString());
-    if (task.assignees) {
-      task.assignees.forEach(id => this.taskSocket.emitDashboardUpdated(id.toString()));
-    }
+    const task = await this.taskRepository.createTask(taskData);
+    const populated = await this.Task.findById(task._id)
+      .populate('assignees', '_id displayName email avatarUrl')
+      .populate('creatorId', '_id displayName email avatarUrl');
 
-    const taskWithCreator = await this.Task.findById(task._id).populate('creatorId', 'displayName email').lean();
-    
-    await this.activityService.createActivityLog({
-      projectId: column.projectId,
+    const projectId = column.projectId.toString();
+
+    eventBus.emitAsync('task.created', {
+      task: populated,
+      projectId,
       userId: taskData.creatorId,
-      action: 'TASK_CREATED',
-      entityType: 'task',
-      entityId: task._id,
-      detail: { 
-        title: task.title, 
-        columnId: column._id.toString(),
-        columnTitle: column.title,
-        status: task.status,
-        priority: task.priority,
-        color: task.color,
-        tags: task.tags,
-        startDate: task.startDate,
-        endDate: task.endDate,
-        dueDate: task.dueDate,
-        position: task.position,
-        descriptionSnippet: task.description?.substring(0, 100),
-        creatorName: taskWithCreator.creatorId?.displayName || taskWithCreator.creatorId?.email,
-        attachments: (task.attachments || []).map(a => ({ fileName: a.fileName, fileUrl: a.fileUrl })),
-        fileCount: files?.length || 0
-      }
+      files,
     });
 
-    if (task.assignees && task.assignees.length > 0) {
-      for (const assigneeId of task.assignees) {
-        if (assigneeId.toString() !== task.creatorId.toString()) {
-          await this.notificationService.createNotification({
-            recipientId: assigneeId,
-            type: "task_assigned",
-            title: "Công việc mới",
-            message: `Bạn được giao task "${task.title}"`,
-            metadata: { taskId: task._id, projectId: column.projectId },
-          });
-        }
-      }
-    }
+    return populated;
+  }
 
-    return task;
-  };
-
-  getTasksByColumnId = async (columnId) => {
+  async getTasksByColumnId(columnId) {
     return await this.taskRepository.getTasksByColumnId(columnId);
-  };
+  }
 
-  getTaskById = async (taskId) => {
-    let task = await this.taskRepository.getTaskById(taskId);
-    
-    if (!task) {
-      // If not found in project tasks, check personal tasks
-      task = await this.PersonalTask.findById(taskId).lean();
-      if (task) {
-        task.isPersonal = true;
-      }
-    }
-
-    if (!task) {
-      throw new this.ApiError(404, "Không tìm thấy task");
-    }
+  async getTaskById(taskId) {
+    const task = await this.taskRepository.getTaskById(taskId);
+    if (!task) throw new this.ApiError(404, 'Không tìm thấy tác vụ');
     return task;
-  };
+  }
 
-  updateTask = async (taskId, updateData, userId) => {
-    let task = await this.Task.findById(taskId).lean();
-    let isPersonal = false;
+  async updateTask(taskId, updateData, userId) {
+    const existingTask = await this.Task.findById(taskId).lean();
+    if (!existingTask) throw new this.ApiError(404, 'Không tìm thấy tác vụ');
 
-    if (!task) {
-      task = await this.PersonalTask.findById(taskId).lean();
-      if (task) isPersonal = true;
-    }
+    const task = await this.taskRepository.updateTask(taskId, updateData);
+    const populated = await this.Task.findById(task._id)
+      .populate('assignees', '_id displayName email avatarUrl')
+      .populate('creatorId', '_id displayName email avatarUrl');
 
-    if (!task) {
-      throw new this.ApiError(404, "Không tìm thấy task để cập nhật");
-    }
+    const column = await this.Column.findById(populated.columnId);
+    const projectId = column?.projectId?.toString() || null;
 
-    if (isPersonal) {
-      const updatedTask = await this.PersonalTask.findByIdAndUpdate(taskId, updateData, { new: true });
-      return updatedTask;
-    }
+    eventBus.emitAsync('task.updated', {
+      task: populated,
+      existingTask,
+      projectId,
+      userId,
+      updateData,
+    });
 
-    const oldTask = await this.Task.findById(taskId).populate('assignees', 'displayName email').lean();
-    const updatedTask = await this.taskRepository.updateTask(taskId, updateData);
-    const newTask = await this.Task.findById(taskId).populate('assignees', 'displayName email').lean();
-    
-    const column = await this.Column.findById(updatedTask.columnId).select("projectId").lean();
-    if (column) {
-      const projectId = column.projectId.toString();
-      this.taskSocket.emitTaskUpdated(projectId, updatedTask);
+    return populated;
+  }
 
-      // Notify involved users for dashboard refresh
-      const affectedUsers = new Set();
-      if (oldTask.creatorId) affectedUsers.add(oldTask.creatorId.toString());
-      if (oldTask.assignees) oldTask.assignees.forEach(a => affectedUsers.add(a._id.toString()));
-      if (updatedTask.assignees) updatedTask.assignees.forEach(a => affectedUsers.add(a._id.toString()));
-      
-      affectedUsers.forEach(uid => this.taskSocket.emitDashboardUpdated(uid));
+  async deleteTask(taskId, userId) {
+    const task = await this.Task.findById(taskId);
+    if (!task) throw new this.ApiError(404, 'Không tìm thấy tác vụ');
 
-      const differences = {};
-      const fields = Object.keys(updateData).filter(k => k !== 'assignees' && k !== 'fileIds');
-      
-      fields.forEach(field => {
-        if (updateData[field] !== undefined && JSON.stringify(oldTask[field]) !== JSON.stringify(updateData[field])) {
-          differences[field] = {
-            old: oldTask[field],
-            new: newTask[field]
-          };
-        }
-      });
-
-      if (updateData.assignees !== undefined) {
-        const oldIds = (oldTask.assignees || []).map(u => u._id.toString());
-        const newIds = (newTask.assignees || []).map(u => u._id.toString());
-        
-        const added = newTask.assignees.filter(u => !oldIds.includes(u._id.toString()));
-        const removed = oldTask.assignees.filter(u => !newIds.includes(u._id.toString()));
-
-        if (added.length > 0 || removed.length > 0) {
-          differences.assignees = {
-            added: added.map(u => ({ id: u._id, name: u.displayName || u.email })),
-            removed: removed.map(u => ({ id: u._id, name: u.displayName || u.email }))
-          };
-        }
-      }
-
-      await this.activityService.createActivityLog({
-        projectId,
-        userId,
-        action: 'TASK_UPDATED',
-        entityType: 'task',
-        entityId: updatedTask._id,
-        detail: { taskTitle: updatedTask.title, differences }
-      });
-
-      const oldAssigneesStr = (oldTask.assignees || []).map(u => u._id.toString());
-      const isAssigneesUpdated = updateData.assignees !== undefined;
-      let newAssignedIds = [];
-
-      if (isAssigneesUpdated) {
-        const currentAssigneesStr = (updateData.assignees || []).map(id => id.toString());
-        newAssignedIds = currentAssigneesStr.filter(id => !oldAssigneesStr.includes(id));
-
-        for (const assigneeId of newAssignedIds) {
-          if (userId && assigneeId === userId.toString()) continue;
-          await this.notificationService.createNotification({
-            recipientId: assigneeId,
-            type: "task_assigned",
-            title: "Phân công công việc",
-            message: `Bạn vừa được phân công vào công việc "${updatedTask.title}"`,
-            metadata: { taskId: updatedTask._id, projectId },
-          });
-        }
-      }
-
-      const isMajorUpdate =
-        (updateData.status && updateData.status !== oldTask.status) ||
-        (updateData.priority && updateData.priority !== oldTask.priority) ||
-        updateData.title ||
-        updateData.description ||
-        (isAssigneesUpdated && oldAssigneesStr.length !== updateData.assignees.length);
-
-      if (isMajorUpdate || newAssignedIds.length > 0) {
-        const usersToNotify = new Set();
-        if (updatedTask.assignees) {
-          updatedTask.assignees.forEach(assignee => {
-            const id = assignee._id || assignee;
-            const strId = id.toString();
-            if (!newAssignedIds.includes(strId)) {
-              usersToNotify.add(strId);
-            }
-          });
-        }
-        if (updatedTask.creatorId) {
-          const cId = updatedTask.creatorId._id || updatedTask.creatorId;
-          const strId = cId.toString();
-          if (!newAssignedIds.includes(strId)) {
-            usersToNotify.add(strId);
-          }
-        }
-
-        if (userId) usersToNotify.delete(userId.toString());
-
-        for (const recipientId of usersToNotify) {
-          await this.notificationService.createNotification({
-            recipientId,
-            type: "task_update",
-            title: "Cập nhật công việc",
-            message: `Công việc "${updatedTask.title}" vừa được cập nhật`,
-            metadata: { taskId: updatedTask._id, projectId },
-          });
-        }
-      }
-    }
-
-    return updatedTask;
-  };
-
-  deleteTask = async (taskId, userId) => {
-    let task = await this.taskRepository.getTaskById(taskId);
-    let isPersonal = false;
-
-    if (!task) {
-      task = await this.PersonalTask.findById(taskId);
-      if (task) isPersonal = true;
-    }
-
-    if (!task) {
-      throw new this.ApiError(404, "Không tìm thấy task để xóa");
-    }
-
-    if (isPersonal) {
-      await this.PersonalTask.findByIdAndDelete(taskId);
-      // Có thể thêm log activity cho personal task ở đây nếu muốn
-      return;
-    }
-
-    const columnId = task.columnId;
-    const deletedPosition = task.position;
+    const columnId = task.columnId.toString();
+    const column = await this.Column.findById(columnId);
+    const projectId = column?.projectId?.toString() || null;
 
     await this.taskRepository.deleteTask(taskId);
 
+    // Cập nhật position cho các task còn lại
     await this.Task.updateMany(
-      { columnId, position: { $gt: deletedPosition } },
-      { $inc: { position: -1 } },
+      { columnId: task.columnId, position: { $gt: task.position } },
+      { $inc: { position: -1 } }
     );
 
-    const column = await this.Column.findById(columnId).select("projectId title").lean();
-    if (column) {
-      this.taskSocket.emitTaskDeleted(column.projectId.toString(), taskId, columnId);
-
-      // Notify involved users for dashboard refresh
-      const affectedUsers = new Set();
-      if (task.creatorId) affectedUsers.add(task.creatorId.toString());
-      if (task.assignees) task.assignees.forEach(a => affectedUsers.add(a.toString()));
-      
-      affectedUsers.forEach(uid => this.taskSocket.emitDashboardUpdated(uid));
-      await this.activityService.createActivityLog({
-        projectId: column.projectId,
-        userId,
-        action: 'TASK_DELETED',
-        entityType: 'task',
-        entityId: taskId,
-        detail: { 
-          taskTitle: task.title, 
-          columnId,
-          columnTitle: column.title,
-          fullSnapshot: task // Save everything
-        }
-      });
-    }
-  };
-
-  moveTask = async (moveData, userId) => {
-    const {
+    eventBus.emitAsync('task.deleted', {
       taskId,
-      sourceColumnId,
-      destinationColumnId,
-      sourceTaskIds,
-      destinationTaskIds,
+      columnId,
+      projectId,
+      taskTitle: task.title,
+      userId,
+    });
+  }
+
+  async moveTask(moveData, userId) {
+    const {
+      taskId, sourceColumnId, destinationColumnId,
+      sourceTaskIds, destinationTaskIds,
     } = moveData;
 
-    const task = await this.taskRepository.getTaskById(taskId);
-    if (!task) {
-      throw new this.ApiError(404, "Không tìm thấy task");
-    }
+    // Cập nhật column mới cho task
+    await this.Task.findByIdAndUpdate(taskId, { columnId: destinationColumnId });
 
-    if (sourceColumnId === destinationColumnId) {
-      await this.taskRepository.reorderTasks(sourceTaskIds, sourceColumnId);
-    } else {
-      await this.taskRepository.reorderTasks(
-        sourceTaskIds,
-        sourceColumnId,
-        destinationTaskIds,
-        destinationColumnId,
-        taskId,
-      );
-    }
-
-    const column = await this.Column.findById(sourceColumnId)
-      .select("projectId")
-      .lean();
-    if (column) {
-      this.taskSocket.emitTaskMoved(column.projectId.toString(), {
-        taskId,
-        sourceColumnId,
-        destinationColumnId,
-        sourceTaskIds,
-        destinationTaskIds,
+    // Cập nhật positions
+    const updateOps = [];
+    sourceTaskIds.forEach((id, index) => {
+      updateOps.push({
+        updateOne: {
+          filter: { _id: new this.mongoose.Types.ObjectId(id) },
+          update: { $set: { position: index, columnId: sourceColumnId } },
+        },
       });
-
-      // Notify involved users for dashboard refresh
-      const affectedUsers = new Set();
-      if (task.creatorId) affectedUsers.add(task.creatorId.toString());
-      if (task.assignees) task.assignees.forEach(a => affectedUsers.add(a.toString()));
-      
-      affectedUsers.forEach(uid => this.taskSocket.emitDashboardUpdated(uid));
-      const sourceCol = await this.Column.findById(sourceColumnId).select('title').lean();
-      const destCol = await this.Column.findById(destinationColumnId).select('title').lean();
-
-      await this.activityService.createActivityLog({
-        projectId: column.projectId,
-        userId,
-        action: 'TASK_MOVED',
-        entityType: 'task',
-        entityId: taskId,
-        detail: { 
-          taskTitle: task.title, 
-          sourceColumnId, 
-          sourceColumnTitle: sourceCol?.title || 'Unknown',
-          destinationColumnId, 
-          destinationColumnTitle: destCol?.title || 'Unknown',
-          sourceTaskIds,
-          destinationTaskIds
-        }
+    });
+    destinationTaskIds.forEach((id, index) => {
+      updateOps.push({
+        updateOne: {
+          filter: { _id: new this.mongoose.Types.ObjectId(id) },
+          update: { $set: { position: index, columnId: destinationColumnId } },
+        },
       });
+    });
 
-      if (sourceColumnId !== destinationColumnId) {
-        const usersToNotify = new Set();
-        if (task.assignees) {
-          task.assignees.forEach(assignee => {
-            const id = assignee._id || assignee;
-            usersToNotify.add(id.toString());
-          });
-        }
-        if (task.creatorId) {
-          const cId = task.creatorId._id || task.creatorId;
-          usersToNotify.add(cId.toString());
-        }
-
-        if (userId) usersToNotify.delete(userId.toString());
-
-        if (usersToNotify.size > 0) {
-          const destCol = await this.Column.findById(destinationColumnId).select('title').lean();
-          for (const recipientId of usersToNotify) {
-            await this.notificationService.createNotification({
-              recipientId,
-              type: "task_update",
-              title: "Di chuyển công việc",
-              message: `Công việc "${task.title}" vừa được chuyển sang cột "${destCol?.title || 'khác'}"`,
-              metadata: { taskId: task._id, projectId: column.projectId.toString() },
-            });
-          }
-        }
-      }
-    }
-  };
-
-  addTagsToTask = async (taskId, tagsArray) => {
-    const task = await this.taskRepository.getTaskById(taskId);
-    if (!task) {
-      throw new this.ApiError(404, "Không tìm thấy task để thêm tag");
+    if (updateOps.length > 0) {
+      await this.Task.bulkWrite(updateOps);
     }
 
-    if (!tagsArray || tagsArray.length === 0) {
-      return task;
-    }
+    const sourceColumn = await this.Column.findById(sourceColumnId);
+    const projectId = sourceColumn?.projectId?.toString() || null;
 
-    const existingNames = task.tags.map((t) => t.name.toLowerCase());
-    const newTagsToInsert = tagsArray.filter(
-      (t) => !existingNames.includes(t.name.toLowerCase()),
+    eventBus.emitAsync('task.moved', {
+      moveData,
+      projectId,
+      userId,
+    });
+  }
+
+  async addTagsToTask(taskId, tagsData) {
+    const task = await this.Task.findById(taskId);
+    if (!task) throw new this.ApiError(404, 'Không tìm thấy tác vụ');
+
+    const newTags = tagsData.tags.filter(
+      (newTag) => !task.tags.some((existing) => existing.name === newTag.name)
     );
-
-    if (newTagsToInsert.length === 0) {
-      return task;
+    if (newTags.length > 0) {
+      task.tags.push(...newTags);
+      await task.save();
     }
+    return task;
+  }
 
-    return await this.taskRepository.addTagsToTask(taskId, newTagsToInsert);
-  };
+  async removeTagFromTask(taskId, tagName) {
+    const task = await this.Task.findById(taskId);
+    if (!task) throw new this.ApiError(404, 'Không tìm thấy tác vụ');
 
-  removeTagFromTask = async (taskId, tagName) => {
-    const task = await this.taskRepository.getTaskById(taskId);
-    if (!task) {
-      throw new this.ApiError(404, "Không tìm thấy task để xóa tag");
-    }
+    task.tags = task.tags.filter((t) => t.name !== tagName);
+    await task.save();
+    return task;
+  }
 
-    return await this.taskRepository.removeTagFromTask(taskId, tagName);
-  };
+  async getAllTasksForUser(userId) {
+    const Project = this.mongoose.model('Project');
+    const projects = await Project.find({
+      'members.userId': userId,
+      'members.status': 'active',
+    }).select('_id');
 
-  getAllTasksForUser = async (userId) => {
-    return await this.taskRepository.getAllTasksForUser(userId);
-  };
+    const projectIds = projects.map((p) => p._id);
+    const columns = await this.Column.find({ projectId: { $in: projectIds } }).select('_id');
+    const columnIds = columns.map((c) => c._id);
+
+    return await this.Task.find({ columnId: { $in: columnIds } })
+      .populate('assignees', '_id displayName email avatarUrl')
+      .populate('creatorId', '_id displayName email avatarUrl')
+      .sort({ createdAt: -1 });
+  }
 }
 
 module.exports = new TaskService({
   taskRepository: require('../repositories/task.repository'),
   Column: require('../entities/Column'),
   Task: require('../entities/Task'),
-  PersonalTask: require('../entities/PersonalTask'),
   ApiError: require('../utils/ApiError'),
-  attachmentRepository: require('../repositories/attachment.repository'),
-  notificationService: require('./notification.service'),
-  activityService: require('./activity.service'),
-  taskSocket: {
-    emitTaskCreated: require('../sockets/task.socket').emitTaskCreated,
-    emitTaskUpdated: require('../sockets/task.socket').emitTaskUpdated,
-    emitTaskDeleted: require('../sockets/task.socket').emitTaskDeleted,
-    emitTaskMoved: require('../sockets/task.socket').emitTaskMoved,
-    emitDashboardUpdated: require('../sockets/task.socket').emitDashboardUpdated,
-  },
+  mongoose: require('mongoose'),
 });

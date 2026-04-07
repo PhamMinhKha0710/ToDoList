@@ -23,4 +23,6 @@ module.exports = {
   MAIL_PORT: parseInt(process.env.MAIL_PORT || '587', 10),
   MAIL_USER: process.env.MAIL_USER || '',
   MAIL_PASS: process.env.MAIL_PASS || '',
+
+  ENCRYPTION_KEY: process.env.ENCRYPTION_KEY || 'default_encryption_key_32_bytes!', // 32 bytes required
 };

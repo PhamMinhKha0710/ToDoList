@@ -35,7 +35,7 @@ module.exports = (io, socket) => {
     logger.info(`Socket ${socket.id} left project room: ${projectId}`);
 
     socket.to(projectId).emit("user:offline", {
-      userId: socket.user.id,
+      userId,
       projectId,
     });
   });

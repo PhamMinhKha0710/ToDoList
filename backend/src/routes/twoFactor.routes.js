@@ -1,5 +1,5 @@
 const express = require('express');
-const twoFactorController = require('../controllers/twoFactor.controller');
+const { twoFactorController } = require('../container');
 const { authenticate } = require('../middlewares/auth.middleware');
 
 const router = express.Router();
