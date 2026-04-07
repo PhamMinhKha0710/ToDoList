@@ -42,7 +42,7 @@ export const TaskTags = ({ tags, isEditing, onTagsChange }: TaskTagsProps) => {
 
   return (
     <div className="space-y-3.5 pt-2">
-      <h4 className="text-[11px] font-extrabold uppercase tracking-widest text-muted-foreground flex items-center gap-1.5">
+      <h4 className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
         <Tag className="w-3.5 h-3.5" /> Phân loại (Tags)
       </h4>
       <div className="flex flex-wrap gap-2">

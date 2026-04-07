@@ -116,7 +116,7 @@ export function TwoFactorSetupModal({ isOpen, onClose, onSuccess }: Props) {
               <div className="space-y-3 flex-1 w-full">
                 <p className="text-sm font-medium text-foreground border-b border-border pb-2">1. Quét mã QR</p>
                 <p className="text-xs text-muted-foreground">Mở ứng dụng Authenticator và quét mã bên cạnh. Hoặc nhập mã bí mật theo cách thủ công:</p>
-                <code className="block w-full bg-muted/50 p-2 rounded text-center font-mono text-sm tracking-widest font-bold text-foreground break-all select-all border border-border">
+                <code className="block w-full bg-muted/50 p-2 rounded text-center font-mono text-sm tracking-wider font-bold text-foreground break-all select-all border border-border">
                   {secret}
                 </code>
               </div>
@@ -162,7 +162,7 @@ export function TwoFactorSetupModal({ isOpen, onClose, onSuccess }: Props) {
 
             <div className="grid grid-cols-2 gap-3 bg-muted/30 p-4 rounded-lg border border-border">
               {backupCodes.map((bc, idx) => (
-                <div key={idx} className="font-mono text-sm tracking-widest font-bold text-center py-2 bg-card rounded-md shadow-sm border border-border text-foreground select-all">
+                <div key={idx} className="font-mono text-sm tracking-wider font-bold text-center py-2 bg-card rounded-md shadow-sm border border-border text-foreground select-all">
                   {bc}
                 </div>
               ))}

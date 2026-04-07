@@ -71,7 +71,7 @@ export const ColumnList = ({ columnId }: ColumnListProps) => {
               <Plus className="h-4 w-4 text-green-500" />
             </div>
             <span className="font-medium text-muted-foreground/70">
-              Chưa có task nào
+              Chưa có công việc nào
             </span>
           </div>
         ) : (
@@ -91,7 +91,7 @@ export const ColumnList = ({ columnId }: ColumnListProps) => {
                   onClick={() => setIsAddTaskModalOpen(true)}
                 >
                   <Plus className="h-4 w-4 mr-2" />
-                  <span className="font-semibold text-sm">Thêm task...</span>
+                  <span className="font-semibold text-sm">Thêm công việc...</span>
                 </Button>
               )}
             </div>
@@ -106,7 +106,7 @@ export const ColumnList = ({ columnId }: ColumnListProps) => {
           onClick={() => setIsAddTaskModalOpen(true)}
         >
           <Plus className="h-4 w-4 mr-2" />
-          <span className="font-semibold">Thêm task</span>
+          <span className="font-semibold">Thêm công việc</span>
         </Button>
       )}
 

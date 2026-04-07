@@ -33,7 +33,7 @@ export const DeleteTaskConfirmModal = ({
               <AlertTriangle className="h-6 w-6 text-red-600" />
             </div>
           </div>
-          <DialogTitle className="text-xl font-black text-slate-800 tracking-tight text-center">
+          <DialogTitle className="text-xl font-bold text-slate-800 tracking-tight text-center">
             Xóa công việc này?
           </DialogTitle>
         </div>

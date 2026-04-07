@@ -150,7 +150,7 @@ export default function ProfileForm() {
               ) : (
                 <Avatar className="w-full h-full border-0 shadow-none">
                   <AvatarImage src={getAvatarUrl(avatarPreview)} className="object-cover" />
-                  <AvatarFallback className="text-2xl bg-muted text-muted-foreground font-bold uppercase tracking-widest border-0">
+                  <AvatarFallback className="text-2xl bg-muted text-muted-foreground font-bold uppercase tracking-wider border-0">
                     {(user?.displayName || "JD").substring(0, 2).toUpperCase()}
                   </AvatarFallback>
                 </Avatar>

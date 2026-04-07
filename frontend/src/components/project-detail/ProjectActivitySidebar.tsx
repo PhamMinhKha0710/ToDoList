@@ -6,7 +6,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { 
   Loader2, X, Info, Activity as ActivityIcon, 
   ArrowRight, Edit3, MessageSquare, UserPlus, 
-  Trash2, Move, Plus, ChevronRight, Settings
+  Trash2, Move, Plus, Settings
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -279,7 +279,7 @@ const ActivityItem = ({ activity }: { activity: Activity }) => {
             </div>
           )}
           {detail.fullSnapshot && (
-              <div className="text-[9px] text-muted-foreground bg-accent/30 px-1 py-0.5 rounded w-fit border border-accent">Snapshot saved ✓</div>
+              <div className="text-[9px] text-muted-foreground bg-accent/30 px-1 py-0.5 rounded w-fit border border-accent">Đã lưu bản chụp ✓</div>
           )}
         </div>
       );
@@ -331,8 +331,14 @@ const ActivityItem = ({ activity }: { activity: Activity }) => {
           <DiffContent differences={detail.differences} />
         </div>
       );
-      case "MEMBER_INVITED": return `đã mời ${detail.email} với vai trò ${detail.role}`;
-      case "MEMBER_ROLE_UPDATED": return <span>đã đổi vai trò: <Badge className="mx-1">{detail.oldRole}</Badge> <ArrowRight className="inline h-3 w-3 mx-1" /> <Badge className="mx-1">{detail.newRole}</Badge></span>;
+      case "MEMBER_INVITED": {
+        const roleLabels: any = { owner: 'Chủ sở hữu', admin: 'Quản trị viên', member: 'Thành viên', viewer: 'Người xem' };
+        return `đã mời ${detail.email} với vai trò ${roleLabels[detail.role] || detail.role}`;
+      }
+      case "MEMBER_ROLE_UPDATED": {
+        const roleLabels: any = { owner: 'Chủ sở hữu', admin: 'Quản trị viên', member: 'Thành viên', viewer: 'Người xem' };
+        return <span>đã đổi vai trò: <Badge className="mx-1">{roleLabels[detail.oldRole] || detail.oldRole}</Badge> <ArrowRight className="inline h-3 w-3 mx-1" /> <Badge className="mx-1">{roleLabels[detail.newRole] || detail.newRole}</Badge></span>;
+      }
       default: return `đã thực hiện hành động ${activity.action}`;
     }
   };

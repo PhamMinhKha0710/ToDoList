@@ -29,35 +29,35 @@ const getPriorityConfig = (priority: string) => {
     case 'urgent':
       return {
         icon: Flame,
-        text: 'URGENT',
+        text: 'KHẨN CẤP',
         classes: 'text-red-600 bg-red-50/40 border border-red-200 dark:bg-red-950/20 dark:border-red-800'
       };
 
     case 'high':
       return {
         icon: Flame,
-        text: 'HIGH',
+        text: 'CAO',
         classes: 'text-orange-600 bg-orange-50/40 border border-orange-200 dark:bg-orange-950/20 dark:border-orange-800'
       };
 
     case 'normal':
       return {
         icon: Gauge,
-        text: 'NORMAL',
+        text: 'BÌNH THƯỜNG',
         classes: 'text-emerald-600 bg-emerald-50/40 border border-emerald-200 dark:bg-emerald-950/20 dark:border-emerald-800'
       };
 
     case 'low':
       return {
         icon: ArrowDown,
-        text: 'LOW',
+        text: 'THẤP',
         classes: 'text-muted-foreground bg-muted/40 border border-border'
       };
 
     default:
       return {
         icon: Gauge,
-        text: 'NORMAL',
+        text: 'BÌNH THƯỜNG',
         classes: 'text-blue-600 bg-blue-50/40 border border-blue-200 dark:bg-blue-950/20 dark:border-blue-800'
       };
   }
@@ -70,21 +70,21 @@ const getStatusConfig = (status: string) => {
         icon: CheckCircle2,
         classes: "bg-emerald-500/10 text-emerald-600",
         dotClass: "bg-emerald-500",
-        label: "Done",
+        label: "Hoàn thành",
       };
     case "in_progress":
       return {
         icon: Clock4,
         classes: "bg-sky-500/10 text-sky-600",
         dotClass: "bg-sky-500",
-        label: "In Progress",
+        label: "Đang làm",
       };
     default:
       return {
         icon: Circle,
         classes: "bg-muted text-muted-foreground",
         dotClass: "bg-muted-foreground/30",
-        label: "ToDo",
+        label: "Cần làm",
       };
   }
 };

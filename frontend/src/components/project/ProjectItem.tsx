@@ -42,19 +42,19 @@ export const ProjectItem = ({ project, viewMode }: ProjectItemProps) => {
       <Card
         className={cn(
           "h-full transition-all duration-500 cursor-pointer overflow-hidden flex flex-col relative border border-border shadow-sm",
-          isGrid 
-            ? "hover:shadow-2xl hover:-translate-y-2 hover:rotate-x-1 hover:border-primary/50" 
+          isGrid
+            ? "hover:shadow-2xl hover:-translate-y-2 hover:rotate-x-1 hover:border-primary/50"
             : "hover:shadow-xl hover:translate-x-2 hover:border-primary/50",
           "bg-card/40 dark:bg-card/40 backdrop-blur-xl"
         )}
       >
         {/* Accent Top Bar / Side Bar Glow */}
-        <div 
+        <div
           className={cn(
             "absolute transition-all duration-500",
             isGrid ? "top-0 left-0 right-0 h-1.5" : "top-0 left-0 bottom-0 w-1.5"
           )}
-          style={{ 
+          style={{
             backgroundColor: accentColor,
             boxShadow: `0 0 20px ${accentColor}40`
           }}
@@ -74,7 +74,7 @@ export const ProjectItem = ({ project, viewMode }: ProjectItemProps) => {
           >
             {/* Project Icon */}
             <div className="relative group/icon">
-              <div 
+              <div
                 className="absolute inset-0 blur-lg opacity-20 group-hover/icon:opacity-40 transition-opacity duration-500 rounded-2xl"
                 style={{ backgroundColor: accentColor }}
               />
@@ -90,7 +90,7 @@ export const ProjectItem = ({ project, viewMode }: ProjectItemProps) => {
                   className="object-cover"
                 />
                 <AvatarFallback
-                  className="rounded-2xl text-white text-xl font-black"
+                  className="rounded-2xl text-white text-xl font-bold"
                   style={{ backgroundColor: accentColor }}
                 >
                   {initials}
@@ -101,11 +101,11 @@ export const ProjectItem = ({ project, viewMode }: ProjectItemProps) => {
             {/* Title, Description & Date */}
             <div className="flex flex-col min-w-0 flex-1">
               <div className="flex items-center gap-2">
-                <CardTitle className="text-xl font-black tracking-tight text-foreground/90 group-hover:text-primary transition-colors truncate">
+                <CardTitle className="text-xl font-bold tracking-tight text-foreground/90 group-hover:text-primary transition-colors truncate">
                   {project.name}
                 </CardTitle>
                 {isPending && (
-                  <Badge variant="secondary" className="px-2 py-0 text-[10px] uppercase font-black bg-amber-100 text-amber-700 border-amber-200 dark:bg-amber-900/30 dark:text-amber-400 dark:border-amber-900/50">
+                  <Badge variant="secondary" className="px-2 py-0 text-[10px] uppercase font-bold bg-amber-100 text-amber-700 border-amber-200 dark:bg-amber-900/30 dark:text-amber-400 dark:border-amber-900/50">
                     Pending
                   </Badge>
                 )}
@@ -116,7 +116,7 @@ export const ProjectItem = ({ project, viewMode }: ProjectItemProps) => {
                   isGrid ? "line-clamp-2" : "line-clamp-1"
                 )}
               >
-                {project.description || "No description provided."}
+                {project.description || "Không có mô tả."}
               </CardDescription>
               {!isGrid && (
                 <div className="flex items-center gap-4 mt-2">
@@ -132,12 +132,12 @@ export const ProjectItem = ({ project, viewMode }: ProjectItemProps) => {
           {/* Grid View Date & Footer */}
           {isGrid && (
             <div className="mt-6 flex flex-col gap-4 w-full">
-              <div className="flex items-center gap-1.5 text-[10px] font-black text-muted-foreground/40 uppercase tracking-[0.2em]">
-                Last activity {dayjs(project.updatedAt).format("HH:mm DD/MM/YYYY")}
+              <div className="flex items-center gap-1.5 text-[10px] font-semibold text-muted-foreground/60 uppercase tracking-[0.15em]">
+                Hoạt động gần đây {dayjs(project.updatedAt).format("HH:mm DD/MM/YYYY")}
               </div>
-              
+
               <div className="h-px w-full bg-gradient-to-r from-transparent via-border/50 to-transparent" />
-              
+
               <div className="flex justify-between items-center w-full">
                 <div className="flex items-center overflow-hidden py-1">
                   {project.members &&
@@ -150,9 +150,9 @@ export const ProjectItem = ({ project, viewMode }: ProjectItemProps) => {
                         <div key={i} className="group/avatar relative">
                           <Avatar
                             className="inline-block border-2 border-background w-7 h-7 rounded-full overflow-hidden shadow-sm transition-all duration-300 group-hover/avatar:-translate-y-1 group-hover/avatar:scale-110"
-                            style={{ 
+                            style={{
                               zIndex: 10 - i,
-                              marginLeft: i > 0 ? "-0.625rem" : "0" 
+                              marginLeft: i > 0 ? "-0.625rem" : "0"
                             }}
                           >
                             <AvatarImage
@@ -176,7 +176,7 @@ export const ProjectItem = ({ project, viewMode }: ProjectItemProps) => {
 
                 <div className="flex items-center gap-1.5 px-3 py-1 bg-primary/5 border border-primary/10 rounded-full group-hover:bg-primary/10 transition-colors">
                   <Users className="w-3 h-3 text-primary" />
-                  <span className="text-[10px] font-black text-primary uppercase tracking-wider">
+                  <span className="text-[10px] font-bold text-primary uppercase tracking-wider">
                     {project.members?.length || 0}
                   </span>
                 </div>
@@ -195,7 +195,7 @@ export const ProjectItem = ({ project, viewMode }: ProjectItemProps) => {
                   </Avatar>
                 ))}
               </div>
-              <div className="w-8 h-8 flex items-center justify-center rounded-full bg-primary/5 text-[10px] font-black text-primary border border-primary/20">
+              <div className="w-8 h-8 flex items-center justify-center rounded-full bg-primary/5 text-[10px] font-bold text-primary border border-primary/20">
                 {project.members?.length}
               </div>
             </div>

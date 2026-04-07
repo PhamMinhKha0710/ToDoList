@@ -22,7 +22,7 @@ import {
 } from "recharts"
 import { Loader2, CheckCircle2, Clock, AlertCircle, Users } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import type { ProjectStats } from "@/types/project"
+import type { ProjectStats as ProjectStatsType } from "@/types/project"
 
 interface ProjectStatisticsDialogProps {
   projectId: string
@@ -189,7 +189,7 @@ export function ProjectStatisticsDialog({
                       <div className="flex items-center justify-between mb-1.5">
                         <span className="text-sm font-medium truncate">{member.displayName}</span>
                         <span className="text-xs text-muted-foreground">
-                          {member.completedCount}/{member.taskCount} task hoàn thành
+                          {member.completedCount}/{member.taskCount} công việc hoàn thành
                         </span>
                       </div>
                       <div className="w-full h-2 bg-muted rounded-full overflow-hidden">

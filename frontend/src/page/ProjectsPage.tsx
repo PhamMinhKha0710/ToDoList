@@ -51,10 +51,10 @@ const ProjectsPage = () => {
       {/* Header Area */}
       <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between px-8 py-8 border-b bg-background/80 backdrop-blur-md sticky top-0">
         <div className="mb-4 md:mb-0">
-          <h1 className="text-4xl font-black tracking-tight text-foreground bg-clip-text text-transparent bg-gradient-to-r from-foreground to-foreground/70">
+          <h1 className="text-2xl font-bold text-foreground">
             Dự án
           </h1>
-          <p className="text-muted-foreground mt-1.5 font-medium">
+          <p className="text-muted-foreground mt-1 font-medium">
             Quản lý không gian làm việc và cộng tác với nhóm của bạn.
           </p>
         </div>
@@ -136,7 +136,7 @@ const ProjectsPage = () => {
               <div className="absolute inset-0 bg-primary/20 rounded-full blur-xl animate-pulse" />
               <Loader2 className="h-12 w-12 animate-spin text-primary relative z-10" />
             </div>
-            <p className="font-bold tracking-widest uppercase text-xs opacity-50">Đang đồng bộ không gian làm việc...</p>
+            <p className="font-bold tracking-wider uppercase text-xs opacity-50">Đang đồng bộ không gian làm việc...</p>
           </div>
         ) : error ? (
           <div className="flex flex-col items-center justify-center h-full text-destructive p-8 border-2 border-destructive/20 border-dashed rounded-3xl bg-destructive/5 m-4">
@@ -148,7 +148,7 @@ const ProjectsPage = () => {
               <LayoutGrid className="h-12 w-12 text-primary/40" />
             </div>
             <div className="text-center max-w-sm">
-              <h3 className="text-2xl font-black text-foreground">
+              <h3 className="text-2xl font-bold text-foreground">
                 {searchTerm 
                   ? "Không tìm thấy kết quả"
                   : filter === "active"
@@ -165,7 +165,7 @@ const ProjectsPage = () => {
             </div>
             {(filter === "active" || searchTerm) && (
               <Button
-                className="mt-6 px-10 h-12 rounded-2xl font-black shadow-xl shadow-primary/20 hover:scale-105 active:scale-95 transition-all"
+                className="mt-6 px-10 h-12 rounded-2xl font-bold shadow-xl shadow-primary/20 hover:scale-105 active:scale-95 transition-all"
                 onClick={() => {
                   if (searchTerm) setSearchTerm("");
                   else setIsCreateModalOpen(true);

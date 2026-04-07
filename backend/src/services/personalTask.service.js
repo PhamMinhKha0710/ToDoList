@@ -1,14 +1,17 @@
 class PersonalTaskService {
-  constructor({ personalTaskRepository, ApiError }) {
+  constructor({ personalTaskRepository, ApiError, emitDashboardUpdated }) {
     this.personalTaskRepository = personalTaskRepository;
     this.ApiError = ApiError;
+    this.emitDashboardUpdated = emitDashboardUpdated;
   }
 
   async createPersonalTask(userId, taskData) {
-    return await this.personalTaskRepository.create({
+    const task = await this.personalTaskRepository.create({
       ...taskData,
       userId
     });
+    this.emitDashboardUpdated(userId.toString());
+    return task;
   }
 
   async getPersonalTasks(userId) {
@@ -34,7 +37,9 @@ class PersonalTaskService {
     if (task.userId.toString() !== userId.toString()) {
       throw new this.ApiError(403, 'Bạn không có quyền chỉnh sửa công việc này');
     }
-    return await this.personalTaskRepository.updateById(taskId, updateData);
+    const updated = await this.personalTaskRepository.updateById(taskId, updateData);
+    this.emitDashboardUpdated(userId.toString());
+    return updated;
   }
 
   async deletePersonalTask(taskId, userId) {
@@ -45,12 +50,15 @@ class PersonalTaskService {
     if (task.userId.toString() !== userId.toString()) {
       throw new this.ApiError(403, 'Bạn không có quyền xóa công việc này');
     }
-    return await this.personalTaskRepository.deleteById(taskId);
+    const result = await this.personalTaskRepository.deleteById(taskId);
+    this.emitDashboardUpdated(userId.toString());
+    return result;
   }
 }
 
 module.exports = new PersonalTaskService({
   personalTaskRepository: require('../repositories/personalTask.repository'),
   ApiError: require('../utils/ApiError'),
+  emitDashboardUpdated: require('../sockets/task.socket').emitDashboardUpdated,
 });
 

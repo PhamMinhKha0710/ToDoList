@@ -28,10 +28,10 @@ import { cn } from "@/lib/utils";
 type AssignableRole = "admin" | "member" | "viewer";
 
 const ROLE_LABELS: Record<string, string> = {
-  owner: "Owner",
-  admin: "Admin",
-  member: "Member",
-  viewer: "Viewer",
+  owner: "Chủ sở hữu",
+  admin: "Quản trị viên",
+  member: "Thành viên",
+  viewer: "Người xem",
 };
 
 const ROLE_BADGE_VARIANT: Record<
@@ -193,9 +193,9 @@ export const ProjectMembersDialog = ({
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="admin">Admin</SelectItem>
-                <SelectItem value="member">Member</SelectItem>
-                <SelectItem value="viewer">Viewer</SelectItem>
+                <SelectItem value="admin">Quản trị viên</SelectItem>
+                <SelectItem value="member">Thành viên</SelectItem>
+                <SelectItem value="viewer">Người xem</SelectItem>
               </SelectContent>
             </Select>
           ) : (
@@ -238,7 +238,7 @@ export const ProjectMembersDialog = ({
         {isManager && (
           <div className="py-4 border-b space-y-5">
             <div className="space-y-3">
-              <h4 className="text-[11px] font-black text-slate-400 uppercase tracking-wider">Mời qua email</h4>
+              <h4 className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Mời qua email</h4>
               <UserSearchSelect
                 onAddMember={handleAddMember}
                 excludeUserIds={project.members.map(
@@ -248,7 +248,7 @@ export const ProjectMembersDialog = ({
             </div>
 
             <div className="space-y-2 pt-2 border-t border-dashed">
-              <h4 className="text-[11px] font-black text-slate-400 uppercase tracking-wider flex items-center gap-2">
+              <h4 className="text-[11px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2">
                 <LinkIcon className="h-3 w-3" /> Link mời tham gia
               </h4>
               
@@ -280,7 +280,7 @@ export const ProjectMembersDialog = ({
                         onClick={handleCopyLink}
                       >
                         {copied ? <Check className="h-3 w-3 mr-1 text-green-600" /> : <Copy className="h-3 w-3 mr-1" />}
-                        {copied ? "Xong" : "Copy"}
+                        {copied ? "Đã chép" : "Sao chép"}
                       </Button>
                     </div>
                   </div>

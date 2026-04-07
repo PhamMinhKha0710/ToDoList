@@ -109,7 +109,7 @@ const JoinProjectPage = () => {
 
             {/* Info */}
             <div className="space-y-2">
-              <h1 className="text-2xl font-black text-foreground tracking-tight">{project.name}</h1>
+              <h1 className="text-2xl font-bold text-foreground tracking-tight">{project.name}</h1>
               <p className="text-muted-foreground text-sm line-clamp-2 max-w-[320px] mx-auto">
                 {project.description || "Không có mô tả dự án."}
               </p>
@@ -164,7 +164,7 @@ const JoinProjectPage = () => {
 
         {/* Footer info */}
         <div className="bg-muted/50 p-6 flex flex-col items-center border-t border-border gap-3">
-           <div className="flex items-center gap-2 text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
+           <div className="flex items-center gap-2 text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
               <Layout className="h-3 w-3" /> ToDoList Workspace
            </div>
            <p className="text-[10px] text-muted-foreground text-center max-w-[280px]">

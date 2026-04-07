@@ -103,15 +103,15 @@ export function NavUser({
             <DropdownMenuGroup>
               <DropdownMenuItem onClick={() => navigate(ROUTES.PROFILE)}>
                 <BadgeCheck className="mr-2" />
-                Profile Details
+                Thông tin cá nhân
               </DropdownMenuItem>
               <DropdownMenuItem>
                 <CreditCard className="mr-2" />
-                Billing
+                Thanh toán
               </DropdownMenuItem>
               <DropdownMenuItem>
                 <Bell className="mr-2" />
-                Notifications
+                Thông báo
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
@@ -120,7 +120,7 @@ export function NavUser({
               className="text-red-600 focus:bg-red-500/10 focus:text-red-500 transition-colors"
             >
               <LogOut className="mr-2" />
-              Log out
+              Đăng xuất
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

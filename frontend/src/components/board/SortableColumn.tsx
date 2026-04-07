@@ -9,8 +9,8 @@ interface SortableColumnProps {
 }
 
 /**
- * Wrapper sortable cho mỗi cột — dùng drag-and-drop kéo thả cột.
- * Data type là 'column' để phân biệt với task khi xử lý onDragEnd.
+ * Wrapper sortable cho mỗi cột — dùng kéo thả để thay đổi vị trí cột.
+ * Loại dữ liệu là 'column' để phân biệt với 'task' khi xử lý sự kiện kéo thả.
  */
 export const SortableColumn = ({ column }: SortableColumnProps) => {
   const {

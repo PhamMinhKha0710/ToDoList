@@ -41,4 +41,13 @@ const emitTaskMoved = (projectId, moveData) => {
   getIO().to(projectId).emit('task:moved', moveData);
 };
 
-module.exports = { emitTaskCreated, emitTaskUpdated, emitTaskDeleted, emitTaskMoved };
+/**
+ * Emit khi cần refresh dashboard của một user cụ thể
+ * @param {string} userId
+ */
+const emitDashboardUpdated = (userId) => {
+  console.log(`[Socket Emit] dashboard:updated to user:${userId}`);
+  getIO().to(`user:${userId}`).emit('dashboard:updated');
+};
+
+module.exports = { emitTaskCreated, emitTaskUpdated, emitTaskDeleted, emitTaskMoved, emitDashboardUpdated };
