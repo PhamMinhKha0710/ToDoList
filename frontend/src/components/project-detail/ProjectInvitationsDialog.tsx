@@ -136,14 +136,14 @@ export function ProjectInvitationsDialog({
               </div>
             ) : (
               <>
-                <div className="flex items-center gap-2 uppercase text-[10px] font-black tracking-[0.2em] opacity-70">
+                <div className="flex items-center gap-2 uppercase text-[10px] font-bold tracking-[0.2em] opacity-70">
                   {isExpired ? <AlertCircle className="h-3 w-3" /> : <Clock className="h-3 w-3" />}
                   {isExpired ? "Hết hạn" : "Thời gian hiệu lực còn lại"}
                 </div>
                 
                 {/* Digit Timer (DD:HH:MM:SS) */}
                 <div className={cn(
-                  "flex items-center gap-1 font-mono text-3xl font-bold tracking-widest bg-white/50 px-6 py-3 rounded-2xl border border-white shadow-inner",
+                  "flex items-center gap-1 font-mono text-3xl font-bold tracking-wider bg-white/50 px-6 py-3 rounded-2xl border border-white shadow-inner",
                   isExpired && "grayscale opacity-50"
                 )}>
                   {timeLeft.split(":").map((part, i, arr) => (
@@ -169,7 +169,7 @@ export function ProjectInvitationsDialog({
           {inviteCode && (
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.15em]">Link mời hiện tại</label>
+                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.15em]">Link mời hiện tại</label>
                   {expiresAt && !isExpired && (
                     <span className="text-[10px] bg-indigo-100 text-indigo-600 px-2.5 py-1 rounded-full flex items-center gap-1.5 font-bold">
                       <Calendar className="h-3 w-3" /> {format(expiresAt, "dd/MM/yyyy")}
@@ -211,7 +211,7 @@ export function ProjectInvitationsDialog({
              <Button 
                 variant={!inviteCode ? "default" : "outline"}
                 className={cn(
-                  "w-full h-12 rounded-2xl gap-3 font-black text-xs uppercase tracking-wider transition-all transform active:scale-95 shadow-sm border-slate-200 group",
+                  "w-full h-12 rounded-2xl gap-3 font-bold text-xs uppercase tracking-wider transition-all transform active:scale-95 shadow-sm border-slate-200 group",
                   !inviteCode && "bg-indigo-600 hover:bg-indigo-700 text-white"
                 )}
                 onClick={() => {

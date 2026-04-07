@@ -454,10 +454,10 @@ export const TaskDetailModal = ({
                   onKeyDown={(e) => {
                     if (e.key === "Enter") e.currentTarget.blur();
                   }}
-                   className="text-2xl font-black text-foreground tracking-tight leading-none bg-card border border-border focus:border-primary px-3 py-1.5 focus:ring-4 focus:ring-primary/10 w-full outline-none rounded-lg transition-all -ml-3"
+                   className="text-2xl font-bold text-foreground tracking-tight leading-none bg-card border border-border focus:border-primary px-3 py-1.5 focus:ring-4 focus:ring-primary/10 w-full outline-none rounded-lg transition-all -ml-3"
                 />
               ) : (
-                <DialogTitle className="text-2xl font-black text-foreground tracking-tight leading-none mt-0.5">
+                <DialogTitle className="text-2xl font-bold text-foreground tracking-tight leading-none mt-0.5">
                   {editedTask.title || task.title}
                 </DialogTitle>
               )}
@@ -569,7 +569,7 @@ export const TaskDetailModal = ({
           <div className="flex-[2.2] overflow-y-auto px-8 py-8 space-y-10">
             {/* Description */}
             <div className="space-y-4">
-              <h3 className="text-sm font-extrabold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+              <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
                 Mô tả
               </h3>
               {isEditing ? (
@@ -625,7 +625,7 @@ export const TaskDetailModal = ({
             />
             {/* Comments */}
             <div className="space-y-6 pt-6 border-t border-border pb-10">
-              <h3 className="text-sm font-extrabold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+              <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
                 <MessageSquare className="w-4 h-4" /> Trao đổi & Bình luận
               </h3>
               {/* Real Comments Module */}
@@ -640,7 +640,7 @@ export const TaskDetailModal = ({
 
             {/* Activity Stream */}
             <div className="space-y-6 pt-6 border-t border-border pb-10">
-              <h3 className="text-sm font-extrabold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+              <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
                 <Activity className="w-4 h-4" /> Lịch sử hoạt động
               </h3>
               <div className="mt-6">
@@ -653,7 +653,7 @@ export const TaskDetailModal = ({
           <div className="flex-1 min-w-[320px] max-w-[360px] bg-muted/30 border-l border-border overflow-y-auto px-8 py-8 space-y-8">
             {/* Status */}
             <div className="space-y-2.5">
-              <h4 className="text-[11px] font-extrabold uppercase tracking-widest text-muted-foreground flex items-center gap-1.5">
+              <h4 className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
                 <CheckCircle2 className="w-3.5 h-3.5" /> Trạng thái
               </h4>
               {isEditing ? (
@@ -685,7 +685,7 @@ export const TaskDetailModal = ({
 
             {/* Priority */}
             <div className="space-y-2.5">
-              <h4 className="text-[11px] font-extrabold uppercase tracking-widest text-muted-foreground flex items-center gap-1.5">
+              <h4 className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
                 <Flag className="w-3.5 h-3.5" /> Độ ưu tiên
               </h4>
               {isEditing ? (
@@ -709,7 +709,7 @@ export const TaskDetailModal = ({
 
             {/* Task Color */}
             <div className="space-y-2.5">
-              <h4 className="text-[11px] font-extrabold uppercase tracking-widest text-muted-foreground flex items-center gap-1.5">
+              <h4 className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
                 <Palette className="w-3.5 h-3.5" /> Màu sắc chủ đề
               </h4>
               {isEditing ? (
@@ -741,7 +741,7 @@ export const TaskDetailModal = ({
 
             {/* Date Range (Start/End) */}
             <div className="space-y-2.5">
-              <h4 className="text-[11px] font-extrabold uppercase tracking-widest text-muted-foreground flex items-center gap-1.5">
+              <h4 className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
                 <Clock className="w-3.5 h-3.5" /> Khoảng thời gian
               </h4>
               {isEditing ? (
@@ -797,7 +797,7 @@ export const TaskDetailModal = ({
 
             {/* Due Date */}
             <div className="space-y-2.5">
-              <h4 className="text-[11px] font-extrabold uppercase tracking-widest text-muted-foreground flex items-center gap-1.5">
+              <h4 className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
                 <Clock className="w-3.5 h-3.5" /> Hạn chót
               </h4>
               {isEditing ? (
@@ -853,7 +853,7 @@ export const TaskDetailModal = ({
 
             {/* Assignee */}
             <div className="space-y-2.5">
-              <h4 className="text-[11px] font-extrabold uppercase tracking-widest text-muted-foreground flex items-center gap-1.5">
+              <h4 className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
                 <UserIcon className="w-3.5 h-3.5" /> Người thực hiện
               </h4>
               <div className="flex flex-wrap gap-2">
@@ -1008,7 +1008,7 @@ export const TaskDetailModal = ({
 
              {/* Color Tag */}
             <div className="space-y-3.5 pt-2">
-              <h4 className="text-[11px] font-extrabold uppercase tracking-widest text-muted-foreground flex items-center gap-1.5">
+              <h4 className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
                 <Palette className="w-3.5 h-3.5" /> Màu thẻ nhận diện
               </h4>
 

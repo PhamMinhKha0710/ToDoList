@@ -401,7 +401,7 @@ export function EventReplayModal({ isOpen, onClose, projectId }: EventReplayModa
                                             )}
                                             {/* Priority Badge */}
                                             {task.priority && (
-                                              <div className={`text-[9px] font-extrabold px-1.5 py-0.5 rounded uppercase border tracking-wider shadow-xs ${task.color ? 'bg-black/20 text-white border-white/20' : priorityColors[task.priority]}`}>
+                                              <div className={`text-[9px] font-bold px-1.5 py-0.5 rounded uppercase border tracking-wider shadow-xs ${task.color ? 'bg-black/20 text-white border-white/20' : priorityColors[task.priority]}`}>
                                                   {task.priority}
                                               </div>
                                             )}

@@ -220,7 +220,7 @@ export const AddTaskModal = ({
       <DialogContent className="sm:max-w-[700px] md:max-w-[800px] lg:max-w-[900px] max-h-[90vh] overflow-y-auto w-full p-0 bg-card border-border">
         <div className="p-6 sm:p-8">
           <DialogHeader>
-            <DialogTitle className="text-2xl font-black text-foreground">
+            <DialogTitle className="text-2xl font-bold text-foreground">
               Thêm công việc mới
             </DialogTitle>
             <DialogDescription className="text-muted-foreground">

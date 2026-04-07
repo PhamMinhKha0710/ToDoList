@@ -238,7 +238,7 @@ export const ProjectMembersDialog = ({
         {isManager && (
           <div className="py-4 border-b space-y-5">
             <div className="space-y-3">
-              <h4 className="text-[11px] font-black text-slate-400 uppercase tracking-wider">Mời qua email</h4>
+              <h4 className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Mời qua email</h4>
               <UserSearchSelect
                 onAddMember={handleAddMember}
                 excludeUserIds={project.members.map(
@@ -248,7 +248,7 @@ export const ProjectMembersDialog = ({
             </div>
 
             <div className="space-y-2 pt-2 border-t border-dashed">
-              <h4 className="text-[11px] font-black text-slate-400 uppercase tracking-wider flex items-center gap-2">
+              <h4 className="text-[11px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2">
                 <LinkIcon className="h-3 w-3" /> Link mời tham gia
               </h4>
               

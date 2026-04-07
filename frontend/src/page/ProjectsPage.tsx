@@ -136,7 +136,7 @@ const ProjectsPage = () => {
               <div className="absolute inset-0 bg-primary/20 rounded-full blur-xl animate-pulse" />
               <Loader2 className="h-12 w-12 animate-spin text-primary relative z-10" />
             </div>
-            <p className="font-bold tracking-widest uppercase text-xs opacity-50">Đang đồng bộ không gian làm việc...</p>
+            <p className="font-bold tracking-wider uppercase text-xs opacity-50">Đang đồng bộ không gian làm việc...</p>
           </div>
         ) : error ? (
           <div className="flex flex-col items-center justify-center h-full text-destructive p-8 border-2 border-destructive/20 border-dashed rounded-3xl bg-destructive/5 m-4">

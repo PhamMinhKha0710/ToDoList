@@ -64,7 +64,7 @@ const InvitationPage = () => {
           <div className="w-20 h-20 bg-destructive/10 rounded-full flex items-center justify-center mx-auto mb-6">
             <AlertCircle className="h-10 w-10 text-destructive" />
           </div>
-          <h2 className="text-2xl font-black text-foreground mb-3">
+          <h2 className="text-2xl font-bold text-foreground mb-3">
             Lỗi truy cập
           </h2>
           <p className="text-muted-foreground mb-8 leading-relaxed">{errorMsg}</p>
@@ -193,7 +193,7 @@ const InvitationPage = () => {
 
         {/* Footer */}
         <div className="pt-12 flex items-center justify-center gap-6 opacity-60 grayscale">
-          <p className="text-xs font-medium tracking-widest uppercase text-muted-foreground">
+          <p className="text-xs font-medium tracking-wider uppercase text-muted-foreground">
             ToDoList App &copy; 2025
           </p>
         </div>

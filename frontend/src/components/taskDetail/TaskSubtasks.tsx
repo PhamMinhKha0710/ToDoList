@@ -57,7 +57,7 @@ export const TaskSubtasks = ({
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h3 className="text-sm font-extrabold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+        <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
           <ListTodo className="w-4 h-4" /> Danh sách công việc con ({subTasks.length})
         </h3>
         {subTasks.length > 0 && (
