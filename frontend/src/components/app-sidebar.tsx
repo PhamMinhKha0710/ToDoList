@@ -51,7 +51,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         email: authUser.email,
         avatar: authUser.avatarUrl || "",
       }
-    : { name: "Guest", email: "guest@example.com", avatar: "" };
+    : { name: "Khách", email: "guest@example.com", avatar: "" };
 
   return (
     <Sidebar variant="inset" collapsible="icon" {...props}>

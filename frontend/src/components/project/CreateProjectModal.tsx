@@ -29,6 +29,13 @@ interface CreateProjectModalProps {
 type AssignableRole = 'admin' | 'member' | 'viewer';
 type ProjectRole = 'owner' | 'admin' | 'member' | 'viewer';
 
+const ROLE_LABELS: Record<string, string> = {
+  owner: "Chủ sở hữu",
+  admin: "Quản trị viên",
+  member: "Thành viên",
+  viewer: "Người xem",
+};
+
 interface SelectedMember {
   user: User;
   role: ProjectRole;
@@ -243,7 +250,7 @@ export const CreateProjectModal = ({ open, onOpenChange }: CreateProjectModalPro
                         </div>
                         <div className="flex items-center gap-3">
                           <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-primary/10 text-primary capitalize">
-                            {member.role}
+                            {ROLE_LABELS[member.role] || member.role}
                           </span>
                           <Button 
                             type="button" 

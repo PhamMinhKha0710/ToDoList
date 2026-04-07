@@ -105,7 +105,7 @@ const DashboardPage = () => {
             title="Đang thực hiện" 
             value={summary.activeTasks} 
             icon={<Clock className="h-5 w-5 text-blue-500" />} 
-            description="Tổng số task chưa xong"
+            description="Số công việc chưa hoàn thành"
           />
           <StatCard 
             title="Hạn hôm nay" 
@@ -118,7 +118,7 @@ const DashboardPage = () => {
             title="Quá hạn" 
             value={summary.overdue} 
             icon={<AlertCircle className="h-5 w-5 text-red-500" />} 
-            description="Task đã quá thời hạn"
+            description="Công việc đã quá thời hạn"
             alert={summary.overdue > 0}
             color="text-red-600"
           />
@@ -137,7 +137,7 @@ const DashboardPage = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <CardTitle className="text-xl font-bold">Năng suất làm việc</CardTitle>
-                  <CardDescription>Số task hoàn thành trong 7 ngày qua</CardDescription>
+                  <CardDescription>Số công việc hoàn thành trong 7 ngày qua</CardDescription>
                 </div>
                 <div className="p-3 bg-primary/10 rounded-2xl">
                   <TrendingUp className="h-5 w-5 text-primary" />
@@ -262,7 +262,20 @@ const DashboardPage = () => {
                             <span className="font-bold text-foreground">{log.userId.displayName || log.userId.email}</span>
                             <span className="text-muted-foreground mx-1">đã</span>
                             <Badge variant="secondary" className="font-bold text-[10px] uppercase tracking-wider">
-                              {log.action.replace(/_/g, ' ')}
+                              {(() => {
+                                switch(log.action) {
+                                  case 'TASK_CREATED': return 'tạo công việc';
+                                  case 'TASK_UPDATED': return 'cập nhật công việc';
+                                  case 'TASK_MOVED': return 'di chuyển công việc';
+                                  case 'TASK_DELETED': return 'xóa công việc';
+                                  case 'COLUMN_CREATED': return 'tạo cột';
+                                  case 'COLUMN_UPDATED': return 'cập nhật cột';
+                                  case 'COLUMN_DELETED': return 'xóa cột';
+                                  case 'PROJECT_CREATED': return 'tạo dự án';
+                                  case 'PROJECT_UPDATED': return 'cập nhật dự án';
+                                  default: return log.action.replace(/_/g, ' ').toLowerCase();
+                                }
+                              })()}
                             </Badge>
                           </p>
                           <span className="text-xs text-muted-foreground font-medium">{dayjs(log.createdAt).fromNow()}</span>

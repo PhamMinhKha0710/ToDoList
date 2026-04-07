@@ -82,7 +82,7 @@ export const ColumnHeader = ({ column }: ColumnHeaderProps) => {
                   onClick={() => setIsAddTaskModalOpen(true)}
                 >
                   <Plus className="h-4 w-4 mr-2" />
-                  <span>Thêm task</span>
+                  <span>Thêm công việc</span>
                 </DropdownMenuItem>
               )}
               <DropdownMenuItem 

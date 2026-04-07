@@ -272,7 +272,7 @@ export const TaskAttachments = ({
           <div className="absolute top-0 left-0 right-0 z-50 p-8 flex items-center justify-between pointer-events-none">
             <div className="flex flex-col gap-1 pointer-events-auto">
               <h2 className="text-[12px] font-bold text-white/50 uppercase tracking-[0.2em]">
-                Project Gallery
+                Bộ sưu tập dự án
               </h2>
               <p className="text-[15px] font-medium text-white truncate max-w-[200px] sm:max-w-xl">
                 {previewIndex !== null && imageAttachments[previewIndex]?.name}
@@ -293,7 +293,7 @@ export const TaskAttachments = ({
                   }
                 }}
               >
-                <span className="text-[11px] font-bold uppercase tracking-wider opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0 transition-all duration-300">Download</span>
+                <span className="text-[11px] font-bold uppercase tracking-wider opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0 transition-all duration-300">Tải xuống</span>
                 <Download className="w-5 h-5 stroke-[1.25]" />
               </button>
               

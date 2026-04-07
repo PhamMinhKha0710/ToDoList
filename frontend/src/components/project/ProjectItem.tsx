@@ -133,7 +133,7 @@ export const ProjectItem = ({ project, viewMode }: ProjectItemProps) => {
           {isGrid && (
             <div className="mt-6 flex flex-col gap-4 w-full">
               <div className="flex items-center gap-1.5 text-[10px] font-semibold text-muted-foreground/60 uppercase tracking-[0.15em]">
-                Last activity {dayjs(project.updatedAt).format("HH:mm DD/MM/YYYY")}
+                Hoạt động gần đây {dayjs(project.updatedAt).format("HH:mm DD/MM/YYYY")}
               </div>
               
               <div className="h-px w-full bg-gradient-to-r from-transparent via-border/50 to-transparent" />

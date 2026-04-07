@@ -383,7 +383,7 @@ const AdminProjectsPage = () => {
                             </AvatarFallback>
                           </Avatar>
                           <div className="flex-1 min-w-0">
-                            <p className="font-medium truncate">{user.displayName || 'Unnamed'}</p>
+                            <p className="font-medium truncate">{user.displayName || 'Chưa đặt tên'}</p>
                             <p className="text-xs text-muted-foreground truncate">{user.email}</p>
                           </div>
                           {formData.ownerId === user._id && (

@@ -50,9 +50,9 @@ const getActionText = (activity: Activity | null): { actionHtml: string, title?:
     case 'COLUMN_UPDATED': return { actionHtml: `<span class="text-blue-600 bg-blue-100 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider">Sửa cột</span>`, title: `Cập nhật cột "${detail.title || ''}"` };
     case 'COLUMN_DELETED': return { actionHtml: `<span class="text-red-600 bg-red-100 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider">Xóa cột</span>`, title: `Gỡ bỏ một cột` };
     case 'COLUMNS_REORDERED': return { actionHtml: `<span class="text-yellow-600 bg-yellow-100 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider">Sắp xếp</span>`, title: `Thay đổi thứ tự cột` };
-    case 'TASK_CREATED': return { actionHtml: `<span class="text-emerald-600 bg-emerald-100 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider">Tạo task</span>`, title: `Thêm "${detail.title || ''}"` };
-    case 'TASK_UPDATED': return { actionHtml: `<span class="text-sky-600 bg-sky-100 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider">Sửa task</span>`, title: `Cập nhật "${detail.taskTitle || ''}"` };
-    case 'TASK_DELETED': return { actionHtml: `<span class="text-rose-600 bg-rose-100 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider">Xóa task</span>`, title: `Xóa "${detail.taskTitle || ''}"` };
+    case 'TASK_CREATED': return { actionHtml: `<span class="text-emerald-600 bg-emerald-100 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider">Tạo công việc</span>`, title: `Thêm "${detail.title || ''}"` };
+    case 'TASK_UPDATED': return { actionHtml: `<span class="text-sky-600 bg-sky-100 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider">Sửa công việc</span>`, title: `Cập nhật "${detail.taskTitle || ''}"` };
+    case 'TASK_DELETED': return { actionHtml: `<span class="text-rose-600 bg-rose-100 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider">Xóa công việc</span>`, title: `Xóa "${detail.taskTitle || ''}"` };
     case 'TASK_MOVED': return { actionHtml: `<span class="text-amber-600 bg-amber-100 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider">Di chuyển</span>`, title: `Chuyển sang ${detail.destinationColumnTitle || 'cột khác'}` };
     case 'COMMENT_CREATED': return { actionHtml: `<span class="text-purple-600 bg-purple-100 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider">Bình luận</span>`, title: `Bình luận mới`, subTitle: detail.contentSnippet ? `"${detail.contentSnippet}..."` : '' };
     case 'MEMBER_INVITED': return { actionHtml: `<span class="text-indigo-600 bg-indigo-100 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider">Mời</span>`, title: `Mời ${detail.email || ''}` };
@@ -339,7 +339,7 @@ export function EventReplayModal({ isOpen, onClose, projectId }: EventReplayModa
       <DialogContent className="max-w-[90vw] w-[1200px] h-[90vh] flex flex-col p-0 gap-0 overflow-hidden bg-background">
         <DialogHeader className="p-4 border-b border-border shadow-sm shrink-0">
           <DialogTitle className="flex items-center gap-2 text-xl text-primary">
-             🎬 Event Replay <span className="text-sm font-normal text-muted-foreground bg-accent px-2 py-0.5 rounded-full">{activities.length} sự kiện</span>
+             🎬 Phát lại sự kiện <span className="text-sm font-normal text-muted-foreground bg-accent px-2 py-0.5 rounded-full">{activities.length} sự kiện</span>
           </DialogTitle>
         </DialogHeader>
 
@@ -431,7 +431,7 @@ export function EventReplayModal({ isOpen, onClose, projectId }: EventReplayModa
                                         </div>
 
                                         <h4 className={`font-bold text-[13px] leading-tight break-words ${task.color ? 'text-white drop-shadow-sm' : 'text-foreground'}`}>
-                                            {task.title || 'Untitled task'}
+                                            {task.title || 'Công việc không tên'}
                                         </h4>
 
                                         {/* Attachment Gallery (Images) */}
@@ -461,7 +461,7 @@ export function EventReplayModal({ isOpen, onClose, projectId }: EventReplayModa
                                             {task.attachments.filter(a => !/\.(jpg|jpeg|png|gif)$/i.test(a.fileUrl)).slice(0, 3).map((a, i) => (
                                               <div key={i} className="flex items-center gap-1.5 text-[10px] truncate group/file">
                                                 <span className="shrink-0">📄</span>
-                                                <span className="truncate flex-1">{a.fileName || 'file'}</span>
+                                                <span className="truncate flex-1">{a.fileName || 'tệp'}</span>
                                               </div>
                                             ))}
                                             {task.attachments.filter(a => !/\.(jpg|jpeg|png|gif)$/i.test(a.fileUrl)).length > 3 && (

@@ -217,7 +217,7 @@ export const TaskDetailModal = ({
       lastSyncedRef.current = storeTask.updatedAt;
     } else {
       // Cảnh báo khi đang edit mà có thay đổi từ người khác
-      toast.info('Task vừa được cập nhật bởi người khác', {
+      toast.info('Công việc vừa được cập nhật bởi người khác', {
         description: 'Hoàn tất chỉnh sửa và mở lại để xem bản mới nhất.',
       });
       lastSyncedRef.current = storeTask.updatedAt;
@@ -531,7 +531,7 @@ export const TaskDetailModal = ({
                   ? "Đang xử lý..."
                   : isEditing
                     ? "Hoàn tất"
-                    : "Sửa"}
+                    : "Chỉnh sửa"}
               </Button>
             )}
 
@@ -678,7 +678,7 @@ export const TaskDetailModal = ({
                           : "bg-muted-foreground/30"
                     }`}
                   />
-                  {statusLabels[currentStatus] || "Chưa rõ"}
+                  {statusLabels[currentStatus] || "Chưa xác định"}
                 </div>
               )}
             </div>

@@ -80,7 +80,8 @@ const AdminUsersPage = () => {
   const changeRole = async (userId: string, newRole: string) => {
     try {
       await adminService.updateUserRole(userId, newRole);
-      toast.success(`Đã cập nhật quyền thành: ${newRole}`);
+      const roleLabel = newRole === 'admin' ? 'Quản trị viên' : 'Người dùng';
+      toast.success(`Đã cập nhật quyền thành: ${roleLabel}`);
       setUsers((prev) => prev.map((u) => (u._id === userId ? { ...u, role: newRole as any } : u)));
     } catch (error: any) {
       toast.error(error.response?.data?.message || 'Cập nhật quyền thất bại');
@@ -153,7 +154,7 @@ const AdminUsersPage = () => {
                         variant={user.role === 'admin' ? 'destructive' : 'secondary'}
                         className="capitalize font-mono text-[10px]"
                       >
-                        {user.role}
+                        {user.role === 'admin' ? 'Quản trị viên' : 'Người dùng'}
                       </Badge>
                     </td>
                     <td className="px-4 py-4 text-center">
@@ -177,7 +178,7 @@ const AdminUsersPage = () => {
                           
                           <DropdownMenuItem className="text-foreground focus:bg-muted" onClick={() => changeRole(user._id, user.role === 'admin' ? 'user' : 'admin')}>
                             <UserCog className="mr-2 h-4 w-4" />
-                            <span>Thay đổi vai trò ({user.role === 'admin' ? 'User' : 'Admin'})</span>
+                            <span>Thay đổi vai trò (thành {user.role === 'admin' ? 'Người dùng' : 'Quản trị viên'})</span>
                           </DropdownMenuItem>
 
                           <DropdownMenuItem className="text-foreground focus:bg-muted" onClick={() => handleResetPassword(user._id)}>
