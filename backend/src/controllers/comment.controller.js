@@ -1,7 +1,7 @@
 const commentService = require('../services/comment.service');
 const catchAsync = require('../utils/catchAsync');
 const ApiResponse = require('../utils/ApiResponse');
-const { toCommentModel } = require('../models/commemnts/commentResponse.model.js');
+const { toCommentModel } = require('../models/comments/commentResponse.model.js');
 
 class CommentController {
   /**
