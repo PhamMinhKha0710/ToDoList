@@ -12,6 +12,8 @@ const notificationRoutes = require('./notification.routes');
 const personalTaskRoutes = require('./personalTask.routes');
 const adminRoutes = require('./admin/admin.routes');
 const twoFactorRoutes = require('./twoFactor.routes');
+const userDashboardRoutes = require('./user-dashboard.routes');
+
 
 const router = Router();
 
@@ -29,5 +31,7 @@ router.use('/admin', adminRoutes);
 router.use('/upload', uploadRoutes);
 router.use('/2fa', twoFactorRoutes);
 router.use('/activities', activityRoutes);
+router.use('/user-dashboard', userDashboardRoutes);
+
 
 module.exports = router;

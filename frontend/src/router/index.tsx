@@ -20,12 +20,15 @@ const AdminUsersPage = lazy(() => import("@/page/admin/AdminUsersPage"));
 const AdminProjectsPage = lazy(() => import("@/page/admin/AdminProjectsPage"));
 const AdminDashboardPage = lazy(() => import("@/page/admin/AdminDashboardPage"));
 const JoinProjectPage = lazy(() => import("@/page/JoinProjectPage"));
+const DashboardPage = lazy(() => import("@/page/DashboardPage"));
+
 
 const RoleRedirect = () => {
   const user = useAuthStore((s) => s.user);
   if (!user) return <Navigate to={ROUTES.LOGIN} replace />;
   if (user.role === "admin") return <Navigate to={ROUTES.ADMIN} replace />;
-  return <Navigate to={ROUTES.PROJECTS} replace />;
+  return <Navigate to={ROUTES.DASHBOARD} replace />;
+
 };
 const InvitationPage = lazy(() => import("@/page/InvitationPage"));
 const GoogleCallbackPage = lazy(() => import("@/page/GoogleCallbackPage"));
@@ -44,7 +47,9 @@ export const router = createBrowserRouter([
   {
     element: <ProtectedRoute />,
     children: [
+      { path: ROUTES.DASHBOARD, element: <DashboardPage /> },
       { path: ROUTES.PROJECTS, element: <ProjectsPage /> },
+
       { path: "/projects/:id/invite", element: <InvitationPage /> },
       { path: "/join/:inviteCode", element: <JoinProjectPage /> },
       { path: "/projects/:id", element: <ProjectDetailPage /> },

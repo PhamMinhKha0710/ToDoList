@@ -14,4 +14,5 @@ export const ROUTES = {
   ADMIN_PROJECTS: '/admin/projects',
   GOOGLE_CALLBACK: '/auth/google/callback',
   TASK_DETAIL: (id: string) => `/tasks/${id}`,
+  DASHBOARD: '/dashboard',
 } as const
