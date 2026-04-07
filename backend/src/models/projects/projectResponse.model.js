@@ -1,31 +1,23 @@
-class ProjectResponseModel {
-  constructor(project) {
-    this._id = project._id;
-    this.name = project.name;
-    this.description = project.description;
-    this.imageUrl = project.imageUrl;
-    this.color = project.color;
-    this.members = project.members
-      ? project.members.map((member) => ({
-          userId: member.userId,
-          role: member.role,
-          status: member.status,
-        }))
-      : [];
-    this.columnOrder = project.columnOrder;
-    this.owner = project.owner;
-    this.memberCount = project.memberCount;
-    this.createdAt = project.createdAt;
-    this.updatedAt = project.updatedAt;
-  }
+const ProjectResponseModel = (project) => ({
+  _id: project._id,
+  name: project.name,
+  description: project.description,
+  imageUrl: project.imageUrl,
+  color: project.color,
+  members: project.members
+    ? project.members.map((member) => ({
+        userId: member.userId,
+        role: member.role,
+        status: member.status,
+      }))
+    : [],
+  columnOrder: project.columnOrder,
+  owner: project.owner,
+  memberCount: project.memberCount,
+  createdAt: project.createdAt,
+  updatedAt: project.updatedAt,
+});
 
-  static fromEntity(project) {
-    return new ProjectResponseModel(project);
-  }
+const fromEntities = (projects) => projects.map((project) => ProjectResponseModel(project));
 
-  static fromEntities(projects) {
-    return projects.map((project) => new ProjectResponseModel(project));
-  }
-}
-
-module.exports = ProjectResponseModel;
+module.exports = { ProjectResponseModel, fromEntities };

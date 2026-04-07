@@ -26,6 +26,4 @@ class ColumnRepository {
   }
 }
 
-module.exports = new ColumnRepository({
-  Column: require('../entities/Column'),
-});
+module.exports = ColumnRepository;

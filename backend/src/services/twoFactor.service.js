@@ -79,4 +79,4 @@ class TwoFactorService {
   }
 }
 
-module.exports = new TwoFactorService();
+module.exports = TwoFactorService;

@@ -58,6 +58,4 @@ class ProjectRepository {
   }
 }
 
-module.exports = new ProjectRepository({
-  Project: require('../entities/Project'),
-});
+module.exports = ProjectRepository;

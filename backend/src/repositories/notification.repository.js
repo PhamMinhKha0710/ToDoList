@@ -38,6 +38,4 @@ class NotificationRepository {
   }
 }
 
-module.exports = new NotificationRepository({
-  Notification: require('../entities/Notification'),
-});
+module.exports = NotificationRepository;

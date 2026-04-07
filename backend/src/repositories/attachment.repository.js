@@ -20,6 +20,4 @@ class AttachmentRepository {
   };
 }
 
-module.exports = new AttachmentRepository({
-  Attachment: require('../entities/Attachment'),
-});
+module.exports = AttachmentRepository;

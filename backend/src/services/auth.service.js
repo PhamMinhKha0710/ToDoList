@@ -1,8 +1,7 @@
-const jwt = require("jsonwebtoken");
 const { verify: totpVerify } = require('otplib');
 
 class AuthService {
-  constructor({ bcrypt, crypto, User, Otp, tokenService, mailService, encryption, userResponseModel, ApiError }) {
+  constructor({ bcrypt, crypto, User, Otp, tokenService, mailService, encryption, userResponseModel, ApiError, CLIENT_URL }) {
     this.bcrypt = bcrypt;
     this.crypto = crypto;
     this.User = User;
@@ -12,10 +11,11 @@ class AuthService {
     this.encryption = encryption;
     this.userResponseModel = userResponseModel;
     this.ApiError = ApiError;
+    this.CLIENT_URL = CLIENT_URL;
     this.REFRESH_COOKIE_OPTIONS = {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
       maxAge: 7 * 24 * 60 * 60 * 1000,
     };
   }
@@ -23,7 +23,7 @@ class AuthService {
   register = async ({ email, password, displayName }) => {
     const normalizedEmail = email.toLowerCase();
     const existing = await this.User.findOne({ email: normalizedEmail });
-    if (existing) throw new this.ApiError(409, "Email đã được sử dụng");
+    if (existing) throw new this.ApiError(409, 'Email đã được sử dụng');
 
     const passwordHash = await this.bcrypt.hash(password, 10);
     const user = await this.User.create({ email: normalizedEmail, passwordHash, displayName });
@@ -33,20 +33,18 @@ class AuthService {
   login = async ({ email, password }) => {
     const normalizedEmail = email.toLowerCase();
     const user = await this.User.findOne({ email: normalizedEmail });
-    if (!user) throw new this.ApiError(401, "Email hoặc mật khẩu không đúng");
+    if (!user) throw new this.ApiError(401, 'Email hoặc mật khẩu không đúng');
 
     if (user.isActive === false) {
       throw new this.ApiError(403, 'Tài khoản đã bị khóa');
     }
 
     const isMatch = await this.bcrypt.compare(password, user.passwordHash);
-    if (!isMatch) throw new this.ApiError(401, "Email hoặc mật khẩu không đúng");
+    if (!isMatch) throw new this.ApiError(401, 'Email hoặc mật khẩu không đúng');
 
-    // 2FA LOGIC
     if (user.is2FAEnabled) {
-      const tempToken = jwt.sign(
-        { _id: user._id.toString(), type: '2fa_temp' }, 
-        process.env.JWT_ACCESS_SECRET, 
+      const tempToken = this.tokenService.generateAccessToken(
+        { _id: user._id.toString(), type: '2fa_temp' },
         { expiresIn: '5m' }
       );
       return { require2FA: true, tempToken };
@@ -67,7 +65,7 @@ class AuthService {
   refreshAccessToken = async (refreshToken) => {
     const payload = this.tokenService.verifyRefreshToken(refreshToken);
     const user = await this.User.findById(payload._id);
-    if (!user) throw new this.ApiError(401, "Người dùng không tồn tại");
+    if (!user) throw new this.ApiError(401, 'Người dùng không tồn tại');
 
     const accessToken = this.tokenService.generateAccessToken({
       _id: user._id.toString(),
@@ -88,19 +86,16 @@ class AuthService {
     user.otpExpires = new Date(Date.now() + 10 * 60 * 1000);
     await user.save();
 
-    const { CLIENT_URL } = require('../config/env');
-    const resetUrl = `${CLIENT_URL}/reset-password?email=${encodeURIComponent(email)}&otp=${otp}`;
-
+    const resetUrl = `${this.CLIENT_URL}/reset-password?email=${encodeURIComponent(email)}&otp=${otp}`;
     await this.mailService.sendResetPasswordEmail(email, otp, resetUrl);
   };
 
   resetPassword = async ({ email, otp, newPassword }) => {
     const normalizedEmail = email.toLowerCase();
     const user = await this.User.findOne({ email: normalizedEmail });
-    if (!user) throw new this.ApiError(400, "Email không tồn tại");
-    if (!user.otpCode || user.otpCode !== otp)
-      throw new this.ApiError(400, "OTP không hợp lệ");
-    if (user.otpExpires < new Date()) throw new this.ApiError(400, "OTP đã hết hạn");
+    if (!user) throw new this.ApiError(400, 'Email không tồn tại');
+    if (!user.otpCode || user.otpCode !== otp) throw new this.ApiError(400, 'OTP không hợp lệ');
+    if (user.otpExpires < new Date()) throw new this.ApiError(400, 'OTP đã hết hạn');
 
     user.passwordHash = await this.bcrypt.hash(newPassword, 10);
     user.otpCode = null;
@@ -120,7 +115,7 @@ class AuthService {
     const normalizedEmail = email.toLowerCase();
     const record = await this.Otp.findOne({ email: normalizedEmail, otp, action });
     if (!record) {
-      throw new this.ApiError(400, "Mã OTP không hợp lệ hoặc đã hết hạn");
+      throw new this.ApiError(400, 'Mã OTP không hợp lệ hoặc đã hết hạn');
     }
     await this.Otp.deleteOne({ _id: record._id });
     return true;
@@ -129,20 +124,20 @@ class AuthService {
   authenticate2FA = async ({ tempToken, code }) => {
     let decoded;
     try {
-      decoded = jwt.verify(tempToken, process.env.JWT_ACCESS_SECRET);
+      decoded = this.tokenService.verifyAccessToken(tempToken);
       if (decoded.type !== '2fa_temp') throw new Error();
     } catch (err) {
-      throw new this.ApiError(401, "Phiên đăng nhập không hợp lệ hoặc đã hết hạn");
+      throw new this.ApiError(401, 'Phiên đăng nhập không hợp lệ hoặc đã hết hạn');
     }
 
     const user = await this.User.findById(decoded._id);
-    if (!user || !user.is2FAEnabled) throw new this.ApiError(400, "Xác thực 2 bước không khả dụng");
+    if (!user || !user.is2FAEnabled) throw new this.ApiError(400, 'Xác thực 2 bước không khả dụng');
 
     const decryptedSecret = this.encryption.decrypt(user.twoFactorSecret);
-    
+
     let isValid = false;
     const normalizedCode = code.replace(/\s/g, '');
-    
+
     if (normalizedCode.length === 6) {
       isValid = totpVerify({ token: normalizedCode, secret: decryptedSecret });
     } else if (normalizedCode.length === 8) {
@@ -159,7 +154,7 @@ class AuthService {
       }
     }
 
-    if (!isValid) throw new this.ApiError(400, "Mã xác thực không chính xác");
+    if (!isValid) throw new this.ApiError(400, 'Mã xác thực không chính xác');
 
     const payload = {
       _id: user._id.toString(),
@@ -186,24 +181,4 @@ class AuthService {
   };
 }
 
-const tokenService = require("./token.service");
-const mailService = require("./mail.service");
-
-module.exports = new AuthService({
-  bcrypt: require("bcryptjs"),
-  crypto: require("crypto"),
-  User: require("../entities/User"),
-  Otp: require("../entities/Otp"),
-  tokenService: {
-    generateAccessToken: tokenService.generateAccessToken,
-    generateRefreshToken: tokenService.generateRefreshToken,
-    verifyRefreshToken: tokenService.verifyRefreshToken,
-  },
-  mailService: {
-    sendOtpEmail: mailService.sendOtpEmail,
-    sendResetPasswordEmail: mailService.sendResetPasswordEmail,
-  },
-  encryption: require('../utils/encryption'),
-  userResponseModel: require("../models/users/userResponse.model"),
-  ApiError: require("../utils/ApiError"),
-});
+module.exports = AuthService;

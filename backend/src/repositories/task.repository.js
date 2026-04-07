@@ -159,8 +159,4 @@ class TaskRepository {
   };
 }
 
-module.exports = new TaskRepository({
-  Task: require('../entities/Task'),
-  Attachment: require('../entities/Attachment'),
-  mongoose: require('mongoose'),
-});
+module.exports = TaskRepository;

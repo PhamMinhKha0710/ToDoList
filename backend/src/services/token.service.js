@@ -1,26 +1,30 @@
-const jwt = require('jsonwebtoken');
-const {
-  JWT_ACCESS_SECRET,
-  JWT_ACCESS_EXPIRES,
-  JWT_REFRESH_SECRET,
-  JWT_REFRESH_EXPIRES,
-} = require('../config/env');
+class TokenService {
+  constructor({ jwt, JWT_ACCESS_SECRET, JWT_ACCESS_EXPIRES, JWT_REFRESH_SECRET, JWT_REFRESH_EXPIRES }) {
+    this.jwt = jwt;
+    this.JWT_ACCESS_SECRET = JWT_ACCESS_SECRET;
+    this.JWT_ACCESS_EXPIRES = JWT_ACCESS_EXPIRES;
+    this.JWT_REFRESH_SECRET = JWT_REFRESH_SECRET;
+    this.JWT_REFRESH_EXPIRES = JWT_REFRESH_EXPIRES;
+  }
 
-const generateAccessToken = (payload) =>
-  jwt.sign(payload, JWT_ACCESS_SECRET, { expiresIn: JWT_ACCESS_EXPIRES });
+  generateAccessToken(payload, options = {}) {
+    return this.jwt.sign(payload, this.JWT_ACCESS_SECRET, {
+      expiresIn: this.JWT_ACCESS_EXPIRES,
+      ...options,
+    });
+  }
 
-const generateRefreshToken = (payload) =>
-  jwt.sign(payload, JWT_REFRESH_SECRET, { expiresIn: JWT_REFRESH_EXPIRES });
+  generateRefreshToken(payload) {
+    return this.jwt.sign(payload, this.JWT_REFRESH_SECRET, { expiresIn: this.JWT_REFRESH_EXPIRES });
+  }
 
-const verifyAccessToken = (token) =>
-  jwt.verify(token, JWT_ACCESS_SECRET);
+  verifyAccessToken(token) {
+    return this.jwt.verify(token, this.JWT_ACCESS_SECRET);
+  }
 
-const verifyRefreshToken = (token) =>
-  jwt.verify(token, JWT_REFRESH_SECRET);
+  verifyRefreshToken(token) {
+    return this.jwt.verify(token, this.JWT_REFRESH_SECRET);
+  }
+}
 
-module.exports = {
-  generateAccessToken,
-  generateRefreshToken,
-  verifyAccessToken,
-  verifyRefreshToken,
-};
+module.exports = TokenService;

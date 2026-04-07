@@ -25,7 +25,5 @@ class PersonalTaskRepository {
   }
 }
 
-module.exports = new PersonalTaskRepository({
-  PersonalTask: require('../entities/PersonalTask'),
-});
+module.exports = PersonalTaskRepository;
 

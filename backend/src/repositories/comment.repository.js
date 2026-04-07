@@ -25,7 +25,5 @@ class CommentRepository {
   }
 }
 
-module.exports = new CommentRepository({
-  Comment: require('../entities/Comment'),
-});
+module.exports = CommentRepository;
 

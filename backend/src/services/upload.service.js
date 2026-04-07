@@ -9,4 +9,4 @@ class UploadService {
   }
 }
 
-module.exports = new UploadService();
+module.exports = UploadService;
