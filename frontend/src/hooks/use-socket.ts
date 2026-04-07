@@ -277,6 +277,40 @@ export const useProjectSocket = (
 };
 
 /**
+ * Hook dành cho Dashboard của User.
+ * Lắng nghe các sự kiện ảnh hưởng đến thống kê và hoạt động gần đây.
+ */
+export const useDashboardSocket = () => {
+  const { isSocketInitialized } = useAuthStore();
+  const queryClient = useQueryClient();
+
+  useEffect(() => {
+    const socket = getSocket();
+    if (!socket || !isSocketInitialized) return;
+
+    const onDashboardUpdated = () => {
+      console.log('[Socket] Dashboard updated event received');
+      queryClient.invalidateQueries({ queryKey: ["dashboard-stats"] });
+    };
+
+    // Khi có hoạt động mới trong bất kỳ dự án nào user tham gia,
+    // (Backend đã được cập nhật để emit activity:created tới user room)
+    const onActivityCreated = (activity: any) => {
+      console.log('[Socket] Activity created (Dashboard sync):', activity);
+      queryClient.invalidateQueries({ queryKey: ["dashboard-stats"] });
+    };
+
+    socket.on('dashboard:updated', onDashboardUpdated);
+    socket.on('activity:created', onActivityCreated);
+
+    return () => {
+      socket.off('dashboard:updated', onDashboardUpdated);
+      socket.off('activity:created', onActivityCreated);
+    };
+  }, [isSocketInitialized, queryClient]);
+};
+
+/**
  * Hook dành riêng cho trang Quản lý Dự án của Admin.
  * Lắng nghe các sự kiện tạo/sửa/xóa từ các Admin khác để đồng bộ danh sách.
  * 

@@ -1,6 +1,7 @@
 class ActivityService {
-  constructor({ ActivityLog, emitActivityCreated }) {
+  constructor({ ActivityLog, Project, emitActivityCreated }) {
     this.ActivityLog = ActivityLog;
+    this.Project = Project;
     this.emitActivityCreated = emitActivityCreated;
   }
 
@@ -18,7 +19,26 @@ class ActivityService {
 
     const populated = await this.ActivityLog.findById(activity._id).populate('userId', 'displayName email avatarUrl');
 
+    // Emit to project room
     this.emitActivityCreated(projectId, populated);
+
+    // Emit to each member's personal room for dashboard update
+    try {
+      const project = await this.Project.findById(projectId).select('members').lean();
+      if (project && project.members) {
+        project.members.forEach(member => {
+          if (member.status === 'active') {
+             const userRoom = `user:${member.userId}`;
+             // Notify specific activity (for activity feed)
+             this.emitActivityCreated(userRoom, populated);
+             // Notify dashboard stats refresh
+             getIO().to(userRoom).emit('dashboard:updated');
+          }
+        });
+      }
+    } catch (err) {
+      console.error('[ActivityService] Dashboard real-time emit failed:', err);
+    }
 
     return populated;
   }
@@ -42,5 +62,6 @@ class ActivityService {
 
 module.exports = new ActivityService({
   ActivityLog: require('../entities/ActivityLog'),
+  Project: require('../entities/Project'),
   emitActivityCreated: require('../sockets/activity.socket').emitActivityCreated,
 });

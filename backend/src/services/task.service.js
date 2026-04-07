@@ -30,6 +30,12 @@ class TaskService {
     const task = await this.taskRepository.createTask(taskData, files);
 
     this.taskSocket.emitTaskCreated(column.projectId.toString(), task);
+    
+    // Notify creator and assignees for dashboard
+    this.taskSocket.emitDashboardUpdated(taskData.creatorId.toString());
+    if (task.assignees) {
+      task.assignees.forEach(id => this.taskSocket.emitDashboardUpdated(id.toString()));
+    }
 
     const taskWithCreator = await this.Task.findById(task._id).populate('creatorId', 'displayName email').lean();
     
@@ -122,6 +128,14 @@ class TaskService {
     if (column) {
       const projectId = column.projectId.toString();
       this.taskSocket.emitTaskUpdated(projectId, updatedTask);
+
+      // Notify involved users for dashboard refresh
+      const affectedUsers = new Set();
+      if (oldTask.creatorId) affectedUsers.add(oldTask.creatorId.toString());
+      if (oldTask.assignees) oldTask.assignees.forEach(a => affectedUsers.add(a._id.toString()));
+      if (updatedTask.assignees) updatedTask.assignees.forEach(a => affectedUsers.add(a._id.toString()));
+      
+      affectedUsers.forEach(uid => this.taskSocket.emitDashboardUpdated(uid));
 
       const differences = {};
       const fields = Object.keys(updateData).filter(k => k !== 'assignees' && k !== 'fileIds');
@@ -254,6 +268,13 @@ class TaskService {
     const column = await this.Column.findById(columnId).select("projectId title").lean();
     if (column) {
       this.taskSocket.emitTaskDeleted(column.projectId.toString(), taskId, columnId);
+
+      // Notify involved users for dashboard refresh
+      const affectedUsers = new Set();
+      if (task.creatorId) affectedUsers.add(task.creatorId.toString());
+      if (task.assignees) task.assignees.forEach(a => affectedUsers.add(a.toString()));
+      
+      affectedUsers.forEach(uid => this.taskSocket.emitDashboardUpdated(uid));
       await this.activityService.createActivityLog({
         projectId: column.projectId,
         userId,
@@ -307,6 +328,13 @@ class TaskService {
         sourceTaskIds,
         destinationTaskIds,
       });
+
+      // Notify involved users for dashboard refresh
+      const affectedUsers = new Set();
+      if (task.creatorId) affectedUsers.add(task.creatorId.toString());
+      if (task.assignees) task.assignees.forEach(a => affectedUsers.add(a.toString()));
+      
+      affectedUsers.forEach(uid => this.taskSocket.emitDashboardUpdated(uid));
       const sourceCol = await this.Column.findById(sourceColumnId).select('title').lean();
       const destCol = await this.Column.findById(destinationColumnId).select('title').lean();
 
@@ -408,5 +436,6 @@ module.exports = new TaskService({
     emitTaskUpdated: require('../sockets/task.socket').emitTaskUpdated,
     emitTaskDeleted: require('../sockets/task.socket').emitTaskDeleted,
     emitTaskMoved: require('../sockets/task.socket').emitTaskMoved,
+    emitDashboardUpdated: require('../sockets/task.socket').emitDashboardUpdated,
   },
 });

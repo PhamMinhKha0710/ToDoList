@@ -31,16 +31,20 @@ import { ROUTES } from "@/constants/routes";
 import { useState } from "react";
 import { CreateProjectModal } from "@/components/project/CreateProjectModal";
 import relativeTime from "dayjs/plugin/relativeTime";
+import { useDashboardSocket } from "@/hooks/use-socket";
 
 dayjs.extend(relativeTime);
 
 const DashboardPage = () => {
   const [isCreateProjectOpen, setIsCreateProjectOpen] = useState(false);
   
+  // Initialize real-time dashboard socket listeners
+  useDashboardSocket();
+  
   const { data, isLoading, error } = useQuery({
     queryKey: ["dashboard-stats"],
     queryFn: dashboardService.getStats,
-    refetchInterval: 60000, // Refresh every minute
+    // refetchInterval is no longer needed with real-time socket updates
   });
 
   if (isLoading) {
