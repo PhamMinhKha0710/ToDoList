@@ -50,8 +50,4 @@ class PersonalTaskService {
   }
 }
 
-module.exports = new PersonalTaskService({
-  personalTaskRepository: require('../repositories/personalTask.repository'),
-  ApiError: require('../utils/ApiError'),
-  emitDashboardUpdated: require('../sockets/task.socket').emitDashboardUpdated,
-});
+module.exports = PersonalTaskService;

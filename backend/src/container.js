@@ -50,7 +50,7 @@ const AttachmentRepository = require('./repositories/attachment.repository');
 const PersonalTaskRepository = require('./repositories/personalTask.repository');
 
 // ─── Instantiate Repositories ─────────────────────────────────────────────────
-const projectRepository = new ProjectRepository({ Project });
+const projectRepository = new ProjectRepository({ Project, Column, Task });
 const taskRepository = new TaskRepository({
   Task,
   Attachment,
@@ -65,6 +65,7 @@ const personalTaskRepository = new PersonalTaskRepository({ PersonalTask });
 // ─── Socket Emitters ──────────────────────────────────────────────────────────
 const { emitNotification } = require('./sockets/notification.socket');
 const { emitActivityCreated } = require('./sockets/activity.socket');
+const { emitDashboardUpdated } = require('./sockets/task.socket');
 
 // ─── Utils/Encryption ─────────────────────────────────────────────────────────
 const encryption = require('./utils/encryption');
@@ -108,12 +109,15 @@ const AttachmentService = require('./services/attachment.service');
 const AdminService = require('./services/admin/admin.service');
 const TwoFactorService = require('./services/twoFactor.service');
 const UploadService = require('./services/upload.service');
+const UserDashboardService = require('./services/user-dashboard.service');
 
 // ─── Instantiate Main Services ──────────────────────────────────────────────────
 
 const activityService = new ActivityService({
   ActivityLog,
+  Project,
   emitActivityCreated,
+  getIO,
 });
 
 const notificationService = new NotificationService({
@@ -175,6 +179,7 @@ const userService = new UserService({
 const personalTaskService = new PersonalTaskService({
   personalTaskRepository,
   ApiError,
+  emitDashboardUpdated,
 });
 
 const attachmentService = new AttachmentService({
@@ -199,6 +204,13 @@ const twoFactorService = new TwoFactorService();
 
 const uploadService = new UploadService();
 
+const userDashboardService = new UserDashboardService({
+  PersonalTask,
+  Task,
+  Project,
+  ActivityLog,
+});
+
 // ─── Controllers (Import Classes) ────────────────────────────────────────────
 const ProjectController = require('./controllers/project.controller');
 const TaskController = require('./controllers/task.controller');
@@ -213,6 +225,7 @@ const AuthController = require('./controllers/auth.controller');
 const AdminController = require('./controllers/admin/admin.controller');
 const TwoFactorController = require('./controllers/twoFactor.controller');
 const UploadController = require('./controllers/upload.controller');
+const UserDashboardController = require('./controllers/user-dashboard.controller');
 
 // ─── Instantiate Controllers ─────────────────────────────────────────────────
 
@@ -229,6 +242,7 @@ const authController = new AuthController({ authService, ApiResponse, catchAsync
 const adminController = new AdminController({ adminService, ApiResponse, catchAsync });
 const twoFactorController = new TwoFactorController({ twoFactorService, authService, ApiError, ApiResponse, catchAsync });
 const uploadController = new UploadController({ uploadService, ApiError, ApiResponse, catchAsync });
+const userDashboardController = new UserDashboardController({ userDashboardService, ApiResponse, catchAsync });
 
 // ─── Export Container ─────────────────────────────────────────────────────────
 
@@ -247,6 +261,9 @@ module.exports = {
   adminService,
   twoFactorService,
   uploadService,
+  userDashboardService,
+  tokenService,
+  mailService,
 
   // Controllers
   projectController,
@@ -262,4 +279,5 @@ module.exports = {
   adminController,
   twoFactorController,
   uploadController,
+  userDashboardController,
 };

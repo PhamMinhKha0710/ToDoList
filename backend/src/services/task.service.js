@@ -174,10 +174,4 @@ class TaskService {
   }
 }
 
-module.exports = new TaskService({
-  taskRepository: require('../repositories/task.repository'),
-  Column: require('../entities/Column'),
-  Task: require('../entities/Task'),
-  ApiError: require('../utils/ApiError'),
-  mongoose: require('mongoose'),
-});
+module.exports = TaskService;

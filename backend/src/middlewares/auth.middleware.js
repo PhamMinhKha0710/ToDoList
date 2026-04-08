@@ -1,4 +1,4 @@
-const { verifyAccessToken } = require("../services/token.service");
+const { tokenService } = require("../container");
 const ApiError = require("../utils/ApiError");
 const catchAsync = require("../utils/catchAsync");
 
@@ -13,7 +13,7 @@ const authenticate = catchAsync(async (req, res, next) => {
   }
 
   const token = authHeader.split(" ")[1];
-  const payload = verifyAccessToken(token);
+  const payload = tokenService.verifyAccessToken(token);
   // console.log("payload: ", payload);
   req.user = payload; // { _id, role, email, displayName }
   next();

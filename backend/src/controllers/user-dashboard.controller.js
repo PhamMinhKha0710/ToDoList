@@ -1,14 +1,15 @@
-const userDashboardService = require('../services/user-dashboard.service');
 const catchAsync = require('../utils/catchAsync');
+const ApiResponse = require('../utils/ApiResponse');
 
-const getDashboardStats = catchAsync(async (req, res) => {
-  const stats = await userDashboardService.getDashboardStats(req.user._id);
-  res.json({
-    success: true,
-    data: stats
+class UserDashboardController {
+  constructor({ userDashboardService }) {
+    this.userDashboardService = userDashboardService;
+  }
+
+  getDashboardStats = catchAsync(async (req, res) => {
+    const stats = await this.userDashboardService.getDashboardStats(req.user._id);
+    new ApiResponse(200, 'Lấy thống kê dashboard thành công', stats).send(res);
   });
-});
+}
 
-module.exports = {
-  getDashboardStats
-};
+module.exports = UserDashboardController;

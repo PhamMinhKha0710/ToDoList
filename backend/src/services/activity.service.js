@@ -1,8 +1,9 @@
 class ActivityService {
-  constructor({ ActivityLog, Project, emitActivityCreated }) {
+  constructor({ ActivityLog, Project, emitActivityCreated, getIO }) {
     this.ActivityLog = ActivityLog;
     this.Project = Project;
     this.emitActivityCreated = emitActivityCreated;
+    this.getIO = getIO;
   }
 
   async createActivityLog({ projectId, userId, action, entityType, entityId, detail }) {
@@ -32,7 +33,7 @@ class ActivityService {
              // Notify specific activity (for activity feed)
              this.emitActivityCreated(userRoom, populated);
              // Notify dashboard stats refresh
-             getIO().to(userRoom).emit('dashboard:updated');
+             this.getIO().to(userRoom).emit('dashboard:updated');
           }
         });
       }
@@ -60,8 +61,5 @@ class ActivityService {
   }
 }
 
-module.exports = new ActivityService({
-  ActivityLog: require('../entities/ActivityLog'),
-  Project: require('../entities/Project'),
-  emitActivityCreated: require('../sockets/activity.socket').emitActivityCreated,
-});
+
+module.exports = ActivityService;

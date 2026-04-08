@@ -1,9 +1,11 @@
-const PersonalTask = require('../entities/PersonalTask');
-const Task = require('../entities/Task');
-const Project = require('../entities/Project');
-const ActivityLog = require('../entities/ActivityLog');
-
 class UserDashboardService {
+  constructor({ PersonalTask, Task, Project, ActivityLog }) {
+    this.PersonalTask = PersonalTask;
+    this.Task = Task;
+    this.Project = Project;
+    this.ActivityLog = ActivityLog;
+  }
+
   async getDashboardStats(userId) {
     const now = new Date();
     
@@ -22,14 +24,14 @@ class UserDashboardService {
     }
 
     const [personalTasks, projectTasks, userProjects] = await Promise.all([
-      PersonalTask.find({ userId }).lean(),
-      Task.find({ assignees: userId }).populate('columnId').lean(),
-      Project.find({ 'members.userId': userId, 'members.status': 'active' }).select('_id name').lean(),
+      this.PersonalTask.find({ userId }).lean(),
+      this.Task.find({ assignees: userId }).populate('columnId').lean(),
+      this.Project.find({ 'members.userId': userId, 'members.status': 'active' }).select('_id name').lean(),
     ]);
 
     const projectIds = userProjects.map(p => p._id);
 
-    const activityLogs = await ActivityLog.find({
+    const activityLogs = await this.ActivityLog.find({
       $or: [
         { userId: userId },
         { projectId: { $in: projectIds } }
@@ -96,4 +98,4 @@ class UserDashboardService {
   }
 }
 
-module.exports = new UserDashboardService();
+module.exports = UserDashboardService;
